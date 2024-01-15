@@ -27,15 +27,19 @@ pub struct Closure {
     params: Vec<Expr>,
     body: Vec<Expr>,
 }
+#[derive(Debug, PartialEq)]
+pub enum Primitive {
+    Int(i64),
+    Float(f64),
+    String(String),
+    Bool(bool),
+}
 pub enum Expr {
     BinaryOp(Box<BinaryOp>),
     AsignmentExpr(AsignmentExpr),
     Closure(Closure),
     Call(Call),
-    Int(i64),
-    Float(f64),
-    String(String),
-    Bool(bool),
+    Primitive(Primitive),
     Symbol(String),
     Void,
 }

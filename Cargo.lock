@@ -6,6 +6,14 @@ version = 3
 name = "dashlang"
 version = "0.1.0"
 dependencies = [
+ "eval",
+ "tokens",
+]
+
+[[package]]
+name = "eval"
+version = "0.1.0"
+dependencies = [
  "tokens",
 ]
 
