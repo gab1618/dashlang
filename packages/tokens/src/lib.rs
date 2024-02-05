@@ -17,9 +17,18 @@ pub enum BinaryOpType {
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct BinaryOp {
-    pub left: Box<Expr>,
-    pub right: Box<Expr>,
+    pub left: Expr,
+    pub right: Expr,
     pub op_type: BinaryOpType,
+}
+impl BinaryOp {
+    pub fn new(left: Expr, right: Expr, op_type: BinaryOpType) -> Self {
+        Self {
+            left,
+            right,
+            op_type,
+        }
+    }
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Call {
@@ -34,7 +43,7 @@ pub struct Closure {
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
-    BinaryOp(BinaryOp),
+    BinaryOp(Box<BinaryOp>),
     AsignmentExpr(AsignmentExpr),
     Closure(Closure),
     Call(Call),
