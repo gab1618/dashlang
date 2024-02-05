@@ -1,7 +1,9 @@
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct AsignmentExpr {
-    symbol: String,
-    value: Box<Expr>,
+    pub symbol: String,
+    pub value: Box<Expr>,
 }
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum BinaryOpType {
     Add,
     Sub,
@@ -13,33 +15,33 @@ pub enum BinaryOpType {
     Lt, // Less than
     Le, // Less of equal than
 }
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct BinaryOp {
-    left: Expr,
-    right: Expr,
-    op_type: BinaryOpType,
+    pub left: Box<Expr>,
+    pub right: Box<Expr>,
+    pub op_type: BinaryOpType,
 }
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Call {
     symbol: String,
     args: Vec<Expr>,
 }
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Closure {
     symbol: String,
     params: Vec<Expr>,
     body: Vec<Expr>,
 }
-#[derive(Debug, PartialEq)]
-pub enum Primitive {
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum Expr {
+    BinaryOp(BinaryOp),
+    AsignmentExpr(AsignmentExpr),
+    Closure(Closure),
+    Call(Call),
+    Symbol(String),
     Int(i64),
     Float(f64),
     String(String),
     Bool(bool),
-}
-pub enum Expr {
-    BinaryOp(Box<BinaryOp>),
-    AsignmentExpr(AsignmentExpr),
-    Closure(Closure),
-    Call(Call),
-    Primitive(Primitive),
-    Symbol(String),
-    Void,
+    Null,
 }
