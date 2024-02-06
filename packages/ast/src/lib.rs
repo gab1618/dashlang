@@ -14,6 +14,8 @@ pub enum BinaryOpType {
     Ge, // Greater or equal than
     Lt, // Less than
     Le, // Less of equal than
+    And,
+    Or,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct BinaryOp {

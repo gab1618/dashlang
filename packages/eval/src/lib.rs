@@ -10,13 +10,6 @@ pub trait Scope {
 struct HashScope {
     memory: HashMap<String, Expr>,
 }
-impl HashScope {
-    fn new() -> Self {
-        HashScope {
-            memory: HashMap::new(),
-        }
-    }
-}
 impl Scope for HashScope {
     fn get(&self, symbol: String) -> Expr {
         match self.memory.get(&symbol) {
@@ -63,6 +56,18 @@ macro_rules! define_boolean_operation {
     };
 }
 
+fn is_truthy(expr: Expr, scope: &mut dyn Scope) -> bool {
+    match expr {
+        Expr::Closure(_) => true,
+        Expr::Int(num) => num != 0,
+        Expr::Float(num) => num != 0.0,
+        Expr::String(string) => !string.is_empty(),
+        Expr::Bool(val) => val,
+        Expr::Null => false,
+        expr => is_truthy(eval(expr, scope), scope),
+    }
+}
+
 pub fn eval_binary_op(op: BinaryOp, scope: &mut dyn Scope) -> Expr {
     match op.op_type {
         BinaryOpType::Add => define_aritmetic_operation!(+, op, scope),
@@ -74,6 +79,8 @@ pub fn eval_binary_op(op: BinaryOp, scope: &mut dyn Scope) -> Expr {
         BinaryOpType::Ge => define_boolean_operation!(>=, op, scope),
         BinaryOpType::Lt => define_boolean_operation!(<, op, scope),
         BinaryOpType::Le => define_boolean_operation!(<=, op, scope),
+        BinaryOpType::Or => todo!(),
+        BinaryOpType::And => todo!(),
     }
 }
 
@@ -101,9 +108,17 @@ mod tests {
     use ast::AsignmentExpr;
 
     use super::*;
+
+    macro_rules! hash_scope {
+        () => {
+            HashScope {
+                memory: HashMap::new(),
+            }
+        };
+    }
     #[test]
     fn eval_primtitive() {
-        let mut scope = HashScope::new();
+        let mut scope = hash_scope!();
         let result = eval(Expr::Int(1), &mut scope);
         let expected = Expr::Int(1);
         assert_eq!(result, expected);
@@ -133,7 +148,7 @@ mod tests {
     }
     #[test]
     fn eval_add_operation() {
-        let mut scope = HashScope::new();
+        let mut scope = hash_scope!();
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
                 Expr::Int(2),
@@ -154,7 +169,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn try_operate_string() {
-        let mut scope = HashScope::new();
+        let mut scope = hash_scope!();
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
             Expr::String(String::from("Gab")),
@@ -165,7 +180,7 @@ mod tests {
     }
     #[test]
     fn eval_sub_operation() {
-        let mut scope = HashScope::new();
+        let mut scope = hash_scope!();
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
                 Expr::Int(8),
@@ -185,7 +200,7 @@ mod tests {
     }
     #[test]
     fn eval_multiplication() {
-        let mut scope = HashScope::new();
+        let mut scope = hash_scope!();
 
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
@@ -206,7 +221,7 @@ mod tests {
     }
     #[test]
     fn eval_division() {
-        let mut scope = HashScope::new();
+        let mut scope = hash_scope!();
 
         scope.set(String::from("age"), Expr::Int(10));
 
@@ -229,7 +244,7 @@ mod tests {
     }
     #[test]
     fn eval_gt() {
-        let mut scope = HashScope::new();
+        let mut scope = hash_scope!();
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
             Expr::Int(8),
@@ -239,5 +254,44 @@ mod tests {
         let result = eval(op, &mut scope);
         let expected = Expr::Bool(true);
         assert_eq!(result, expected);
+    }
+    #[test]
+    fn truthy_or_falsy() {
+        let mut scope = hash_scope!();
+
+        assert_eq!(is_truthy(Expr::Null, &mut scope), false);
+        assert_eq!(is_truthy(Expr::String(String::from("")), &mut scope), false);
+        assert_eq!(
+            is_truthy(Expr::String(String::from("Test")), &mut scope),
+            true
+        );
+        assert_eq!(is_truthy(Expr::Bool(true), &mut scope), true);
+        assert_eq!(is_truthy(Expr::Bool(false), &mut scope), false);
+        assert_eq!(is_truthy(Expr::Int(0), &mut scope), false);
+        assert_eq!(is_truthy(Expr::Int(1), &mut scope), true);
+        assert_eq!(is_truthy(Expr::Float(1.1), &mut scope), true);
+        assert_eq!(is_truthy(Expr::Float(0.0), &mut scope), false);
+        assert_eq!(
+            is_truthy(
+                Expr::BinaryOp(Box::new(BinaryOp::new(
+                    Expr::Int(4),
+                    Expr::Int(7),
+                    BinaryOpType::Add
+                ))),
+                &mut scope
+            ),
+            true
+        );
+        assert_eq!(
+            is_truthy(
+                Expr::BinaryOp(Box::new(BinaryOp::new(
+                    Expr::Int(4),
+                    Expr::Int(4),
+                    BinaryOpType::Sub
+                ))),
+                &mut scope
+            ),
+            false
+        );
     }
 }
