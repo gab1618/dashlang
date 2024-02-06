@@ -6,13 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [workspace]
 members = [
-  "packages/tokens",
+  "packages/ast",
   "packages/eval"
 ]
 
 [workspace.dependencies]
-tokens = {path = "packages/tokens"}
+ast = {path = "packages/ast"}
 
 [dependencies]
-tokens = {path = "packages/tokens"}
+ast = {path = "packages/ast"}
 eval = {path = "packages/eval"}

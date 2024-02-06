@@ -3,20 +3,20 @@
 version = 3
 
 [[package]]
+name = "ast"
+version = "0.1.0"
+
+[[package]]
 name = "dashlang"
 version = "0.1.0"
 dependencies = [
+ "ast",
  "eval",
- "tokens",
 ]
 
 [[package]]
 name = "eval"
 version = "0.1.0"
 dependencies = [
- "tokens",
+ "ast",
 ]
-
-[[package]]
-name = "tokens"
-version = "0.1.0"

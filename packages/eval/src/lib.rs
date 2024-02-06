@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use tokens::{BinaryOp, BinaryOpType, Expr};
+use ast::{BinaryOp, BinaryOpType, Expr};
 
 pub trait Scope {
     fn get(&self, symbol: String) -> Expr;
@@ -98,7 +98,7 @@ pub fn eval(expr: Expr, scope: &mut dyn Scope) -> Expr {
 
 #[cfg(test)]
 mod tests {
-    use tokens::AsignmentExpr;
+    use ast::AsignmentExpr;
 
     use super::*;
     #[test]
