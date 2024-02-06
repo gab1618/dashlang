@@ -31,56 +31,49 @@ impl Scope for HashScope {
 }
 
 macro_rules! define_aritmetic_operation {
-    ($operator:tt, $op:expr) => {
+    ($operator:tt, $op:expr, $scope:expr) => {
         match ($op.left, $op.right) {
             (Expr::Int(left), Expr::Int(right)) => Expr::Int(left $operator right),
             (Expr::Float(left), Expr::Int(right)) => Expr::Float(left $operator (right as f64)),
             (Expr::Int(left), Expr::Float(right)) => Expr::Float((left as f64) $operator right),
             (Expr::Float(left), Expr::Float(right)) => Expr::Float(left $operator right),
-            (Expr::BinaryOp(left), right) => {
-                let new_op = BinaryOp::new(eval_binary_op(*left), right, $op.op_type);
-                eval_binary_op(new_op)
+            (Expr::String(_), _) => panic!("Unsuported operation"),
+            (_, Expr::String(_)) => panic!("Unsuported operation"),
+            (left, right) => {
+                let new_op = BinaryOp::new(eval(left, $scope), eval(right, $scope), $op.op_type);
+                eval_binary_op(new_op, $scope)
             }
-            (left, Expr::BinaryOp(right)) => {
-                let new_op = BinaryOp::new(left, eval_binary_op(*right), $op.op_type);
-                eval_binary_op(new_op)
-            }
-            _ => Expr::Null,
         }
     };
 }
 macro_rules! define_boolean_operation {
-    ($operator:tt, $op:expr) => {
+    ($operator:tt, $op:expr, $scope:expr) => {
         match ($op.left, $op.right) {
             (Expr::Int(left), Expr::Int(right)) => Expr::Bool(left $operator right),
             (Expr::Float(left), Expr::Float(right)) => Expr::Bool(left $operator right),
             (Expr::Float(left), Expr::Int(right)) => Expr::Bool(left $operator (right as f64)),
             (Expr::Int(left), Expr::Float(right)) => Expr::Bool((left as f64) $operator right),
-            (Expr::Bool(left), Expr::Bool(right)) => Expr::Bool(left $operator right),
-            (Expr::BinaryOp(left), right) => {
-                let sub_op = BinaryOp::new(eval_binary_op(*left), right, $op.op_type);
-                eval_binary_op(sub_op)
+            (Expr::String(_), _) => panic!("Unsuported operation"),
+            (_, Expr::String(_)) => panic!("Unsuported operation"),
+            (left, right) => {
+                let new_op = BinaryOp::new(eval(left, $scope), eval(right, $scope), $op.op_type);
+                eval_binary_op(new_op, $scope)
             }
-            (left, Expr::BinaryOp(right)) => {
-                let sub_op = BinaryOp::new(left, eval_binary_op(*right), $op.op_type);
-                eval_binary_op(sub_op)
-            }
-            _ => Expr::Null,
         }
     };
 }
 
-pub fn eval_binary_op(op: BinaryOp) -> Expr {
+pub fn eval_binary_op(op: BinaryOp, scope: &mut dyn Scope) -> Expr {
     match op.op_type {
-        BinaryOpType::Add => define_aritmetic_operation!(+, op),
-        BinaryOpType::Sub => define_aritmetic_operation!(-, op),
-        BinaryOpType::Mul => define_aritmetic_operation!(*, op),
-        BinaryOpType::Div => define_aritmetic_operation!(/, op),
-        BinaryOpType::Gt => define_boolean_operation!(>, op),
-        BinaryOpType::Eq => define_boolean_operation!(==, op),
-        BinaryOpType::Ge => define_boolean_operation!(>=, op),
-        BinaryOpType::Lt => define_boolean_operation!(<, op),
-        BinaryOpType::Le => define_boolean_operation!(<=, op),
+        BinaryOpType::Add => define_aritmetic_operation!(+, op, scope),
+        BinaryOpType::Sub => define_aritmetic_operation!(-, op, scope),
+        BinaryOpType::Mul => define_aritmetic_operation!(*, op, scope),
+        BinaryOpType::Div => define_aritmetic_operation!(/, op, scope),
+        BinaryOpType::Gt => define_boolean_operation!(>, op, scope),
+        BinaryOpType::Eq => define_boolean_operation!(==, op, scope),
+        BinaryOpType::Ge => define_boolean_operation!(>=, op, scope),
+        BinaryOpType::Lt => define_boolean_operation!(<, op, scope),
+        BinaryOpType::Le => define_boolean_operation!(<=, op, scope),
     }
 }
 
@@ -91,7 +84,7 @@ pub fn eval(expr: Expr, scope: &mut dyn Scope) -> Expr {
         Expr::Null => Expr::Null,
         Expr::String(val) => Expr::String(val),
         Expr::Bool(val) => Expr::Bool(val),
-        Expr::BinaryOp(op) => eval_binary_op(*op),
+        Expr::BinaryOp(op) => eval_binary_op(*op, scope),
         Expr::AsignmentExpr(asign) => {
             let evaluated = eval(*asign.value, scope);
             scope.set(asign.symbol, evaluated.clone());
@@ -159,6 +152,18 @@ mod tests {
         assert_eq!(result, expected);
     }
     #[test]
+    #[should_panic]
+    fn try_operate_string() {
+        let mut scope = HashScope::new();
+
+        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+            Expr::String(String::from("Gab")),
+            Expr::String(String::from("riel")),
+            BinaryOpType::Add,
+        )));
+        eval(op, &mut scope);
+    }
+    #[test]
     fn eval_sub_operation() {
         let mut scope = HashScope::new();
         let op = Expr::BinaryOp(Box::new(BinaryOp {
@@ -203,10 +208,12 @@ mod tests {
     fn eval_division() {
         let mut scope = HashScope::new();
 
+        scope.set(String::from("age"), Expr::Int(10));
+
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
-                Expr::Int(6),
-                Expr::Int(3),
+                Expr::Symbol(String::from("age")),
+                Expr::Int(2),
                 BinaryOpType::Div,
             ))),
             right: Expr::BinaryOp(Box::new(BinaryOp::new(
@@ -217,7 +224,7 @@ mod tests {
             op_type: BinaryOpType::Add,
         }));
         let result = eval(op, &mut scope);
-        let expected = Expr::Float(12.0);
+        let expected = Expr::Float(15.0);
         assert_eq!(result, expected);
     }
     #[test]
