@@ -34,14 +34,13 @@ impl BinaryOp {
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Call {
-    symbol: String,
-    args: Vec<Expr>,
+    pub symbol: String,
+    pub args: Vec<Expr>,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Closure {
-    symbol: String,
-    params: Vec<Expr>,
-    body: Vec<Expr>,
+    pub params: Vec<Expr>,
+    pub body: Vec<Expr>,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {

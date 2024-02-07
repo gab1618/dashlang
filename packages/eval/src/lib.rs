@@ -86,20 +86,22 @@ pub fn eval_binary_op(op: BinaryOp, scope: &mut dyn Scope) -> Expr {
 
 pub fn eval(expr: Expr, scope: &mut dyn Scope) -> Expr {
     match expr {
-        Expr::Int(val) => Expr::Int(val),
-        Expr::Float(val) => Expr::Float(val),
-        Expr::Null => Expr::Null,
-        Expr::String(val) => Expr::String(val),
-        Expr::Bool(val) => Expr::Bool(val),
         Expr::BinaryOp(op) => eval_binary_op(*op, scope),
         Expr::AsignmentExpr(asign) => {
             let evaluated = eval(*asign.value, scope);
             scope.set(asign.symbol, evaluated.clone());
             evaluated
         }
-        Expr::Closure(_) => todo!(),
-        Expr::Call(_) => todo!(),
+        Expr::Call(call) => {
+            let found = scope.get(call.symbol.clone());
+            if let Expr::Closure(closure) = found {
+                Expr::Bool(true)
+            } else {
+                panic!("Cannot call {}: not callable", call.symbol);
+            }
+        }
         Expr::Symbol(symbol) => scope.get(symbol),
+        val => val,
     }
 }
 
