@@ -79,8 +79,8 @@ pub fn eval_binary_op(op: BinaryOp, scope: &mut dyn Scope) -> Expr {
         BinaryOpType::Ge => define_boolean_operation!(>=, op, scope),
         BinaryOpType::Lt => define_boolean_operation!(<, op, scope),
         BinaryOpType::Le => define_boolean_operation!(<=, op, scope),
-        BinaryOpType::Or => todo!(),
-        BinaryOpType::And => todo!(),
+        BinaryOpType::Or => Expr::Bool(is_truthy(op.left, scope) || is_truthy(op.right, scope)),
+        BinaryOpType::And => Expr::Bool(is_truthy(op.left, scope) && is_truthy(op.right, scope)),
     }
 }
 
@@ -293,5 +293,36 @@ mod tests {
             ),
             false
         );
+    }
+    #[test]
+    fn logical_operations() {
+        let mut scope = hash_scope!();
+        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+            Expr::Bool(true),
+            Expr::Bool(false),
+            BinaryOpType::Or,
+        )));
+        assert_eq!(eval(op, &mut scope), Expr::Bool(true));
+
+        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+            Expr::Bool(true),
+            Expr::Bool(false),
+            BinaryOpType::And,
+        )));
+        assert_eq!(eval(op, &mut scope), Expr::Bool(false));
+
+        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+            Expr::Bool(true),
+            Expr::Bool(true),
+            BinaryOpType::And,
+        )));
+        assert_eq!(eval(op, &mut scope), Expr::Bool(true));
+
+        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+            Expr::Bool(false),
+            Expr::Bool(false),
+            BinaryOpType::Or,
+        )));
+        assert_eq!(eval(op, &mut scope), Expr::Bool(false));
     }
 }
