@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-use ast::{BinaryOp, BinaryOpType, Expr};
+use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Stmt};
 
 pub trait Scope {
     fn get(&self, symbol: String) -> Expr;
     fn set(&mut self, symbol: String, val: Expr);
 }
 #[derive(Clone)]
-struct HashScope {
+pub struct HashScope {
     memory: HashMap<String, Expr>,
 }
 impl Scope for HashScope {
@@ -56,7 +56,7 @@ macro_rules! define_boolean_operation {
     };
 }
 
-fn is_truthy(expr: Expr, scope: &mut dyn Scope) -> bool {
+fn is_truthy(expr: Expr, scope: &mut HashScope) -> bool {
     match expr {
         Expr::Closure(_) => true,
         Expr::Int(num) => num != 0,
@@ -68,7 +68,7 @@ fn is_truthy(expr: Expr, scope: &mut dyn Scope) -> bool {
     }
 }
 
-pub fn eval_binary_op(op: BinaryOp, scope: &mut dyn Scope) -> Expr {
+pub fn eval_binary_op(op: BinaryOp, scope: &mut HashScope) -> Expr {
     match op.op_type {
         BinaryOpType::Add => define_aritmetic_operation!(+, op, scope),
         BinaryOpType::Sub => define_aritmetic_operation!(-, op, scope),
@@ -84,7 +84,37 @@ pub fn eval_binary_op(op: BinaryOp, scope: &mut dyn Scope) -> Expr {
     }
 }
 
-pub fn eval(expr: Expr, scope: &mut dyn Scope) -> Expr {
+fn eval_call(call: Call, scope: &HashScope) -> Expr {
+    let found = scope.get(call.symbol.clone());
+    if let Expr::Closure(closure) = found {
+        let mut local_scope = scope.clone();
+        let mut args = call.args.into_iter();
+        for param in closure.params {
+            // Inject all arguments into local scope
+            local_scope.set(
+                param.to_string(),
+                args.next().expect("Incorrect number of arguments"),
+            );
+        }
+        for instruction in closure.body {
+            match instruction {
+                Instruction::Expr(expr) => {
+                    eval(expr, &mut local_scope);
+                }
+                Instruction::Stmt(stmt) => match stmt {
+                    Stmt::Return(val) => {
+                        return eval(val, &mut local_scope);
+                    }
+                },
+            }
+        }
+        Expr::Null
+    } else {
+        panic!("Cannot call {}: not callable", call.symbol);
+    }
+}
+
+pub fn eval(expr: Expr, scope: &mut HashScope) -> Expr {
     match expr {
         Expr::BinaryOp(op) => eval_binary_op(*op, scope),
         Expr::AsignmentExpr(asign) => {
@@ -92,14 +122,7 @@ pub fn eval(expr: Expr, scope: &mut dyn Scope) -> Expr {
             scope.set(asign.symbol, evaluated.clone());
             evaluated
         }
-        Expr::Call(call) => {
-            let found = scope.get(call.symbol.clone());
-            if let Expr::Closure(closure) = found {
-                Expr::Bool(true)
-            } else {
-                panic!("Cannot call {}: not callable", call.symbol);
-            }
-        }
+        Expr::Call(call) => eval_call(call, scope),
         Expr::Symbol(symbol) => scope.get(symbol),
         val => val,
     }
@@ -326,5 +349,24 @@ mod tests {
             BinaryOpType::Or,
         )));
         assert_eq!(eval(op, &mut scope), Expr::Bool(false));
+    }
+    #[test]
+    fn test_eval_call() {
+        let mut scope = hash_scope!();
+        scope.set(
+            String::from("greet"),
+            Expr::Closure(ast::Closure {
+                params: vec![String::from("name")],
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Symbol(String::from(
+                    "name",
+                ))))],
+            }),
+        );
+        let call = Expr::Call(Call {
+            symbol: String::from("greet"),
+            args: vec![Expr::String(String::from("John"))],
+        });
+        let result = eval(call, &mut scope);
+        assert_eq!(result, Expr::String(String::from("John")));
     }
 }

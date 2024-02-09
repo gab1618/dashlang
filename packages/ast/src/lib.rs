@@ -39,8 +39,8 @@ pub struct Call {
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Closure {
-    pub params: Vec<Expr>,
-    pub body: Vec<Expr>,
+    pub params: Vec<String>,
+    pub body: Program,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
@@ -55,3 +55,14 @@ pub enum Expr {
     Bool(bool),
     Null,
 }
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum Stmt {
+    Return(Expr),
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum Instruction {
+    Stmt(Stmt),
+    Expr(Expr),
+}
+pub type Program = Vec<Instruction>;
