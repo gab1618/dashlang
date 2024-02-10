@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct AsignmentExpr {
+pub struct Asignment {
     pub symbol: String,
     pub value: Box<Expr>,
 }
@@ -45,7 +45,7 @@ pub struct Closure {
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
     BinaryOp(Box<BinaryOp>),
-    AsignmentExpr(AsignmentExpr),
+    Asignment(Asignment),
     Call(Call),
     Symbol(String),
     Value(Value),

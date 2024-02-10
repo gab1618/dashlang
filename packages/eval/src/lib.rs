@@ -132,7 +132,7 @@ pub fn eval(expr: Expr, scope: &mut HashScope) -> Value {
     match expr {
         Expr::Value(val) => val,
         Expr::BinaryOp(op) => eval_binary_op(*op, scope),
-        Expr::AsignmentExpr(asign) => {
+        Expr::Asignment(asign) => {
             let evaluated = eval(*asign.value, scope);
             scope.set(asign.symbol, evaluated.clone());
             evaluated
@@ -144,7 +144,7 @@ pub fn eval(expr: Expr, scope: &mut HashScope) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use ast::AsignmentExpr;
+    use ast::Asignment;
 
     use super::*;
 
@@ -175,7 +175,7 @@ mod tests {
         assert_eq!(result, expected);
 
         eval(
-            Expr::AsignmentExpr(AsignmentExpr {
+            Expr::Asignment(Asignment {
                 symbol: String::from("name"),
                 value: Box::new(Expr::Value(Value::Int(4))),
             }),
