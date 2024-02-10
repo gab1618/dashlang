@@ -46,9 +46,13 @@ pub struct Closure {
 pub enum Expr {
     BinaryOp(Box<BinaryOp>),
     AsignmentExpr(AsignmentExpr),
-    Closure(Closure),
     Call(Call),
     Symbol(String),
+    Value(Value),
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum Value {
+    Closure(Closure),
     Int(i64),
     Float(f64),
     String(String),

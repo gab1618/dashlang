@@ -1,24 +1,24 @@
 use std::collections::HashMap;
 
-use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Stmt};
+use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Stmt, Value};
 
 pub trait Scope {
-    fn get(&self, symbol: String) -> Expr;
-    fn set(&mut self, symbol: String, val: Expr);
+    fn get(&self, symbol: String) -> Value;
+    fn set(&mut self, symbol: String, val: Value);
 }
 #[derive(Clone)]
 pub struct HashScope {
-    memory: HashMap<String, Expr>,
+    memory: HashMap<String, Value>,
 }
 impl Scope for HashScope {
-    fn get(&self, symbol: String) -> Expr {
+    fn get(&self, symbol: String) -> Value {
         match self.memory.get(&symbol) {
             Some(value) => value.clone(),
-            None => Expr::Null,
+            None => Value::Null,
         }
     }
 
-    fn set(&mut self, symbol: String, val: Expr) {
+    fn set(&mut self, symbol: String, val: Value) {
         self.memory.insert(symbol, val);
     }
 }
@@ -26,49 +26,62 @@ impl Scope for HashScope {
 macro_rules! define_aritmetic_operation {
     ($operator:tt, $op:expr, $scope:expr) => {
         match ($op.left, $op.right) {
-            (Expr::Int(left), Expr::Int(right)) => Expr::Int(left $operator right),
-            (Expr::Float(left), Expr::Int(right)) => Expr::Float(left $operator (right as f64)),
-            (Expr::Int(left), Expr::Float(right)) => Expr::Float((left as f64) $operator right),
-            (Expr::Float(left), Expr::Float(right)) => Expr::Float(left $operator right),
-            (Expr::String(_), _) => panic!("Unsuported operation"),
-            (_, Expr::String(_)) => panic!("Unsuported operation"),
-            (left, right) => {
-                let new_op = BinaryOp::new(eval(left, $scope), eval(right, $scope), $op.op_type);
-                eval_binary_op(new_op, $scope)
-            }
+            (Expr::Value(left), Expr::Value(right)) => match (left, right) {
+                (Value::Int(left), Value::Int(right)) => Value::Int(left $operator right),
+                (Value::Float(left), Value::Int(right)) => Value::Float(left $operator (right as f64)),
+                (Value::Int(left), Value::Float(right)) => Value::Float((left as f64) $operator right),
+                (Value::Float(left), Value::Float(right)) => Value::Float(left $operator right),
+                (_, _) => panic!("Unsuported operation"),
+            },
+            (left, right) => eval_binary_op(
+                BinaryOp::new(
+                    Expr::Value(eval(left, $scope)),
+                    Expr::Value(eval(right, $scope)),
+                    $op.op_type,
+                ),
+                $scope,
+            ),
         }
     };
 }
+
 macro_rules! define_boolean_operation {
     ($operator:tt, $op:expr, $scope:expr) => {
         match ($op.left, $op.right) {
-            (Expr::Int(left), Expr::Int(right)) => Expr::Bool(left $operator right),
-            (Expr::Float(left), Expr::Float(right)) => Expr::Bool(left $operator right),
-            (Expr::Float(left), Expr::Int(right)) => Expr::Bool(left $operator (right as f64)),
-            (Expr::Int(left), Expr::Float(right)) => Expr::Bool((left as f64) $operator right),
-            (Expr::String(_), _) => panic!("Unsuported operation"),
-            (_, Expr::String(_)) => panic!("Unsuported operation"),
-            (left, right) => {
-                let new_op = BinaryOp::new(eval(left, $scope), eval(right, $scope), $op.op_type);
-                eval_binary_op(new_op, $scope)
-            }
+            (Expr::Value(left), Expr::Value(right)) => match (left, right) {
+                (Value::Int(left), Value::Int(right)) => Value::Bool(left $operator right),
+                (Value::Float(left), Value::Int(right)) => Value::Bool(left $operator (right as f64)),
+                (Value::Int(left), Value::Float(right)) => Value::Bool((left as f64) $operator right),
+                (Value::Float(left), Value::Float(right)) => Value::Bool(left $operator right),
+                (_, _) => panic!("Unsuported operation"),
+            },
+            (left, right) => eval_binary_op(
+                BinaryOp::new(
+                    Expr::Value(eval(left, $scope)),
+                    Expr::Value(eval(right, $scope)),
+                    $op.op_type,
+                ),
+                $scope,
+            ),
         }
     };
 }
 
 fn is_truthy(expr: Expr, scope: &mut HashScope) -> bool {
     match expr {
-        Expr::Closure(_) => true,
-        Expr::Int(num) => num != 0,
-        Expr::Float(num) => num != 0.0,
-        Expr::String(string) => !string.is_empty(),
-        Expr::Bool(val) => val,
-        Expr::Null => false,
-        expr => is_truthy(eval(expr, scope), scope),
+        Expr::Value(value) => match value {
+            Value::Closure(_) => true,
+            Value::Int(num) => num != 0,
+            Value::Float(num) => num != 0.0,
+            Value::String(string) => !string.is_empty(),
+            Value::Bool(bool) => bool,
+            Value::Null => false,
+        },
+        expr => is_truthy(Expr::Value(eval(expr, scope)), scope),
     }
 }
 
-pub fn eval_binary_op(op: BinaryOp, scope: &mut HashScope) -> Expr {
+pub fn eval_binary_op(op: BinaryOp, scope: &mut HashScope) -> Value {
     match op.op_type {
         BinaryOpType::Add => define_aritmetic_operation!(+, op, scope),
         BinaryOpType::Sub => define_aritmetic_operation!(-, op, scope),
@@ -79,22 +92,23 @@ pub fn eval_binary_op(op: BinaryOp, scope: &mut HashScope) -> Expr {
         BinaryOpType::Ge => define_boolean_operation!(>=, op, scope),
         BinaryOpType::Lt => define_boolean_operation!(<, op, scope),
         BinaryOpType::Le => define_boolean_operation!(<=, op, scope),
-        BinaryOpType::Or => Expr::Bool(is_truthy(op.left, scope) || is_truthy(op.right, scope)),
-        BinaryOpType::And => Expr::Bool(is_truthy(op.left, scope) && is_truthy(op.right, scope)),
+        BinaryOpType::And => Value::Bool(is_truthy(op.left, scope) && is_truthy(op.right, scope)),
+        BinaryOpType::Or => Value::Bool(is_truthy(op.left, scope) || is_truthy(op.right, scope)),
     }
 }
 
-fn eval_call(call: Call, scope: &HashScope) -> Expr {
+fn eval_call(call: Call, scope: &HashScope) -> Value {
     let found = scope.get(call.symbol.clone());
-    if let Expr::Closure(closure) = found {
+    if let Value::Closure(closure) = found {
         let mut local_scope = scope.clone();
-        let mut args = call.args.into_iter();
-        for param in closure.params {
+        let args: Vec<Value> = call
+            .args
+            .into_iter()
+            .map(|expr| eval(expr, &mut local_scope))
+            .collect();
+        for (symbol, val) in closure.params.into_iter().zip(args) {
             // Inject all arguments into local scope
-            local_scope.set(
-                param.to_string(),
-                args.next().expect("Incorrect number of arguments"),
-            );
+            local_scope.set(symbol.to_string(), val);
         }
         for instruction in closure.body {
             match instruction {
@@ -108,14 +122,15 @@ fn eval_call(call: Call, scope: &HashScope) -> Expr {
                 },
             }
         }
-        Expr::Null
+        Value::Null
     } else {
         panic!("Cannot call {}: not callable", call.symbol);
     }
 }
 
-pub fn eval(expr: Expr, scope: &mut HashScope) -> Expr {
+pub fn eval(expr: Expr, scope: &mut HashScope) -> Value {
     match expr {
+        Expr::Value(val) => val,
         Expr::BinaryOp(op) => eval_binary_op(*op, scope),
         Expr::AsignmentExpr(asign) => {
             let evaluated = eval(*asign.value, scope);
@@ -124,7 +139,6 @@ pub fn eval(expr: Expr, scope: &mut HashScope) -> Expr {
         }
         Expr::Call(call) => eval_call(call, scope),
         Expr::Symbol(symbol) => scope.get(symbol),
-        val => val,
     }
 }
 
@@ -144,51 +158,51 @@ mod tests {
     #[test]
     fn eval_primtitive() {
         let mut scope = hash_scope!();
-        let result = eval(Expr::Int(1), &mut scope);
-        let expected = Expr::Int(1);
+        let result = eval(Expr::Value(Value::Int(1)), &mut scope);
+        let expected = Value::Int(1);
         assert_eq!(result, expected);
 
-        let result = eval(Expr::Bool(true), &mut scope);
-        let expected = Expr::Bool(true);
+        let result = eval(Expr::Value(Value::Bool(true)), &mut scope);
+        let expected = Value::Bool(true);
         assert_eq!(result, expected);
 
-        let result = eval(Expr::String(String::from("test")), &mut scope);
-        let expected = Expr::String(String::from("test"));
+        let result = eval(Expr::Value(Value::String(String::from("test"))), &mut scope);
+        let expected = Value::String(String::from("test"));
         assert_eq!(result, expected);
 
-        let result = eval(Expr::Float(1.5), &mut scope);
-        let expected = Expr::Float(1.5);
+        let result = eval(Expr::Value(Value::Float(1.5)), &mut scope);
+        let expected = Value::Float(1.5);
         assert_eq!(result, expected);
 
         eval(
             Expr::AsignmentExpr(AsignmentExpr {
                 symbol: String::from("name"),
-                value: Box::new(Expr::Int(4)),
+                value: Box::new(Expr::Value(Value::Int(4))),
             }),
             &mut scope,
         );
         let symbol = Expr::Symbol(String::from("name"));
         let found_value = eval(symbol, &mut scope);
-        assert_eq!(found_value, Expr::Int(4))
+        assert_eq!(found_value, Value::Int(4))
     }
     #[test]
     fn eval_add_operation() {
         let mut scope = hash_scope!();
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
-                Expr::Int(2),
-                Expr::Int(8),
+                Expr::Value(Value::Int(2)),
+                Expr::Value(Value::Int(8)),
                 BinaryOpType::Add,
             ))),
             right: Expr::BinaryOp(Box::new(BinaryOp::new(
-                Expr::Float(4.5),
-                Expr::Int(5),
+                Expr::Value(Value::Float(4.5)),
+                Expr::Value(Value::Int(5)),
                 BinaryOpType::Add,
             ))),
             op_type: BinaryOpType::Add,
         }));
         let result = eval(op, &mut scope);
-        let expected = Expr::Float(19.5);
+        let expected = Value::Float(19.5);
         assert_eq!(result, expected);
     }
     #[test]
@@ -197,8 +211,8 @@ mod tests {
         let mut scope = hash_scope!();
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
-            Expr::String(String::from("Gab")),
-            Expr::String(String::from("riel")),
+            Expr::Value(Value::String(String::from("Gab"))),
+            Expr::Value(Value::String(String::from("riel"))),
             BinaryOpType::Add,
         )));
         eval(op, &mut scope);
@@ -208,19 +222,19 @@ mod tests {
         let mut scope = hash_scope!();
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
-                Expr::Int(8),
-                Expr::Int(6),
+                Expr::Value(Value::Int(8)),
+                Expr::Value(Value::Int(6)),
                 BinaryOpType::Sub,
             ))),
             right: Expr::BinaryOp(Box::new(BinaryOp::new(
-                Expr::Float(4.5),
-                Expr::Float(3.5),
+                Expr::Value(Value::Float(4.5)),
+                Expr::Value(Value::Float(3.5)),
                 BinaryOpType::Sub,
             ))),
             op_type: BinaryOpType::Add,
         }));
         let result = eval(op, &mut scope);
-        let expected = Expr::Float(3.0);
+        let expected = Value::Float(3.0);
         assert_eq!(result, expected);
     }
     #[test]
@@ -229,42 +243,42 @@ mod tests {
 
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
-                Expr::Int(2),
-                Expr::Int(8),
+                Expr::Value(Value::Int(2)),
+                Expr::Value(Value::Int(8)),
                 BinaryOpType::Mul,
             ))),
             right: Expr::BinaryOp(Box::new(BinaryOp::new(
-                Expr::Float(4.5),
-                Expr::Int(5),
+                Expr::Value(Value::Float(4.5)),
+                Expr::Value(Value::Int(5)),
                 BinaryOpType::Mul,
             ))),
             op_type: BinaryOpType::Add,
         }));
         let result = eval(op, &mut scope);
-        let expected = Expr::Float(38.5);
+        let expected = Value::Float(38.5);
         assert_eq!(result, expected);
     }
     #[test]
     fn eval_division() {
         let mut scope = hash_scope!();
 
-        scope.set(String::from("age"), Expr::Int(10));
+        scope.set(String::from("age"), Value::Int(10));
 
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
                 Expr::Symbol(String::from("age")),
-                Expr::Int(2),
+                Expr::Value(Value::Int(2)),
                 BinaryOpType::Div,
             ))),
             right: Expr::BinaryOp(Box::new(BinaryOp::new(
-                Expr::Int(5),
-                Expr::Float(0.5),
+                Expr::Value(Value::Int(5)),
+                Expr::Value(Value::Float(0.5)),
                 BinaryOpType::Div,
             ))),
             op_type: BinaryOpType::Add,
         }));
         let result = eval(op, &mut scope);
-        let expected = Expr::Float(15.0);
+        let expected = Value::Float(15.0);
         assert_eq!(result, expected);
     }
     #[test]
@@ -272,35 +286,41 @@ mod tests {
         let mut scope = hash_scope!();
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
-            Expr::Int(8),
-            Expr::Int(4),
+            Expr::Value(Value::Int(8)),
+            Expr::Value(Value::Int(4)),
             BinaryOpType::Gt,
         )));
         let result = eval(op, &mut scope);
-        let expected = Expr::Bool(true);
+        let expected = Value::Bool(true);
         assert_eq!(result, expected);
     }
     #[test]
     fn truthy_or_falsy() {
         let mut scope = hash_scope!();
 
-        assert_eq!(is_truthy(Expr::Null, &mut scope), false);
-        assert_eq!(is_truthy(Expr::String(String::from("")), &mut scope), false);
+        assert_eq!(is_truthy(Expr::Value(Value::Null), &mut scope), false);
         assert_eq!(
-            is_truthy(Expr::String(String::from("Test")), &mut scope),
+            is_truthy(Expr::Value(Value::String(String::from(""))), &mut scope),
+            false
+        );
+        assert_eq!(
+            is_truthy(Expr::Value(Value::String(String::from("Test"))), &mut scope),
             true
         );
-        assert_eq!(is_truthy(Expr::Bool(true), &mut scope), true);
-        assert_eq!(is_truthy(Expr::Bool(false), &mut scope), false);
-        assert_eq!(is_truthy(Expr::Int(0), &mut scope), false);
-        assert_eq!(is_truthy(Expr::Int(1), &mut scope), true);
-        assert_eq!(is_truthy(Expr::Float(1.1), &mut scope), true);
-        assert_eq!(is_truthy(Expr::Float(0.0), &mut scope), false);
+        assert_eq!(is_truthy(Expr::Value(Value::Bool(true)), &mut scope), true);
+        assert_eq!(
+            is_truthy(Expr::Value(Value::Bool(false)), &mut scope),
+            false
+        );
+        assert_eq!(is_truthy(Expr::Value(Value::Int(0)), &mut scope), false);
+        assert_eq!(is_truthy(Expr::Value(Value::Int(1)), &mut scope), true);
+        assert_eq!(is_truthy(Expr::Value(Value::Float(1.1)), &mut scope), true);
+        assert_eq!(is_truthy(Expr::Value(Value::Float(0.0)), &mut scope), false);
         assert_eq!(
             is_truthy(
                 Expr::BinaryOp(Box::new(BinaryOp::new(
-                    Expr::Int(4),
-                    Expr::Int(7),
+                    Expr::Value(Value::Int(4)),
+                    Expr::Value(Value::Int(7)),
                     BinaryOpType::Add
                 ))),
                 &mut scope
@@ -310,8 +330,8 @@ mod tests {
         assert_eq!(
             is_truthy(
                 Expr::BinaryOp(Box::new(BinaryOp::new(
-                    Expr::Int(4),
-                    Expr::Int(4),
+                    Expr::Value(Value::Int(4)),
+                    Expr::Value(Value::Int(4)),
                     BinaryOpType::Sub
                 ))),
                 &mut scope
@@ -323,39 +343,39 @@ mod tests {
     fn logical_operations() {
         let mut scope = hash_scope!();
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
-            Expr::Bool(true),
-            Expr::Bool(false),
+            Expr::Value(Value::Bool(true)),
+            Expr::Value(Value::Bool(false)),
             BinaryOpType::Or,
         )));
-        assert_eq!(eval(op, &mut scope), Expr::Bool(true));
+        assert_eq!(eval(op, &mut scope), Value::Bool(true));
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
-            Expr::Bool(true),
-            Expr::Bool(false),
+            Expr::Value(Value::Bool(true)),
+            Expr::Value(Value::Bool(false)),
             BinaryOpType::And,
         )));
-        assert_eq!(eval(op, &mut scope), Expr::Bool(false));
+        assert_eq!(eval(op, &mut scope), Value::Bool(false));
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
-            Expr::Bool(true),
-            Expr::Bool(true),
+            Expr::Value(Value::Bool(true)),
+            Expr::Value(Value::Bool(true)),
             BinaryOpType::And,
         )));
-        assert_eq!(eval(op, &mut scope), Expr::Bool(true));
+        assert_eq!(eval(op, &mut scope), Value::Bool(true));
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
-            Expr::Bool(false),
-            Expr::Bool(false),
+            Expr::Value(Value::Bool(false)),
+            Expr::Value(Value::Bool(false)),
             BinaryOpType::Or,
         )));
-        assert_eq!(eval(op, &mut scope), Expr::Bool(false));
+        assert_eq!(eval(op, &mut scope), Value::Bool(false));
     }
     #[test]
     fn test_eval_call() {
         let mut scope = hash_scope!();
         scope.set(
             String::from("greet"),
-            Expr::Closure(ast::Closure {
+            Value::Closure(ast::Closure {
                 params: vec![String::from("name")],
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Symbol(String::from(
                     "name",
@@ -364,9 +384,9 @@ mod tests {
         );
         let call = Expr::Call(Call {
             symbol: String::from("greet"),
-            args: vec![Expr::String(String::from("John"))],
+            args: vec![Expr::Value(Value::String(String::from("John")))],
         });
         let result = eval(call, &mut scope);
-        assert_eq!(result, Expr::String(String::from("John")));
+        assert_eq!(result, Value::String(String::from("John")));
     }
 }
