@@ -58,10 +58,18 @@ pub enum Value {
     String(String),
     Bool(bool),
     Null,
+    Void,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct If {
+    pub cond: Expr,
+    pub body: Program,
+    pub else_block: Option<Program>,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Stmt {
     Return(Expr),
+    If(If),
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

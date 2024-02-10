@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Stmt, Value};
+use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Program, Stmt, Value};
 
 pub trait Scope {
     fn get(&self, symbol: String) -> Value;
@@ -76,6 +76,7 @@ fn is_truthy(expr: Expr, scope: &mut HashScope) -> bool {
             Value::String(string) => !string.is_empty(),
             Value::Bool(bool) => bool,
             Value::Null => false,
+            Value::Void => false,
         },
         expr => is_truthy(Expr::Value(eval(expr, scope)), scope),
     }
@@ -97,6 +98,40 @@ pub fn eval_binary_op(op: BinaryOp, scope: &mut HashScope) -> Value {
     }
 }
 
+fn eval_program(program: Program, scope: &HashScope) -> Value {
+    let mut local_scope = scope.clone();
+    for instruction in program {
+        match instruction {
+            Instruction::Stmt(stmt) => match stmt {
+                Stmt::Return(val) => {
+                    return eval(val, &mut local_scope);
+                }
+                Stmt::If(if_stmt) => {
+                    if is_truthy(if_stmt.cond, &mut local_scope) {
+                        let block_result = eval_program(if_stmt.body, &local_scope);
+                        match block_result {
+                            Value::Void => (),
+                            val => return val,
+                        }
+                    } else {
+                        if let Some(else_block) = if_stmt.else_block {
+                            let block_result = eval_program(else_block, &local_scope);
+                            match block_result {
+                                Value::Null => (),
+                                val => return val,
+                            }
+                        }
+                    }
+                }
+            },
+            Instruction::Expr(expr) => {
+                eval(expr, &mut local_scope);
+            }
+        }
+    }
+    Value::Void
+}
+
 fn eval_call(call: Call, scope: &HashScope) -> Value {
     let found = scope.get(call.symbol.clone());
     if let Value::Closure(closure) = found {
@@ -110,19 +145,7 @@ fn eval_call(call: Call, scope: &HashScope) -> Value {
             // Inject all arguments into local scope
             local_scope.set(symbol.to_string(), val);
         }
-        for instruction in closure.body {
-            match instruction {
-                Instruction::Expr(expr) => {
-                    eval(expr, &mut local_scope);
-                }
-                Instruction::Stmt(stmt) => match stmt {
-                    Stmt::Return(val) => {
-                        return eval(val, &mut local_scope);
-                    }
-                },
-            }
-        }
-        Value::Null
+        eval_program(closure.body, &local_scope)
     } else {
         panic!("Cannot call {}: not callable", call.symbol);
     }
@@ -144,7 +167,7 @@ pub fn eval(expr: Expr, scope: &mut HashScope) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use ast::Asignment;
+    use ast::{Asignment, Closure, If};
 
     use super::*;
 
@@ -388,5 +411,47 @@ mod tests {
         });
         let result = eval(call, &mut scope);
         assert_eq!(result, Value::String(String::from("John")));
+    }
+    #[test]
+    fn test_if_else() {
+        let mut scope = hash_scope!();
+        let is_adult_fn = Closure {
+            params: vec![String::from("age")],
+            body: vec![Instruction::Stmt(Stmt::If(If {
+                cond: Expr::BinaryOp(Box::new(BinaryOp::new(
+                    Expr::Symbol(String::from("age")),
+                    Expr::Value(Value::Int(18)),
+                    BinaryOpType::Ge,
+                ))),
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Value(Value::Bool(
+                    true,
+                ))))],
+                else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Value(
+                    Value::Bool(false),
+                )))]),
+            }))],
+        };
+        // Rust equivalent to this function:
+        // fn is_adult(age: i64) -> bool {
+        //  if age >= 18 {
+        //      true
+        //  } else {
+        //      false
+        //  }
+        // }
+        scope.set(String::from("is_adult"), Value::Closure(is_adult_fn));
+        let call = Expr::Call(Call {
+            symbol: String::from("is_adult"),
+            args: vec![Expr::Value(Value::Int(18))],
+        });
+        let result = eval(call, &mut scope);
+        assert_eq!(result, Value::Bool(true));
+
+        let call = Expr::Call(Call {
+            symbol: String::from("is_adult"),
+            args: vec![Expr::Value(Value::Int(17))],
+        });
+        let result = eval(call, &mut scope);
+        assert_eq!(result, Value::Bool(false));
     }
 }
