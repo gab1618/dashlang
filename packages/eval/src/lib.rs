@@ -98,24 +98,23 @@ pub fn eval_binary_op(op: BinaryOp, scope: &mut HashScope) -> Value {
     }
 }
 
-fn eval_program(program: Program, scope: &HashScope) -> Value {
-    let mut local_scope = scope.clone();
+fn eval_program(program: Program, scope: &mut HashScope) -> Value {
     for instruction in program {
         match instruction {
             Instruction::Stmt(stmt) => match stmt {
                 Stmt::Return(val) => {
-                    return eval(val, &mut local_scope);
+                    return eval(val, scope);
                 }
                 Stmt::If(if_stmt) => {
-                    if is_truthy(if_stmt.cond, &mut local_scope) {
-                        let block_result = eval_program(if_stmt.body, &local_scope);
+                    if is_truthy(if_stmt.cond, scope) {
+                        let block_result = eval_program(if_stmt.body, scope);
                         match block_result {
                             Value::Void => (),
                             val => return val,
                         }
                     } else {
                         if let Some(else_block) = if_stmt.else_block {
-                            let block_result = eval_program(else_block, &local_scope);
+                            let block_result = eval_program(else_block, scope);
                             match block_result {
                                 Value::Null => (),
                                 val => return val,
@@ -125,7 +124,7 @@ fn eval_program(program: Program, scope: &HashScope) -> Value {
                 }
             },
             Instruction::Expr(expr) => {
-                eval(expr, &mut local_scope);
+                eval(expr, scope);
             }
         }
     }
@@ -145,7 +144,7 @@ fn eval_call(call: Call, scope: &HashScope) -> Value {
             // Inject all arguments into local scope
             local_scope.set(symbol.to_string(), val);
         }
-        eval_program(closure.body, &local_scope)
+        eval_program(closure.body, &mut local_scope)
     } else {
         panic!("Cannot call {}: not callable", call.symbol);
     }
