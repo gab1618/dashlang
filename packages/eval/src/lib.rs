@@ -122,6 +122,15 @@ fn eval_program(program: Program, scope: &mut HashScope) -> Value {
                         }
                     }
                 }
+                Stmt::While(while_stmt) => {
+                    while is_truthy(while_stmt.clone().cond, scope) {
+                        let block_result = eval_program(while_stmt.clone().body, scope);
+                        match block_result {
+                            Value::Void => (),
+                            val => return val,
+                        }
+                    }
+                }
             },
             Instruction::Expr(expr) => {
                 eval(expr, scope);
@@ -166,7 +175,7 @@ pub fn eval(expr: Expr, scope: &mut HashScope) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use ast::{Asignment, Closure, If};
+    use ast::{Asignment, Closure, If, While};
 
     use super::*;
 
@@ -452,5 +461,32 @@ mod tests {
         });
         let result = eval(call, &mut scope);
         assert_eq!(result, Value::Bool(false));
+    }
+    #[test]
+    fn test_while_loop() {
+        let mut scope = hash_scope!();
+        scope.set(String::from("count"), Value::Int(0));
+        let program: Program = vec![Instruction::Stmt(Stmt::While(While {
+            cond: Expr::BinaryOp(Box::new(BinaryOp::new(
+                Expr::Symbol(String::from("count")),
+                Expr::Value(Value::Int(10)),
+                BinaryOpType::Lt,
+            ))),
+            body: vec![Instruction::Expr(Expr::Asignment(Asignment {
+                symbol: String::from("count"),
+                value: Box::new(Expr::BinaryOp(Box::new(BinaryOp::new(
+                    Expr::Symbol(String::from("count")),
+                    Expr::Value(Value::Int(1)),
+                    BinaryOpType::Add,
+                )))),
+            }))],
+        }))];
+        // Rust equivalent
+        // while count < 10 {
+        //  count = count + 1;
+        // }
+        eval_program(program, &mut scope);
+        let final_count = scope.get(String::from("count"));
+        assert_eq!(final_count, Value::Int(10));
     }
 }

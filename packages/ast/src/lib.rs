@@ -67,9 +67,16 @@ pub struct If {
     pub else_block: Option<Program>,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct While {
+    pub cond: Expr,
+    pub body: Program,
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Stmt {
     Return(Expr),
     If(If),
+    While(While),
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
