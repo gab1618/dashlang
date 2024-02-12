@@ -111,6 +111,24 @@ fn eval_program(program: Program, scope: &mut HashScope) -> Value {
                         }
                     }
                 }
+                Stmt::Print(expr) => {
+                    let val = eval(expr, scope);
+                    match val {
+                        Value::Closure(_) => println!("[closure]"),
+                        Value::Int(num) => println!("{num}"),
+                        Value::Float(num) => println!("{num}"),
+                        Value::String(string) => println!("{string}"),
+                        Value::Bool(bool) => {
+                            if bool {
+                                println!("True")
+                            } else {
+                                println!("False")
+                            }
+                        }
+                        Value::Null => println!("null"),
+                        Value::Void => (),
+                    }
+                }
             },
             Instruction::Expr(expr) => {
                 eval(expr, scope);
