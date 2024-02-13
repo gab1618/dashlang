@@ -7,7 +7,8 @@ edition = "2021"
 [workspace]
 members = [
   "packages/ast",
-  "packages/eval"
+  "packages/eval",
+  "packages/parse"
 ]
 
 [workspace.dependencies]

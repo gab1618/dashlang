@@ -1,0 +1,22 @@
+quote                = _{ "\"" }
+text                 =  { (!("\"") ~ ANY)* }
+string               =  { quote ~ text ~ quote }
+float                = ${ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+int                  = ${ ASCII_DIGIT+ }
+boolean              =  { "true" | "false" }
+symbol_name          = ${ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
+symbol               = @{ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
+asignment_expression =  { symbol_name ~ "=" ~ (expression | value) }
+expression           =  { asignment_expression | symbol }
+return_stmt          = @{ "return" ~ " " ~ value }
+scope                =  { "{" ~ (instruction)* ~ "}" }
+statement            =  { return_stmt }
+instruction          =  { expression | statement }
+closure_param        =  { symbol_name }
+closure_params       =  { closure_param ~ ("," ~ closure_param)* }
+closure              =  { "(" ~ closure_params? ~ ")" ~ scope }
+value                =  { string | float | int | boolean | closure }
+
+program = { instruction* }
+
+WHITESPACE = _{ " " | "\n" }
