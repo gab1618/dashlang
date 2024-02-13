@@ -131,7 +131,9 @@ mod tests {
     #[test]
     fn parse_value() {
         assert_eq!(parse_values("10"), Value::Int(10));
+        assert_eq!(parse_values("-10"), Value::Int(-10));
         assert_eq!(parse_values("10.5"), Value::Float(10.5));
+        assert_eq!(parse_values("-10.5"), Value::Float(-10.5));
         assert_eq!(parse_values("true"), Value::Bool(true));
         assert_eq!(parse_values("false"), Value::Bool(false));
         assert_eq!(
