@@ -1,4 +1,4 @@
-use ast::{Expr, Instruction, Program, Value};
+use ast::{Closure, Expr, Instruction, Program, Stmt, Value};
 use pest::Parser;
 use pest_derive::Parser;
 
@@ -8,6 +8,51 @@ struct DashlangParser {}
 
 pub fn parse(input: &str) -> Program {
     todo!()
+}
+fn parse_scope(input: &str) -> Program {
+    let mut body: Program = vec![];
+    let ast = DashlangParser::parse(Rule::scope, input)
+        .expect("Could not parse scope")
+        .next()
+        .expect("Could not parse scope");
+    for instruction in ast.into_inner() {
+        let instruction_type = instruction
+            .into_inner()
+            .next()
+            .expect("Could not get instruction type");
+        match instruction_type.as_rule() {
+            Rule::statement => {
+                let inner_statement = instruction_type
+                    .into_inner()
+                    .next()
+                    .expect("Could not get statement value");
+                match inner_statement.as_rule() {
+                    Rule::return_stmt => {
+                        let return_stmt = inner_statement
+                            .into_inner()
+                            .next()
+                            .expect("Could not get return statement");
+                        let return_value = match return_stmt.as_rule() {
+                            Rule::value => {
+                                let value = return_stmt
+                                    .into_inner()
+                                    .next()
+                                    .expect("Could not get value");
+                                Expr::Value(parse_values(value.as_str()))
+                            }
+                            Rule::expression => todo!(),
+                            _ => unreachable!(),
+                        };
+                        body.push(Instruction::Stmt(Stmt::Return(return_value)));
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            Rule::expression => (),
+            _ => unreachable!(),
+        }
+    }
+    body
 }
 pub fn parse_values(input: &str) -> Value {
     let parsed = DashlangParser::parse(Rule::value, input)
@@ -45,13 +90,35 @@ pub fn parse_values(input: &str) -> Value {
                 .as_str()
                 .to_owned(),
         ),
-        Rule::closure => todo!(),
+        Rule::closure => {
+            let mut params: Vec<String> = vec![];
+            let mut body: Program = vec![];
+            for component in inner_value.into_inner() {
+                match component.as_rule() {
+                    Rule::closure_params => {
+                        for param in component.into_inner() {
+                            params.push(param.as_str().to_owned());
+                        }
+                    }
+                    Rule::scope => {
+                        let parsed = parse_scope(component.as_str());
+                        for instruction in parsed {
+                            body.push(instruction);
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            Value::Closure(Closure { params, body })
+        }
         _ => unreachable!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use ast::{Closure, Stmt};
+
     use super::*;
     #[test]
     fn parse_value() {
@@ -66,6 +133,15 @@ mod tests {
         assert_eq!(
             parse_values(r#""green apple""#),
             Value::String(String::from("green apple"))
+        );
+        assert_eq!(
+            parse_values("(name, age) {return true}"),
+            Value::Closure(Closure {
+                params: vec![String::from("name"), String::from("age")],
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Value(Value::Bool(
+                    true
+                ))))]
+            })
         );
     }
 }
