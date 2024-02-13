@@ -16,43 +16,51 @@ fn parse_scope(input: &str) -> Program {
         .next()
         .expect("Could not parse scope");
     for instruction in ast.into_inner() {
-        let instruction_type = instruction
-            .into_inner()
-            .next()
-            .expect("Could not get instruction type");
-        match instruction_type.as_rule() {
-            Rule::statement => {
-                let inner_statement = instruction_type
-                    .into_inner()
-                    .next()
-                    .expect("Could not get statement value");
-                match inner_statement.as_rule() {
-                    Rule::return_stmt => {
-                        let return_stmt = inner_statement
-                            .into_inner()
-                            .next()
-                            .expect("Could not get return statement");
-                        let return_value = match return_stmt.as_rule() {
-                            Rule::value => {
-                                let value = return_stmt
-                                    .into_inner()
-                                    .next()
-                                    .expect("Could not get value");
-                                Expr::Value(parse_values(value.as_str()))
-                            }
-                            Rule::expression => todo!(),
-                            _ => unreachable!(),
-                        };
-                        body.push(Instruction::Stmt(Stmt::Return(return_value)));
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            Rule::expression => (),
-            _ => unreachable!(),
-        }
+        let parsed_instruction = parse_instruction(instruction.as_str());
+        body.push(parsed_instruction);
     }
     body
+}
+fn parse_instruction(input: &str) -> Instruction {
+    let ast = DashlangParser::parse(Rule::instruction, input)
+        .expect("Could not parse instruction")
+        .next()
+        .expect("Could not parse instruction");
+    let instruction_type = ast
+        .into_inner()
+        .next()
+        .expect("Could not get instruction type");
+    match instruction_type.as_rule() {
+        Rule::statement => {
+            let inner_statement = instruction_type
+                .into_inner()
+                .next()
+                .expect("Could not get statement value");
+            match inner_statement.as_rule() {
+                Rule::return_stmt => {
+                    let return_stmt = inner_statement
+                        .into_inner()
+                        .next()
+                        .expect("Could not get return statement");
+                    let return_value = match return_stmt.as_rule() {
+                        Rule::value => {
+                            let value = return_stmt
+                                .into_inner()
+                                .next()
+                                .expect("Could not get value");
+                            Expr::Value(parse_values(value.as_str()))
+                        }
+                        Rule::expression => todo!(),
+                        _ => unreachable!(),
+                    };
+                    Instruction::Stmt(Stmt::Return(return_value))
+                }
+                _ => unreachable!(),
+            }
+        }
+        Rule::expression => todo!(),
+        _ => unreachable!(),
+    }
 }
 pub fn parse_values(input: &str) -> Value {
     let parsed = DashlangParser::parse(Rule::value, input)
