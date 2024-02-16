@@ -34,12 +34,18 @@ fn parse_binary_expression(input: &str) -> BinaryOp {
         .expect("Could not parse binary expression");
     let mut flat_expression: Vec<BinaryExpressionToken> = vec![];
     for element in ast.into_inner() {
+        println!("{}", element.as_str());
         match element.as_rule() {
             Rule::binary_operator => match element.as_str() {
                 "+" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Add)),
                 "-" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Sub)),
                 "*" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Mul)),
                 "/" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Div)),
+                ">" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Gt)),
+                ">=" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Ge)),
+                "<" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Lt)),
+                "<=" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Le)),
+                "==" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Eq)),
                 _ => unreachable!(),
             },
             Rule::value => {
@@ -65,7 +71,17 @@ fn flat_binary_expression_to_ast(flat_expression: &mut Vec<BinaryExpressionToken
                 BinaryExpressionToken::Operator(BinaryOpType::Add),
                 BinaryExpressionToken::Operator(BinaryOpType::Sub),
             ],
-        )
+        );
+        merge_flat_binary_op_tokens_by_operations(
+            flat_expression,
+            &vec![
+                BinaryExpressionToken::Operator(BinaryOpType::Gt),
+                BinaryExpressionToken::Operator(BinaryOpType::Ge),
+                BinaryExpressionToken::Operator(BinaryOpType::Lt),
+                BinaryExpressionToken::Operator(BinaryOpType::Le),
+                BinaryExpressionToken::Operator(BinaryOpType::Eq),
+            ],
+        );
     }
     match flat_expression
         .into_iter()
@@ -329,6 +345,22 @@ mod tests {
                 left: Expr::Value(Value::Int(1)),
                 right: Expr::Value(Value::Int(2)),
                 op_type: BinaryOpType::Add
+            })))
+        );
+        assert_eq!(
+            parse_instruction("2 > 1"),
+            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+                left: Expr::Value(Value::Int(2)),
+                right: Expr::Value(Value::Int(1)),
+                op_type: BinaryOpType::Gt
+            })))
+        );
+        assert_eq!(
+            parse_instruction("2 == 2"),
+            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+                left: Expr::Value(Value::Int(2)),
+                right: Expr::Value(Value::Int(2)),
+                op_type: BinaryOpType::Eq
             })))
         );
     }
