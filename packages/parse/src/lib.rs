@@ -46,6 +46,8 @@ fn parse_binary_expression(input: &str) -> BinaryOp {
                 "<" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Lt)),
                 "<=" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Le)),
                 "==" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Eq)),
+                "&&" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::And)),
+                "||" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Or)),
                 _ => unreachable!(),
             },
             Rule::value => {
@@ -80,6 +82,13 @@ fn flat_binary_expression_to_ast(flat_expression: &mut Vec<BinaryExpressionToken
                 BinaryExpressionToken::Operator(BinaryOpType::Lt),
                 BinaryExpressionToken::Operator(BinaryOpType::Le),
                 BinaryExpressionToken::Operator(BinaryOpType::Eq),
+            ],
+        );
+        merge_flat_binary_op_tokens_by_operations(
+            flat_expression,
+            &vec![
+                BinaryExpressionToken::Operator(BinaryOpType::Or),
+                BinaryExpressionToken::Operator(BinaryOpType::And),
             ],
         );
     }
@@ -361,6 +370,22 @@ mod tests {
                 left: Expr::Value(Value::Int(2)),
                 right: Expr::Value(Value::Int(2)),
                 op_type: BinaryOpType::Eq
+            })))
+        );
+        assert_eq!(
+            parse_instruction("true || false"),
+            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+                left: Expr::Value(Value::Bool(true)),
+                right: Expr::Value(Value::Bool(false)),
+                op_type: BinaryOpType::Or
+            })))
+        );
+        assert_eq!(
+            parse_instruction("true && false"),
+            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+                left: Expr::Value(Value::Bool(true)),
+                right: Expr::Value(Value::Bool(false)),
+                op_type: BinaryOpType::And
             })))
         );
     }
