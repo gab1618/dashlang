@@ -7,7 +7,9 @@ boolean              =  { "true" | "false" }
 symbol_name          = ${ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
 symbol               = @{ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
 asignment_expression =  { symbol_name ~ "=" ~ (expression | value) }
-expression           =  { asignment_expression }
+binary_operator      =  { "+" | "-" | "*" | "/" }
+binary_expression    =  { value ~ (binary_operator ~ value)+ }
+expression           =  { asignment_expression | binary_expression }
 return_stmt          = ${ "return" ~ " " ~ (value) }
 scope                =  { "{" ~ (instruction)* ~ "}" }
 statement            =  { return_stmt }

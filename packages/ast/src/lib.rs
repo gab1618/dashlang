@@ -3,7 +3,7 @@ pub struct Asignment {
     pub symbol: String,
     pub value: Box<Expr>,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub enum BinaryOpType {
     Add,
     Sub,
