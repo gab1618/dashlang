@@ -140,7 +140,7 @@ fn merge_flat_binary_op_tokens(
 mod tests {
     use ast::Instruction;
 
-    use crate::parse_instruction;
+    use crate::instruction::parse_instruction;
 
     use super::*;
 
