@@ -1,11 +1,8 @@
 use ast::{Closure, Expr, Instruction, Program, Stmt, Value};
-use binary_expression::parse_binary_expression;
 use expression::parse_expression;
 use parser::{DashlangParser, Rule};
 use pest::Parser;
 
-mod asignment_expression;
-mod binary_expression;
 mod expression;
 mod parser;
 

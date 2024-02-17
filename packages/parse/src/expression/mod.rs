@@ -1,8 +1,13 @@
-use crate::asignment_expression::parse_asignment_expression;
-use crate::parse_binary_expression;
 use crate::{DashlangParser, Rule};
 use ast::Expr;
 use pest::Parser;
+
+use self::{
+    asignment_expression::parse_asignment_expression, binary_expression::parse_binary_expression,
+};
+
+mod asignment_expression;
+mod binary_expression;
 
 pub fn parse_expression(input: &str) -> Expr {
     let ast = DashlangParser::parse(Rule::expression, input)
