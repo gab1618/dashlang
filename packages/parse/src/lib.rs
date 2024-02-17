@@ -1,9 +1,12 @@
 use ast::{Closure, Expr, Instruction, Program, Stmt, Value};
 use binary_expression::parse_binary_expression;
+use expression::parse_expression;
 use parser::{DashlangParser, Rule};
 use pest::Parser;
 
+mod asignment_expression;
 mod binary_expression;
+mod expression;
 mod parser;
 
 pub fn parse(input: &str) -> Program {
@@ -58,19 +61,7 @@ fn parse_instruction(input: &str) -> Instruction {
                 _ => unreachable!(),
             }
         }
-        Rule::expression => {
-            let inner_expression = instruction_type
-                .into_inner()
-                .next()
-                .expect("Could not get expression value");
-            match inner_expression.as_rule() {
-                Rule::binary_expression => {
-                    let parsed = parse_binary_expression(inner_expression.as_str());
-                    Instruction::Expr(Expr::BinaryOp(Box::new(parsed)))
-                }
-                _ => unreachable!(),
-            }
-        }
+        Rule::expression => Instruction::Expr(parse_expression(instruction_type.as_str())),
         _ => unreachable!(),
     }
 }
