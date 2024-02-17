@@ -5,7 +5,7 @@ pub trait Scope {
     fn get(&self, symbol: String) -> Value;
     fn set(&mut self, symbol: String, val: Value);
 }
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct HashScope {
     memory: HashMap<String, Value>,
 }
@@ -19,13 +19,5 @@ impl Scope for HashScope {
 
     fn set(&mut self, symbol: String, val: Value) {
         self.memory.insert(symbol, val);
-    }
-}
-
-impl HashScope {
-    pub fn new() -> Self {
-        Self {
-            memory: HashMap::new(),
-        }
     }
 }

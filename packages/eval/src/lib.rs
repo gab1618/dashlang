@@ -92,13 +92,11 @@ fn eval_program(program: Program, scope: &mut HashScope) -> Value {
                             Value::Void => (),
                             val => return val,
                         }
-                    } else {
-                        if let Some(else_block) = if_stmt.else_block {
-                            let block_result = eval_program(else_block, scope);
-                            match block_result {
-                                Value::Null => (),
-                                val => return val,
-                            }
+                    } else if let Some(else_block) = if_stmt.else_block {
+                        let block_result = eval_program(else_block, scope);
+                        match block_result {
+                            Value::Null => (),
+                            val => return val,
                         }
                     }
                 }
@@ -179,7 +177,7 @@ mod tests {
 
     #[test]
     fn eval_primtitive() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
         let result = eval(Expr::Value(Value::Int(1)), &mut scope);
         let expected = Value::Int(1);
         assert_eq!(result, expected);
@@ -209,7 +207,7 @@ mod tests {
     }
     #[test]
     fn eval_add_operation() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
                 Expr::Value(Value::Int(2)),
@@ -230,7 +228,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn try_operate_string() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
             Expr::Value(Value::String(String::from("Gab"))),
@@ -241,7 +239,7 @@ mod tests {
     }
     #[test]
     fn eval_sub_operation() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
                 Expr::Value(Value::Int(8)),
@@ -261,7 +259,7 @@ mod tests {
     }
     #[test]
     fn eval_multiplication() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
 
         let op = Expr::BinaryOp(Box::new(BinaryOp {
             left: Expr::BinaryOp(Box::new(BinaryOp::new(
@@ -282,7 +280,7 @@ mod tests {
     }
     #[test]
     fn eval_division() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
 
         scope.set(String::from("age"), Value::Int(10));
 
@@ -305,7 +303,7 @@ mod tests {
     }
     #[test]
     fn eval_gt() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
 
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
             Expr::Value(Value::Int(8)),
@@ -318,7 +316,7 @@ mod tests {
     }
     #[test]
     fn truthy_or_falsy() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
 
         assert_eq!(is_truthy(Expr::Value(Value::Null), &mut scope), false);
         assert_eq!(
@@ -363,7 +361,7 @@ mod tests {
     }
     #[test]
     fn logical_operations() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
         let op = Expr::BinaryOp(Box::new(BinaryOp::new(
             Expr::Value(Value::Bool(true)),
             Expr::Value(Value::Bool(false)),
@@ -394,7 +392,7 @@ mod tests {
     }
     #[test]
     fn test_eval_call() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
         scope.set(
             String::from("greet"),
             Value::Closure(ast::Closure {
@@ -413,7 +411,7 @@ mod tests {
     }
     #[test]
     fn test_if_else() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
         let is_adult_fn = Closure {
             params: vec![String::from("age")],
             body: vec![Instruction::Stmt(Stmt::If(If {
@@ -455,7 +453,7 @@ mod tests {
     }
     #[test]
     fn test_while_loop() {
-        let mut scope = HashScope::new();
+        let mut scope = HashScope::default();
         scope.set(String::from("count"), Value::Int(0));
         let program: Program = vec![Instruction::Stmt(Stmt::While(While {
             cond: Expr::BinaryOp(Box::new(BinaryOp::new(
