@@ -3,7 +3,7 @@ use pest::Parser;
 
 use crate::{
     parser::{DashlangParser, Rule},
-    values::parse_values,
+    value::parse_values,
 };
 
 pub fn parse_statement(input: &str) -> Stmt {

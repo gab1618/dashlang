@@ -1,10 +1,8 @@
 use ast::{Closure, Program, Value};
 use pest::Parser;
 
-use crate::{
-    instruction::parse_instruction,
-    parser::{DashlangParser, Rule},
-};
+use crate::parser::{DashlangParser, Rule};
+use crate::scope::parse_scope;
 
 pub fn parse_values(input: &str) -> Value {
     let parsed = DashlangParser::parse(Rule::value, input)
@@ -65,19 +63,6 @@ pub fn parse_values(input: &str) -> Value {
         }
         _ => unreachable!(),
     }
-}
-
-fn parse_scope(input: &str) -> Program {
-    let mut body: Program = vec![];
-    let ast = DashlangParser::parse(Rule::scope, input)
-        .expect("Could not parse scope")
-        .next()
-        .expect("Could not parse scope");
-    for instruction in ast.into_inner() {
-        let parsed_instruction = parse_instruction(instruction.as_str());
-        body.push(parsed_instruction);
-    }
-    body
 }
 
 #[cfg(test)]

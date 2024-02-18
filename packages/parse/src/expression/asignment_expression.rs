@@ -1,6 +1,6 @@
 use pest::Parser;
 
-use crate::{expression::parse_expression, parse_values, DashlangParser, Rule};
+use crate::{expression::parse_expression, value::parse_values, DashlangParser, Rule};
 use ast::{Asignment, Expr, Value};
 
 pub fn parse_asignment_expression(input: &str) -> Asignment {

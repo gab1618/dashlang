@@ -1,4 +1,4 @@
-use crate::{parse_values, DashlangParser, Rule};
+use crate::{value::parse_values, DashlangParser, Rule};
 use ast::{BinaryOp, BinaryOpType, Expr, Value};
 use pest::Parser;
 

@@ -1,13 +1,13 @@
 use ast::Program;
 use parser::{DashlangParser, Rule};
-use values::parse_values;
 
 mod expression;
 mod instruction;
 mod parser;
 mod program;
+mod scope;
 mod statement;
-mod values;
+mod value;
 
 use program::parse_program;
 
