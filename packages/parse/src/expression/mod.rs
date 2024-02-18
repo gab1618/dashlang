@@ -27,6 +27,7 @@ pub fn parse_expression(input: &str) -> Expr {
             let parsed = parse_asignment_expression(expression.as_str());
             Expr::Asignment(parsed)
         }
+        Rule::symbol => Expr::Symbol(expression.as_str().to_owned()),
         _ => unreachable!(),
     }
 }

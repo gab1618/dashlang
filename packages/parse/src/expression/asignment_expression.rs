@@ -17,7 +17,7 @@ pub fn parse_asignment_expression(input: &str) -> Asignment {
             Rule::value => {
                 final_asignment.value = Box::new(Expr::Value(parse_values(item.as_str())));
             }
-            Rule::symbol_name => {
+            Rule::symbol => {
                 final_asignment.symbol = item.as_str().to_owned();
             }
             Rule::expression => {
