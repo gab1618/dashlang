@@ -1,10 +1,10 @@
-use ast::{Expr, Stmt};
+mod return_stmt;
+use ast::Stmt;
 use pest::Parser;
 
-use crate::{
-    parser::{DashlangParser, Rule},
-    value::parse_values,
-};
+use crate::parser::{DashlangParser, Rule};
+
+use return_stmt::parse_return_stmt;
 
 pub fn parse_statement(input: &str) -> Stmt {
     let ast = DashlangParser::parse(Rule::statement, input)
@@ -13,24 +13,7 @@ pub fn parse_statement(input: &str) -> Stmt {
         .expect("Could not parse statement");
     let ast_statement = ast.into_inner().next().expect("Could not get statement");
     match ast_statement.as_rule() {
-        Rule::return_stmt => {
-            let return_stmt = ast_statement
-                .into_inner()
-                .next()
-                .expect("Could not get return statement");
-            let return_value = match return_stmt.as_rule() {
-                Rule::value => {
-                    let value = return_stmt
-                        .into_inner()
-                        .next()
-                        .expect("Could not get value");
-                    Expr::Value(parse_values(value.as_str()))
-                }
-                Rule::expression => todo!(),
-                _ => unreachable!(),
-            };
-            Stmt::Return(return_value)
-        }
+        Rule::return_stmt => parse_return_stmt(ast_statement.as_str()),
         _ => unreachable!(),
     }
 }

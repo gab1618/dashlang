@@ -11,7 +11,7 @@ binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<"
 sub_expression       = _{ "(" ~ expression ~ ")" }
 binary_expression    =  { (value | sub_expression) ~ (binary_operator ~ (value | sub_expression))+ }
 expression           =  { asignment_expression | binary_expression }
-return_stmt          = ${ "return" ~ " " ~ (value) }
+return_stmt          =  { "return" ~ (expression | value) }
 scope                =  { "{" ~ program ~ "}" }
 statement            =  { return_stmt }
 instruction          =  { expression | statement }
