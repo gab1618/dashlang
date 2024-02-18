@@ -143,10 +143,6 @@ fn merge_flat_binary_op_tokens(
 
 #[cfg(test)]
 mod tests {
-    use ast::Instruction;
-
-    use crate::instruction::parse_instruction;
-
     use super::*;
 
     #[test]
@@ -199,44 +195,44 @@ mod tests {
     #[test]
     fn test_parse_binary_expr() {
         assert_eq!(
-            parse_instruction("1 + 2"),
-            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+            parse_binary_expression("1 + 2"),
+            BinaryOp {
                 left: Expr::Value(Value::Int(1)),
                 right: Expr::Value(Value::Int(2)),
                 op_type: BinaryOpType::Add
-            })))
+            }
         );
         assert_eq!(
-            parse_instruction("2 > 1"),
-            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+            parse_binary_expression("2 > 1"),
+            BinaryOp {
                 left: Expr::Value(Value::Int(2)),
                 right: Expr::Value(Value::Int(1)),
                 op_type: BinaryOpType::Gt
-            })))
+            }
         );
         assert_eq!(
-            parse_instruction("2 == 2"),
-            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+            parse_binary_expression("2 == 2"),
+            BinaryOp {
                 left: Expr::Value(Value::Int(2)),
                 right: Expr::Value(Value::Int(2)),
                 op_type: BinaryOpType::Eq
-            })))
+            }
         );
         assert_eq!(
-            parse_instruction("true || false"),
-            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+            parse_binary_expression("true || false"),
+            BinaryOp {
                 left: Expr::Value(Value::Bool(true)),
                 right: Expr::Value(Value::Bool(false)),
                 op_type: BinaryOpType::Or
-            })))
+            }
         );
         assert_eq!(
-            parse_instruction("true && false"),
-            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+            parse_binary_expression("true && false"),
+            BinaryOp {
                 left: Expr::Value(Value::Bool(true)),
                 right: Expr::Value(Value::Bool(false)),
                 op_type: BinaryOpType::And
-            })))
+            }
         );
     }
     #[test]
