@@ -15,7 +15,6 @@ pub fn parse_binary_expression(input: &str) -> BinaryOp {
         .expect("Could not parse binary expression");
     let mut flat_expression: Vec<BinaryExpressionToken> = vec![];
     for element in ast.into_inner() {
-        println!("{}", element.as_str());
         match element.as_rule() {
             Rule::binary_operator => match element.as_str() {
                 "+" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Add)),
@@ -33,6 +32,12 @@ pub fn parse_binary_expression(input: &str) -> BinaryOp {
             },
             Rule::value => {
                 flat_expression.push(BinaryExpressionToken::Value(parse_values(element.as_str())));
+            }
+            Rule::expression => {
+                let parsed = parse_binary_expression(element.as_str());
+                flat_expression.push(BinaryExpressionToken::Expr(Expr::BinaryOp(Box::new(
+                    parsed,
+                ))));
             }
             _ => unreachable!(),
         }
@@ -232,6 +237,53 @@ mod tests {
                 right: Expr::Value(Value::Bool(false)),
                 op_type: BinaryOpType::And
             })))
+        );
+    }
+    #[test]
+    fn test_parse_sub_expressions() {
+        assert_eq!(
+            parse_binary_expression("1 + (2 + 1)"),
+            BinaryOp {
+                left: Expr::Value(Value::Int(1)),
+                right: Expr::BinaryOp(Box::new(BinaryOp {
+                    left: Expr::Value(Value::Int(2)),
+                    right: Expr::Value(Value::Int(1)),
+                    op_type: BinaryOpType::Add
+                })),
+                op_type: BinaryOpType::Add
+            }
+        );
+        assert_eq!(
+            parse_binary_expression("(1 + 2) + 1"),
+            BinaryOp {
+                left: Expr::BinaryOp(Box::new(BinaryOp {
+                    left: Expr::Value(Value::Int(1)),
+                    right: Expr::Value(Value::Int(2)),
+                    op_type: BinaryOpType::Add
+                })),
+                right: Expr::Value(Value::Int(1)),
+                op_type: BinaryOpType::Add
+            }
+        );
+        assert_eq!(
+            parse_binary_expression("(1 + 2 - (1 + 1)) + 1"),
+            BinaryOp {
+                left: Expr::BinaryOp(Box::new(BinaryOp {
+                    left: Expr::BinaryOp(Box::new(BinaryOp {
+                        left: Expr::Value(Value::Int(1)),
+                        right: Expr::Value(Value::Int(2)),
+                        op_type: BinaryOpType::Add
+                    })),
+                    right: Expr::BinaryOp(Box::new(BinaryOp {
+                        left: Expr::Value(Value::Int(1)),
+                        right: Expr::Value(Value::Int(1)),
+                        op_type: BinaryOpType::Add
+                    })),
+                    op_type: BinaryOpType::Sub
+                })),
+                right: Expr::Value(Value::Int(1)),
+                op_type: BinaryOpType::Add
+            }
         );
     }
 }
