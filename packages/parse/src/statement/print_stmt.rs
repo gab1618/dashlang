@@ -1,4 +1,4 @@
-use ast::{Expr, Stmt, Value};
+use ast::{Expr, Stmt};
 use pest::Parser;
 
 use crate::{
@@ -25,7 +25,7 @@ pub fn parse_print_stmt(input: &str) -> Stmt {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType};
+    use ast::{BinaryOp, BinaryOpType, Value};
 
     use super::*;
     #[test]
