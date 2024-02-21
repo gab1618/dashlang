@@ -4,10 +4,12 @@ use pest::Parser;
 
 use self::{
     asignment_expression::parse_asignment_expression, binary_expression::parse_binary_expression,
+    call_expression::parse_call_expression,
 };
 
 mod asignment_expression;
 mod binary_expression;
+mod call_expression;
 
 pub fn parse_expression(input: &str) -> Expr {
     let ast = DashlangParser::parse(Rule::expression, input)
@@ -26,6 +28,10 @@ pub fn parse_expression(input: &str) -> Expr {
         Rule::asignment_expression => {
             let parsed = parse_asignment_expression(expression.as_str());
             Expr::Asignment(parsed)
+        }
+        Rule::call_expression => {
+            let parsed = parse_call_expression(expression.as_str());
+            Expr::Call(parsed)
         }
         Rule::symbol => Expr::Symbol(expression.as_str().to_owned()),
         _ => unreachable!(),

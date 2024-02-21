@@ -9,7 +9,9 @@ asignment_expression =  { symbol ~ "=" ~ (expression | value) }
 binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression       = _{ "(" ~ expression ~ ")" }
 binary_expression    =  { (value | symbol | sub_expression) ~ (binary_operator ~ (value | sub_expression))+ }
-expression           =  { binary_expression | asignment_expression | symbol }
+call_arg             =  { expression | value }
+call_expression      =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
+expression           =  { binary_expression | asignment_expression | call_expression | symbol }
 return_stmt          =  { "return" ~ (expression | value) }
 scope                =  { "{" ~ program ~ "}" }
 else_stmt            =  { "else" ~ scope }
