@@ -5,6 +5,7 @@ use crate::{
     expression::parse_expression,
     parser::{DashlangParser, Rule},
     scope::parse_scope,
+    value::parse_values,
 };
 
 pub fn parse_if_stmt(input: &str) -> If {
@@ -22,6 +23,9 @@ pub fn parse_if_stmt(input: &str) -> If {
             Rule::expression => {
                 final_if.cond = parse_expression(element.as_str());
             }
+            Rule::value => {
+                final_if.cond = Expr::Value(parse_values(element.as_str()));
+            }
             Rule::scope => {
                 final_if.body = parse_scope(element.as_str());
             }
@@ -37,6 +41,17 @@ mod tests {
 
     use super::*;
 
+    #[test]
+    fn test_if_with_values() {
+        assert_eq!(
+            parse_if_stmt("if true {}"),
+            If {
+                cond: Expr::Value(Value::Bool(true)),
+                body: vec![],
+                else_block: None
+            }
+        );
+    }
     #[test]
     fn test_if_with_symbols() {
         assert_eq!(

@@ -5,6 +5,7 @@ use crate::{
     expression::parse_expression,
     parser::{DashlangParser, Rule},
     scope::parse_scope,
+    value::parse_values,
 };
 
 pub fn parse_while_stmt(input: &str) -> While {
@@ -18,6 +19,9 @@ pub fn parse_while_stmt(input: &str) -> While {
         .unwrap();
     for element in ast.into_inner() {
         match element.as_rule() {
+            Rule::value => {
+                final_while.cond = Expr::Value(parse_values(element.as_str()));
+            }
             Rule::expression => {
                 final_while.cond = parse_expression(element.as_str());
             }
@@ -34,6 +38,17 @@ mod tests {
     use ast::{BinaryOp, BinaryOpType, Instruction, Stmt};
 
     use super::*;
+
+    #[test]
+    fn test_while_with_values() {
+        assert_eq!(
+            parse_while_stmt("while true {}"),
+            While {
+                cond: Expr::Value(Value::Bool(true)),
+                body: vec![],
+            }
+        );
+    }
     #[test]
     fn test_parse_while() {
         assert_eq!(
