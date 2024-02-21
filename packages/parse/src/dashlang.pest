@@ -4,14 +4,15 @@ string               =  { quote ~ text ~ quote }
 float                = ${ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
 int                  = ${ "-"? ~ ASCII_DIGIT+ }
 boolean              =  { "true" | "false" }
-symbol               = @{!("return" | boolean) ~ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
+symbol               = @{ !("return" | boolean) ~ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
 asignment_expression =  { symbol ~ "=" ~ (expression | value) }
 binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression       = _{ "(" ~ expression ~ ")" }
-binary_expression    =  { (value | sub_expression) ~ (binary_operator ~ (value | sub_expression))+ }
-expression           =  { asignment_expression | binary_expression | symbol }
+binary_expression    =  { (value | symbol | sub_expression) ~ (binary_operator ~ (value | sub_expression))+ }
+expression           =  { binary_expression | asignment_expression | symbol }
 return_stmt          =  { "return" ~ (expression | value) }
 scope                =  { "{" ~ program ~ "}" }
+if_stmt              =  { "if" ~ (expression | value) ~ scope }
 statement            =  { return_stmt }
 instruction          =  { statement | expression }
 closure_param        =  { symbol }

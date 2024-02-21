@@ -39,6 +39,10 @@ pub fn parse_binary_expression(input: &str) -> BinaryOp {
                     parsed,
                 ))));
             }
+            Rule::symbol => {
+                let parsed = element.as_str().to_owned();
+                flat_expression.push(BinaryExpressionToken::Expr(Expr::Symbol(parsed)));
+            }
             _ => unreachable!(),
         }
     }
