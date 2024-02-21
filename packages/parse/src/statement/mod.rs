@@ -1,4 +1,5 @@
 mod if_stmt;
+mod print_stmt;
 mod return_stmt;
 mod while_stmt;
 use ast::Stmt;
