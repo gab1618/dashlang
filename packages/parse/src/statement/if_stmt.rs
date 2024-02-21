@@ -29,6 +29,13 @@ pub fn parse_if_stmt(input: &str) -> If {
             Rule::scope => {
                 final_if.body = parse_scope(element.as_str());
             }
+            Rule::else_stmt => {
+                let else_block_ast = element
+                    .into_inner()
+                    .next()
+                    .expect("Could not get scope from else block");
+                final_if.else_block = Some(parse_scope(else_block_ast.as_str()));
+            }
             _ => unreachable!(),
         }
     }
@@ -78,6 +85,21 @@ mod tests {
                     true
                 ))))],
                 else_block: None
+            }
+        );
+    }
+    #[test]
+    fn test_else() {
+        assert_eq!(
+            parse_if_stmt("if true {return true} else {return false}"),
+            If {
+                cond: Expr::Value(Value::Bool(true)),
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Value(Value::Bool(
+                    true
+                ))))],
+                else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Value(
+                    Value::Bool(false)
+                )))])
             }
         );
     }
