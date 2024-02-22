@@ -8,12 +8,15 @@ edition = "2021"
 members = [
   "packages/ast",
   "packages/eval",
-  "packages/parse"
+  "packages/parse",
+  "packages/run_file",
+  "packages/cli"
 ]
 
 [workspace.dependencies]
 ast = {path = "packages/ast"}
+eval = {path = "packages/eval"}
+parse = {path = "packages/parse"}
+run_file = {path = "packages/run_file"}
 
 [dependencies]
-ast = {path = "packages/ast"}
-eval = {path = "packages/eval"}

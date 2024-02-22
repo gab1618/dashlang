@@ -1,4 +1,4 @@
-mod scope;
+pub mod scope;
 
 use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Program, Stmt, Value};
 use scope::Scope;
@@ -62,7 +62,7 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &T) -> bool {
     }
 }
 
-pub fn eval_binary_op<T: Scope + Clone>(op: BinaryOp, scope: &T) -> Value {
+fn eval_binary_op<T: Scope + Clone>(op: BinaryOp, scope: &T) -> Value {
     match op.op_type {
         BinaryOpType::Add => define_aritmetic_operation!(+, op, scope),
         BinaryOpType::Sub => define_aritmetic_operation!(-, op, scope),
@@ -78,7 +78,7 @@ pub fn eval_binary_op<T: Scope + Clone>(op: BinaryOp, scope: &T) -> Value {
     }
 }
 
-fn eval_program<T: Scope + Clone>(program: Program, scope: &T) -> Value {
+pub fn eval_program<T: Scope + Clone>(program: Program, scope: &T) -> Value {
     for instruction in program {
         match instruction {
             Instruction::Stmt(stmt) => match stmt {
