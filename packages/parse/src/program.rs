@@ -34,6 +34,12 @@ mod tests {
             .join(Path::new("examples"));
         examples_dir_path.join(filename)
     }
+    fn get_example_program<P: AsRef<Path>>(filename: P) -> Program {
+        let filepath = get_example_file_path(filename);
+        let file_content = std::fs::read_to_string(&filepath).unwrap();
+        let program = parse_program(&file_content);
+        program
+    }
     #[test]
     fn test_parse_program() {
         assert_eq!(
@@ -52,11 +58,8 @@ mod tests {
     }
     #[test]
     fn test_hello_world() {
-        let hello_world_content =
-            std::fs::read_to_string(get_example_file_path("hello_world.dash")).unwrap();
-        let parsed = parse_program(&hello_world_content);
         assert_eq!(
-            parsed,
+            get_example_program("hello_world.dash"),
             vec![Instruction::Stmt(Stmt::Print(Expr::Literal(
                 Literal::String(String::from("Hello, World!"))
             )))]
@@ -64,10 +67,8 @@ mod tests {
     }
     #[test]
     fn test_while() {
-        let while_content = std::fs::read_to_string(get_example_file_path("while.dash")).unwrap();
-        let parsed = parse_program(&while_content);
         assert_eq!(
-            parsed,
+            get_example_program("while.dash"),
             vec![
                 Instruction::Expr(Expr::Asignment(Asignment {
                     symbol: String::from("count"),
@@ -96,11 +97,8 @@ mod tests {
     }
     #[test]
     fn test_closure() {
-        let say_hello_content =
-            std::fs::read_to_string(get_example_file_path("say_hello.dash")).unwrap();
-        let parsed = parse_program(&say_hello_content);
         assert_eq!(
-            parsed,
+            get_example_program("say_hello.dash"),
             vec![
                 Instruction::Expr(Expr::Asignment(Asignment {
                     symbol: String::from("sayHello"),
@@ -116,6 +114,25 @@ mod tests {
                     args: vec![]
                 }))
             ]
+        );
+    }
+    #[test]
+    fn test_is_adult() {
+        assert_eq!(
+            get_example_program("is_adult.dash"),
+            vec![Instruction::Expr(Expr::Asignment(Asignment {
+                symbol: String::from("isAdult"),
+                value: Box::new(Expr::Literal(Literal::Closure(Closure {
+                    params: vec![String::from("age")],
+                    body: vec![Instruction::Stmt(Stmt::Return(Expr::BinaryOp(Box::new(
+                        BinaryOp {
+                            left: Expr::Symbol(String::from("age")),
+                            right: Expr::Literal(Literal::Int(18)),
+                            op_type: BinaryOpType::Ge
+                        }
+                    ))))]
+                })))
+            }))]
         );
     }
 }
