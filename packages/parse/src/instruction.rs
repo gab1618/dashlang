@@ -25,7 +25,7 @@ pub fn parse_instruction(input: &str) -> Instruction {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Expr, Stmt, Value};
+    use ast::{BinaryOp, BinaryOpType, Expr, Literal, Stmt};
 
     use super::*;
     #[test]
@@ -33,8 +33,8 @@ mod tests {
         assert_eq!(
             parse_instruction("1 + 1"),
             Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
-                left: Expr::Value(Value::Int(1)),
-                right: Expr::Value(Value::Int(1)),
+                left: Expr::Literal(Literal::Int(1)),
+                right: Expr::Literal(Literal::Int(1)),
                 op_type: BinaryOpType::Add
             })))
         );
@@ -43,7 +43,7 @@ mod tests {
     fn test_parse_stmt() {
         assert_eq!(
             parse_instruction("return 1"),
-            Instruction::Stmt(Stmt::Return(Expr::Value(Value::Int(1))))
+            Instruction::Stmt(Stmt::Return(Expr::Literal(Literal::Int(1))))
         );
     }
 }

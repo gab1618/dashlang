@@ -48,10 +48,10 @@ pub enum Expr {
     Asignment(Asignment),
     Call(Call),
     Symbol(String),
-    Value(Value),
+    Literal(Literal),
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub enum Value {
+pub enum Literal {
     Closure(Closure),
     Int(i64),
     Float(f64),

@@ -1,10 +1,10 @@
-use ast::{Closure, Program, Value};
+use ast::{Closure, Literal, Program};
 use pest::Parser;
 
 use crate::parser::{DashlangParser, Rule};
 use crate::scope::parse_scope;
 
-pub fn parse_values(input: &str) -> Value {
+pub fn parse_values(input: &str) -> Literal {
     let parsed = DashlangParser::parse(Rule::value, input)
         .expect("Could not parse value")
         .next()
@@ -19,20 +19,20 @@ pub fn parse_values(input: &str) -> Value {
                 .as_str()
                 .parse()
                 .expect("Could not parse integer value");
-            Value::Int(parsed)
+            Literal::Int(parsed)
         }
         Rule::float => {
             let parsed: f64 = inner_value
                 .as_str()
                 .parse()
                 .expect("Could not parse float value");
-            Value::Float(parsed)
+            Literal::Float(parsed)
         }
         Rule::boolean => {
             let val = inner_value.as_str() == "true";
-            Value::Bool(val)
+            Literal::Bool(val)
         }
-        Rule::string => Value::String(
+        Rule::string => Literal::String(
             inner_value
                 .into_inner()
                 .next()
@@ -59,7 +59,7 @@ pub fn parse_values(input: &str) -> Value {
                     _ => unreachable!(),
                 }
             }
-            Value::Closure(Closure { params, body })
+            Literal::Closure(Closure { params, body })
         }
         _ => unreachable!(),
     }
@@ -72,27 +72,27 @@ mod tests {
     use super::*;
     #[test]
     fn parse_value() {
-        assert_eq!(parse_values("10"), Value::Int(10));
-        assert_eq!(parse_values("-10"), Value::Int(-10));
-        assert_eq!(parse_values("10.5"), Value::Float(10.5));
-        assert_eq!(parse_values("-10.5"), Value::Float(-10.5));
-        assert_eq!(parse_values("true"), Value::Bool(true));
-        assert_eq!(parse_values("false"), Value::Bool(false));
+        assert_eq!(parse_values("10"), Literal::Int(10));
+        assert_eq!(parse_values("-10"), Literal::Int(-10));
+        assert_eq!(parse_values("10.5"), Literal::Float(10.5));
+        assert_eq!(parse_values("-10.5"), Literal::Float(-10.5));
+        assert_eq!(parse_values("true"), Literal::Bool(true));
+        assert_eq!(parse_values("false"), Literal::Bool(false));
         assert_eq!(
             parse_values(r#""apple""#),
-            Value::String(String::from("apple"))
+            Literal::String(String::from("apple"))
         );
         assert_eq!(
             parse_values(r#""green apple""#),
-            Value::String(String::from("green apple"))
+            Literal::String(String::from("green apple"))
         );
         assert_eq!(
             parse_values("(name, age) {return true}"),
-            Value::Closure(Closure {
+            Literal::Closure(Closure {
                 params: vec![String::from("name"), String::from("age")],
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Value(Value::Bool(
-                    true
-                ))))]
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                    Literal::Bool(true)
+                )))]
             })
         );
     }

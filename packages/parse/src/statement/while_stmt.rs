@@ -1,4 +1,4 @@
-use ast::{Expr, Value, While};
+use ast::{Expr, Literal, While};
 use pest::Parser;
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
 
 pub fn parse_while_stmt(input: &str) -> While {
     let mut final_while = While {
-        cond: Expr::Value(Value::Bool(true)),
+        cond: Expr::Literal(Literal::Bool(true)),
         body: vec![],
     };
     let ast = DashlangParser::parse(Rule::while_stmt, input)
@@ -20,7 +20,7 @@ pub fn parse_while_stmt(input: &str) -> While {
     for element in ast.into_inner() {
         match element.as_rule() {
             Rule::value => {
-                final_while.cond = Expr::Value(parse_values(element.as_str()));
+                final_while.cond = Expr::Literal(parse_values(element.as_str()));
             }
             Rule::expression => {
                 final_while.cond = parse_expression(element.as_str());
@@ -44,7 +44,7 @@ mod tests {
         assert_eq!(
             parse_while_stmt("while true {}"),
             While {
-                cond: Expr::Value(Value::Bool(true)),
+                cond: Expr::Literal(Literal::Bool(true)),
                 body: vec![],
             }
         );
@@ -56,7 +56,7 @@ mod tests {
             While {
                 cond: Expr::BinaryOp(Box::new(BinaryOp {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Value(Value::Int(10)),
+                    right: Expr::Literal(Literal::Int(10)),
                     op_type: BinaryOpType::Lt
                 })),
                 body: vec![]
@@ -68,10 +68,12 @@ mod tests {
             While {
                 cond: Expr::BinaryOp(Box::new(BinaryOp {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Value(Value::Int(10)),
+                    right: Expr::Literal(Literal::Int(10)),
                     op_type: BinaryOpType::Lt
                 })),
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Value(Value::Int(1))))]
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                    Literal::Int(1)
+                )))]
             }
         );
     }

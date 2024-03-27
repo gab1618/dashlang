@@ -22,7 +22,7 @@ pub fn parse_return_stmt(input: &str) -> Stmt {
                 .into_inner()
                 .next()
                 .expect("Could not get value");
-            Expr::Value(parse_values(value.as_str()))
+            Expr::Literal(parse_values(value.as_str()))
         }
         Rule::expression => parse_expression(return_stmt.as_str()),
         _ => unreachable!(),
@@ -32,14 +32,14 @@ pub fn parse_return_stmt(input: &str) -> Stmt {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Expr, Value};
+    use ast::{BinaryOp, BinaryOpType, Expr, Literal};
 
     use super::*;
     #[test]
     fn test_return_value() {
         assert_eq!(
             parse_return_stmt("return 1"),
-            Stmt::Return(Expr::Value(Value::Int(1)))
+            Stmt::Return(Expr::Literal(Literal::Int(1)))
         );
     }
     #[test]
@@ -47,18 +47,18 @@ mod tests {
         assert_eq!(
             parse_return_stmt("return 1 + 1"),
             Stmt::Return(Expr::BinaryOp(Box::new(BinaryOp {
-                left: Expr::Value(Value::Int(1)),
-                right: Expr::Value(Value::Int(1)),
+                left: Expr::Literal(Literal::Int(1)),
+                right: Expr::Literal(Literal::Int(1)),
                 op_type: BinaryOpType::Add
             })))
         );
         assert_eq!(
             parse_return_stmt("return 2 * (2 + 2)"),
             Stmt::Return(Expr::BinaryOp(Box::new(BinaryOp {
-                left: Expr::Value(Value::Int(2)),
+                left: Expr::Literal(Literal::Int(2)),
                 right: Expr::BinaryOp(Box::new(BinaryOp {
-                    left: Expr::Value(Value::Int(2)),
-                    right: Expr::Value(Value::Int(2)),
+                    left: Expr::Literal(Literal::Int(2)),
+                    right: Expr::Literal(Literal::Int(2)),
                     op_type: BinaryOpType::Add
                 })),
                 op_type: BinaryOpType::Mul

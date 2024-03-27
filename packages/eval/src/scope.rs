@@ -1,27 +1,27 @@
-use ast::Value;
+use ast::Literal;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 pub trait Scope {
-    fn get(&self, symbol: &str) -> Value;
-    fn set(&self, symbol: &str, val: Value);
+    fn get(&self, symbol: &str) -> Literal;
+    fn set(&self, symbol: &str, val: Literal);
 }
 #[derive(Default)]
 pub struct HashScope {
-    memory: Rc<RefCell<HashMap<String, Value>>>,
+    memory: Rc<RefCell<HashMap<String, Literal>>>,
     parent: Option<Rc<dyn Scope>>,
 }
 impl Scope for HashScope {
-    fn get(&self, symbol: &str) -> Value {
+    fn get(&self, symbol: &str) -> Literal {
         match self.memory.borrow().get(symbol) {
             Some(value) => value.clone(),
             None => match &self.parent {
                 Some(parent) => parent.get(symbol),
-                None => Value::Void,
+                None => Literal::Void,
             },
         }
     }
 
-    fn set(&self, symbol: &str, val: Value) {
+    fn set(&self, symbol: &str, val: Literal) {
         self.memory.borrow_mut().insert(symbol.to_owned(), val);
     }
 }
@@ -44,22 +44,22 @@ mod tests {
     #[test]
     fn test_allocate() {
         let scope = HashScope::default();
-        scope.set("name", Value::String(String::from("John Doe")));
+        scope.set("name", Literal::String(String::from("John Doe")));
 
-        assert_eq!(scope.get("name"), Value::String(String::from("John Doe")));
+        assert_eq!(scope.get("name"), Literal::String(String::from("John Doe")));
     }
     #[test]
     fn test_child_scope() {
         let global = HashScope::default();
-        global.set("name", Value::String(String::from("John Doe")));
+        global.set("name", Literal::String(String::from("John Doe")));
 
         let local = global.clone();
 
-        assert_eq!(local.get("name"), Value::String(String::from("John Doe")));
-        local.set("name", Value::String(String::from("John Doe jr.")));
+        assert_eq!(local.get("name"), Literal::String(String::from("John Doe")));
+        local.set("name", Literal::String(String::from("John Doe jr.")));
         assert_eq!(
             local.get("name"),
-            Value::String(String::from("John Doe jr."))
+            Literal::String(String::from("John Doe jr."))
         );
     }
 }

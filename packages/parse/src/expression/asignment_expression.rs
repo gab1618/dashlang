@@ -1,12 +1,12 @@
 use pest::Parser;
 
 use crate::{expression::parse_expression, value::parse_values, DashlangParser, Rule};
-use ast::{Asignment, Expr, Value};
+use ast::{Asignment, Expr, Literal};
 
 pub fn parse_asignment_expression(input: &str) -> Asignment {
     let mut final_asignment = Asignment {
         symbol: String::from(""),
-        value: Box::new(Expr::Value(Value::Void)),
+        value: Box::new(Expr::Literal(Literal::Void)),
     };
     let ast = DashlangParser::parse(Rule::asignment_expression, input)
         .expect("Could not parse asignment expression")
@@ -15,7 +15,7 @@ pub fn parse_asignment_expression(input: &str) -> Asignment {
     for item in ast.into_inner() {
         match item.as_rule() {
             Rule::value => {
-                final_asignment.value = Box::new(Expr::Value(parse_values(item.as_str())));
+                final_asignment.value = Box::new(Expr::Literal(parse_values(item.as_str())));
             }
             Rule::symbol => {
                 final_asignment.symbol = item.as_str().to_owned();
@@ -40,7 +40,7 @@ mod tests {
             parse_asignment_expression("age = 5"),
             Asignment {
                 symbol: String::from("age"),
-                value: Box::new(Expr::Value(Value::Int(5)))
+                value: Box::new(Expr::Literal(Literal::Int(5)))
             }
         );
     }
@@ -51,8 +51,8 @@ mod tests {
             Asignment {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryOp(Box::new(BinaryOp {
-                    left: Expr::Value(Value::Int(5)),
-                    right: Expr::Value(Value::Int(1)),
+                    left: Expr::Literal(Literal::Int(5)),
+                    right: Expr::Literal(Literal::Int(1)),
                     op_type: BinaryOpType::Add
                 })))
             }

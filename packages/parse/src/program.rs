@@ -23,7 +23,7 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     use ast::{
-        Asignment, BinaryOp, BinaryOpType, Call, Closure, Expr, Instruction, Stmt, Value, While,
+        Asignment, BinaryOp, BinaryOpType, Call, Closure, Expr, Instruction, Literal, Stmt, While,
     };
 
     use super::*;
@@ -41,11 +41,11 @@ mod tests {
             vec![
                 Instruction::Expr(Expr::Asignment(Asignment {
                     symbol: String::from("age"),
-                    value: Box::new(Expr::Value(Value::Int(5)))
+                    value: Box::new(Expr::Literal(Literal::Int(5)))
                 })),
                 Instruction::Expr(Expr::Asignment(Asignment {
                     symbol: String::from("count"),
-                    value: Box::new(Expr::Value(Value::Int(1)))
+                    value: Box::new(Expr::Literal(Literal::Int(1)))
                 }))
             ]
         )
@@ -57,9 +57,9 @@ mod tests {
         let parsed = parse_program(&hello_world_content);
         assert_eq!(
             parsed,
-            vec![Instruction::Stmt(Stmt::Print(Expr::Value(Value::String(
-                String::from("Hello, World!")
-            ))))]
+            vec![Instruction::Stmt(Stmt::Print(Expr::Literal(
+                Literal::String(String::from("Hello, World!"))
+            )))]
         );
     }
     #[test]
@@ -71,12 +71,12 @@ mod tests {
             vec![
                 Instruction::Expr(Expr::Asignment(Asignment {
                     symbol: String::from("count"),
-                    value: Box::new(Expr::Value(Value::Int(0)))
+                    value: Box::new(Expr::Literal(Literal::Int(0)))
                 })),
                 Instruction::Stmt(Stmt::While(While {
                     cond: Expr::BinaryOp(Box::new(BinaryOp {
                         left: Expr::Symbol(String::from("count")),
-                        right: Expr::Value(Value::Int(10)),
+                        right: Expr::Literal(Literal::Int(10)),
                         op_type: BinaryOpType::Lt
                     })),
                     body: vec![
@@ -85,7 +85,7 @@ mod tests {
                             symbol: String::from("count"),
                             value: Box::new(Expr::BinaryOp(Box::new(BinaryOp {
                                 left: Expr::Symbol(String::from("count")),
-                                right: Expr::Value(Value::Int(1)),
+                                right: Expr::Literal(Literal::Int(1)),
                                 op_type: BinaryOpType::Add
                             })))
                         }))
@@ -104,11 +104,11 @@ mod tests {
             vec![
                 Instruction::Expr(Expr::Asignment(Asignment {
                     symbol: String::from("sayHello"),
-                    value: Box::new(Expr::Value(Value::Closure(Closure {
+                    value: Box::new(Expr::Literal(Literal::Closure(Closure {
                         params: vec![],
-                        body: vec![Instruction::Stmt(Stmt::Print(Expr::Value(Value::String(
-                            String::from("Hello")
-                        ))))]
+                        body: vec![Instruction::Stmt(Stmt::Print(Expr::Literal(
+                            Literal::String(String::from("Hello"))
+                        )))]
                     })))
                 })),
                 Instruction::Expr(Expr::Call(Call {

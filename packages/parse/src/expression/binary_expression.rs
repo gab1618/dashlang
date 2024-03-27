@@ -1,10 +1,10 @@
 use crate::{value::parse_values, DashlangParser, Rule};
-use ast::{BinaryOp, BinaryOpType, Expr, Value};
+use ast::{BinaryOp, BinaryOpType, Expr, Literal};
 use pest::Parser;
 
 #[derive(Debug, Clone, PartialEq)]
 enum BinaryExpressionToken {
-    Value(Value),
+    Value(Literal),
     Expr(Expr),
     Operator(BinaryOpType),
 }
@@ -127,14 +127,14 @@ fn merge_flat_binary_op_tokens(
         &mut flat_expression[operator_pos - 1], // Since we removed the previous item, we use position - 1
         BinaryExpressionToken::Expr(Expr::BinaryOp(Box::new(BinaryOp {
             left: match previous_element {
-                BinaryExpressionToken::Value(val) => Expr::Value(val.clone()),
+                BinaryExpressionToken::Value(val) => Expr::Literal(val.clone()),
                 BinaryExpressionToken::Expr(expr) => expr,
                 BinaryExpressionToken::Operator(_) => {
                     panic!("Expected token after operator to be a value or expression")
                 }
             },
             right: match next_element {
-                BinaryExpressionToken::Value(val) => Expr::Value(val.clone()),
+                BinaryExpressionToken::Value(val) => Expr::Literal(val.clone()),
                 BinaryExpressionToken::Expr(expr) => expr,
                 BinaryExpressionToken::Operator(_) => {
                     panic!("Expected token after operator to be a value or expression")
@@ -154,26 +154,26 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 * 2"),
             BinaryOp {
-                left: Expr::Value(Value::Int(1)),
-                right: Expr::Value(Value::Int(2)),
+                left: Expr::Literal(Literal::Int(1)),
+                right: Expr::Literal(Literal::Int(2)),
                 op_type: BinaryOpType::Mul
             }
         );
         assert_eq!(
             parse_binary_expression("1 + 2"),
             BinaryOp {
-                left: Expr::Value(Value::Int(1)),
-                right: Expr::Value(Value::Int(2)),
+                left: Expr::Literal(Literal::Int(1)),
+                right: Expr::Literal(Literal::Int(2)),
                 op_type: BinaryOpType::Add
             }
         );
         assert_eq!(
             parse_binary_expression("1 + 2 * 2"),
             BinaryOp {
-                left: Expr::Value(Value::Int(1)),
+                left: Expr::Literal(Literal::Int(1)),
                 right: Expr::BinaryOp(Box::new(BinaryOp {
-                    left: Expr::Value(Value::Int(2)),
-                    right: Expr::Value(Value::Int(2)),
+                    left: Expr::Literal(Literal::Int(2)),
+                    right: Expr::Literal(Literal::Int(2)),
                     op_type: BinaryOpType::Mul
                 })),
                 op_type: BinaryOpType::Add
@@ -182,14 +182,14 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + 2 * 2 / 2"),
             BinaryOp {
-                left: Expr::Value(Value::Int(1)),
+                left: Expr::Literal(Literal::Int(1)),
                 right: Expr::BinaryOp(Box::new(BinaryOp {
                     left: Expr::BinaryOp(Box::new(BinaryOp {
-                        left: Expr::Value(Value::Int(2)),
-                        right: Expr::Value(Value::Int(2)),
+                        left: Expr::Literal(Literal::Int(2)),
+                        right: Expr::Literal(Literal::Int(2)),
                         op_type: BinaryOpType::Mul
                     })),
-                    right: Expr::Value(Value::Int(2)),
+                    right: Expr::Literal(Literal::Int(2)),
                     op_type: BinaryOpType::Div
                 })),
                 op_type: BinaryOpType::Add
@@ -201,40 +201,40 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + 2"),
             BinaryOp {
-                left: Expr::Value(Value::Int(1)),
-                right: Expr::Value(Value::Int(2)),
+                left: Expr::Literal(Literal::Int(1)),
+                right: Expr::Literal(Literal::Int(2)),
                 op_type: BinaryOpType::Add
             }
         );
         assert_eq!(
             parse_binary_expression("2 > 1"),
             BinaryOp {
-                left: Expr::Value(Value::Int(2)),
-                right: Expr::Value(Value::Int(1)),
+                left: Expr::Literal(Literal::Int(2)),
+                right: Expr::Literal(Literal::Int(1)),
                 op_type: BinaryOpType::Gt
             }
         );
         assert_eq!(
             parse_binary_expression("2 == 2"),
             BinaryOp {
-                left: Expr::Value(Value::Int(2)),
-                right: Expr::Value(Value::Int(2)),
+                left: Expr::Literal(Literal::Int(2)),
+                right: Expr::Literal(Literal::Int(2)),
                 op_type: BinaryOpType::Eq
             }
         );
         assert_eq!(
             parse_binary_expression("true || false"),
             BinaryOp {
-                left: Expr::Value(Value::Bool(true)),
-                right: Expr::Value(Value::Bool(false)),
+                left: Expr::Literal(Literal::Bool(true)),
+                right: Expr::Literal(Literal::Bool(false)),
                 op_type: BinaryOpType::Or
             }
         );
         assert_eq!(
             parse_binary_expression("true && false"),
             BinaryOp {
-                left: Expr::Value(Value::Bool(true)),
-                right: Expr::Value(Value::Bool(false)),
+                left: Expr::Literal(Literal::Bool(true)),
+                right: Expr::Literal(Literal::Bool(false)),
                 op_type: BinaryOpType::And
             }
         );
@@ -244,10 +244,10 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + (2 + 1)"),
             BinaryOp {
-                left: Expr::Value(Value::Int(1)),
+                left: Expr::Literal(Literal::Int(1)),
                 right: Expr::BinaryOp(Box::new(BinaryOp {
-                    left: Expr::Value(Value::Int(2)),
-                    right: Expr::Value(Value::Int(1)),
+                    left: Expr::Literal(Literal::Int(2)),
+                    right: Expr::Literal(Literal::Int(1)),
                     op_type: BinaryOpType::Add
                 })),
                 op_type: BinaryOpType::Add
@@ -257,11 +257,11 @@ mod tests {
             parse_binary_expression("(1 + 2) + 1"),
             BinaryOp {
                 left: Expr::BinaryOp(Box::new(BinaryOp {
-                    left: Expr::Value(Value::Int(1)),
-                    right: Expr::Value(Value::Int(2)),
+                    left: Expr::Literal(Literal::Int(1)),
+                    right: Expr::Literal(Literal::Int(2)),
                     op_type: BinaryOpType::Add
                 })),
-                right: Expr::Value(Value::Int(1)),
+                right: Expr::Literal(Literal::Int(1)),
                 op_type: BinaryOpType::Add
             }
         );
@@ -270,18 +270,18 @@ mod tests {
             BinaryOp {
                 left: Expr::BinaryOp(Box::new(BinaryOp {
                     left: Expr::BinaryOp(Box::new(BinaryOp {
-                        left: Expr::Value(Value::Int(1)),
-                        right: Expr::Value(Value::Int(2)),
+                        left: Expr::Literal(Literal::Int(1)),
+                        right: Expr::Literal(Literal::Int(2)),
                         op_type: BinaryOpType::Add
                     })),
                     right: Expr::BinaryOp(Box::new(BinaryOp {
-                        left: Expr::Value(Value::Int(1)),
-                        right: Expr::Value(Value::Int(1)),
+                        left: Expr::Literal(Literal::Int(1)),
+                        right: Expr::Literal(Literal::Int(1)),
                         op_type: BinaryOpType::Add
                     })),
                     op_type: BinaryOpType::Sub
                 })),
-                right: Expr::Value(Value::Int(1)),
+                right: Expr::Literal(Literal::Int(1)),
                 op_type: BinaryOpType::Add
             }
         );

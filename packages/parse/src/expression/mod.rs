@@ -40,14 +40,14 @@ pub fn parse_expression(input: &str) -> Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{Asignment, BinaryOp, BinaryOpType, Expr, Value};
+    use ast::{Asignment, BinaryOp, BinaryOpType, Expr, Literal};
     #[test]
     fn test_parse_expression() {
         assert_eq!(
             parse_expression("1 + 2"),
             Expr::BinaryOp(Box::new(BinaryOp {
-                left: Expr::Value(Value::Int(1)),
-                right: Expr::Value(Value::Int(2)),
+                left: Expr::Literal(Literal::Int(1)),
+                right: Expr::Literal(Literal::Int(2)),
                 op_type: BinaryOpType::Add
             }))
         );
@@ -59,8 +59,8 @@ mod tests {
             Expr::Asignment(Asignment {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryOp(Box::new(BinaryOp {
-                    left: Expr::Value(Value::Int(5)),
-                    right: Expr::Value(Value::Int(1)),
+                    left: Expr::Literal(Literal::Int(5)),
+                    right: Expr::Literal(Literal::Int(1)),
                     op_type: BinaryOpType::Add
                 })))
             })

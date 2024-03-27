@@ -18,21 +18,21 @@ pub fn parse_print_stmt(input: &str) -> Stmt {
         .expect("Could not get print statement arg");
     match arg.as_rule() {
         Rule::expression => Stmt::Print(parse_expression(arg.as_str())),
-        Rule::value => Stmt::Print(Expr::Value(parse_values(arg.as_str()))),
+        Rule::value => Stmt::Print(Expr::Literal(parse_values(arg.as_str()))),
         _ => unreachable!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Value};
+    use ast::{BinaryOp, BinaryOpType, Literal};
 
     use super::*;
     #[test]
     fn test_parse_print() {
         assert_eq!(
             parse_print_stmt("print 18"),
-            Stmt::Print(Expr::Value(Value::Int(18)))
+            Stmt::Print(Expr::Literal(Literal::Int(18)))
         );
         assert_eq!(
             parse_print_stmt("print name"),
@@ -42,7 +42,7 @@ mod tests {
             parse_print_stmt("print age > 18"),
             Stmt::Print(Expr::BinaryOp(Box::new(BinaryOp {
                 left: Expr::Symbol(String::from("age")),
-                right: Expr::Value(Value::Int(18)),
+                right: Expr::Literal(Literal::Int(18)),
                 op_type: BinaryOpType::Gt
             })))
         );

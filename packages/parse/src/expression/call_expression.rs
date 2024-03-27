@@ -32,7 +32,7 @@ pub fn parse_call_expression(input: &str) -> Call {
                     Rule::value => {
                         final_call
                             .args
-                            .push(Expr::Value(parse_values(inner_arg.as_str())));
+                            .push(Expr::Literal(parse_values(inner_arg.as_str())));
                     }
                     _ => unreachable!(),
                 }
@@ -45,7 +45,7 @@ pub fn parse_call_expression(input: &str) -> Call {
 
 #[cfg(test)]
 mod tests {
-    use ast::{Expr, Value};
+    use ast::{Expr, Literal};
 
     use super::*;
 
@@ -65,7 +65,7 @@ mod tests {
             parse_call_expression("println(18)"),
             Call {
                 symbol: String::from("println"),
-                args: vec![Expr::Value(Value::Int(18))]
+                args: vec![Expr::Literal(Literal::Int(18))]
             }
         );
         assert_eq!(

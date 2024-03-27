@@ -27,14 +27,14 @@ pub fn parse_statement(input: &str) -> Stmt {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Expr, If, Stmt, Value, While};
+    use ast::{BinaryOp, BinaryOpType, Expr, If, Literal, Stmt, While};
 
     use super::*;
     #[test]
     fn test_parse_ret_stmt() {
         assert_eq!(
             parse_statement("return 5"),
-            Stmt::Return(Expr::Value(Value::Int(5)))
+            Stmt::Return(Expr::Literal(Literal::Int(5)))
         );
     }
     #[test]
@@ -44,7 +44,7 @@ mod tests {
             Stmt::If(If {
                 cond: Expr::BinaryOp(Box::new(BinaryOp {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Value(Value::Int(5)),
+                    right: Expr::Literal(Literal::Int(5)),
                     op_type: BinaryOpType::Lt
                 })),
                 else_block: None,
@@ -59,7 +59,7 @@ mod tests {
             Stmt::While(While {
                 cond: Expr::BinaryOp(Box::new(BinaryOp {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Value(Value::Int(5)),
+                    right: Expr::Literal(Literal::Int(5)),
                     op_type: BinaryOpType::Lt
                 })),
                 body: vec![]

@@ -1,4 +1,4 @@
-use ast::{Expr, If, Value};
+use ast::{Expr, If, Literal};
 use pest::Parser;
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
 
 pub fn parse_if_stmt(input: &str) -> If {
     let mut final_if = If {
-        cond: Expr::Value(Value::Bool(true)),
+        cond: Expr::Literal(Literal::Bool(true)),
         body: vec![],
         else_block: None,
     };
@@ -24,7 +24,7 @@ pub fn parse_if_stmt(input: &str) -> If {
                 final_if.cond = parse_expression(element.as_str());
             }
             Rule::value => {
-                final_if.cond = Expr::Value(parse_values(element.as_str()));
+                final_if.cond = Expr::Literal(parse_values(element.as_str()));
             }
             Rule::scope => {
                 final_if.body = parse_scope(element.as_str());
@@ -44,7 +44,7 @@ pub fn parse_if_stmt(input: &str) -> If {
 #[cfg(test)]
 mod tests {
 
-    use ast::{BinaryOp, BinaryOpType, Expr, Instruction, Stmt, Value};
+    use ast::{BinaryOp, BinaryOpType, Expr, Instruction, Literal, Stmt};
 
     use super::*;
 
@@ -53,7 +53,7 @@ mod tests {
         assert_eq!(
             parse_if_stmt("if true {}"),
             If {
-                cond: Expr::Value(Value::Bool(true)),
+                cond: Expr::Literal(Literal::Bool(true)),
                 body: vec![],
                 else_block: None
             }
@@ -66,7 +66,7 @@ mod tests {
             If {
                 cond: Expr::BinaryOp(Box::new(BinaryOp {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Value(Value::Int(10)),
+                    right: Expr::Literal(Literal::Int(10)),
                     op_type: BinaryOpType::Lt
                 })),
                 body: vec![],
@@ -78,12 +78,12 @@ mod tests {
             If {
                 cond: Expr::BinaryOp(Box::new(BinaryOp {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Value(Value::Int(10)),
+                    right: Expr::Literal(Literal::Int(10)),
                     op_type: BinaryOpType::Lt
                 })),
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Value(Value::Bool(
-                    true
-                ))))],
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                    Literal::Bool(true)
+                )))],
                 else_block: None
             }
         );
@@ -93,12 +93,12 @@ mod tests {
         assert_eq!(
             parse_if_stmt("if true {return true} else {return false}"),
             If {
-                cond: Expr::Value(Value::Bool(true)),
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Value(Value::Bool(
-                    true
-                ))))],
-                else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Value(
-                    Value::Bool(false)
+                cond: Expr::Literal(Literal::Bool(true)),
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                    Literal::Bool(true)
+                )))],
+                else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                    Literal::Bool(false)
                 )))])
             }
         );
