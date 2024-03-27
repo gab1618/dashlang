@@ -4,7 +4,8 @@ string               =  { quote ~ text ~ quote }
 float                = ${ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
 int                  = ${ "-"? ~ ASCII_DIGIT+ }
 boolean              =  { "true" | "false" }
-symbol               = @{ !("return" | boolean) ~ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
+keyword              =  { "return" }
+symbol               = @{ !(keyword | boolean) ~ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
 asignment_expression =  { symbol ~ "=" ~ (expression | value) }
 binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression       = _{ "(" ~ expression ~ ")" }
