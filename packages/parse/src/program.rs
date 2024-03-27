@@ -102,7 +102,7 @@ mod tests {
             get_example_program("say_hello.dash"),
             vec![
                 Instruction::Expr(Expr::Asignment(Asignment {
-                    symbol: String::from("sayHello"),
+                    symbol: String::from("say_hello"),
                     value: Box::new(Expr::Literal(Literal::Closure(Closure {
                         params: vec![],
                         body: vec![Instruction::Stmt(Stmt::Print(Expr::Literal(
@@ -111,7 +111,7 @@ mod tests {
                     })))
                 })),
                 Instruction::Expr(Expr::Call(Call {
-                    symbol: String::from("sayHello"),
+                    symbol: String::from("say_hello"),
                     args: vec![]
                 }))
             ]
@@ -122,7 +122,7 @@ mod tests {
         assert_eq!(
             get_example_program("is_adult.dash"),
             vec![Instruction::Expr(Expr::Asignment(Asignment {
-                symbol: String::from("isAdult"),
+                symbol: String::from("is_adult"),
                 value: Box::new(Expr::Literal(Literal::Closure(Closure {
                     params: vec![String::from("age")],
                     body: vec![Instruction::Stmt(Stmt::Return(Expr::BinaryOp(Box::new(
@@ -141,7 +141,7 @@ mod tests {
         assert_eq!(
             get_example_program("say_adult.dash"),
             vec![Instruction::Expr(Expr::Asignment(Asignment {
-                symbol: String::from("sayAdult"),
+                symbol: String::from("say_adult"),
                 value: Box::new(Expr::Literal(Literal::Closure(Closure {
                     params: vec![String::from("age")],
                     body: vec![Instruction::Stmt(Stmt::If(If {

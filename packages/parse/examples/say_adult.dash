@@ -1,4 +1,4 @@
-sayAdult = (age) {
+say_adult = (age) {
   if age >= 18 {
       print "Adult"
   } else {

@@ -5,7 +5,7 @@ float                = ${ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
 int                  = ${ "-"? ~ ASCII_DIGIT+ }
 boolean              =  { "true" | "false" }
 keyword              =  { "return" }
-symbol               = @{ !(keyword | boolean) ~ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
+symbol               = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 asignment_expression =  { symbol ~ "=" ~ (expression | value) }
 binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression       = _{ "(" ~ expression ~ ")" }

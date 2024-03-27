@@ -1,4 +1,4 @@
-sayHello = () {
+say_hello = () {
   print "Hello"
 }
-sayHello()
+say_hello()

@@ -1,1 +1,1 @@
-isAdult = (age) {return age >= 18}
+is_adult = (age) {return age >= 18}
