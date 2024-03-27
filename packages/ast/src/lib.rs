@@ -33,6 +33,15 @@ impl BinaryOp {
     }
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum UnaryOpType {
+    Not,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct UnaryOp {
+    pub op_type: UnaryOpType,
+    pub operand: Expr,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Call {
     pub symbol: String,
     pub args: Vec<Expr>,
@@ -45,6 +54,7 @@ pub struct Closure {
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
     BinaryOp(Box<BinaryOp>),
+    UnaryOp(Box<UnaryOp>),
     Asignment(Asignment),
     Call(Call),
     Symbol(String),

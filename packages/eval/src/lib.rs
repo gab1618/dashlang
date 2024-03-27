@@ -1,6 +1,6 @@
 pub mod scope;
 
-use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Literal, Program, Stmt};
+use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Literal, Program, Stmt, UnaryOp};
 use scope::Scope;
 
 macro_rules! define_aritmetic_operation {
@@ -75,6 +75,39 @@ fn eval_binary_op<T: Scope + Clone>(op: BinaryOp, scope: &T) -> Literal {
         BinaryOpType::Le => define_boolean_operation!(<=, op, scope),
         BinaryOpType::And => Literal::Bool(is_truthy(op.left, scope) && is_truthy(op.right, scope)),
         BinaryOpType::Or => Literal::Bool(is_truthy(op.left, scope) || is_truthy(op.right, scope)),
+    }
+}
+fn eval_unary_op<T: Scope + Clone>(op: UnaryOp, scope: &T) -> Literal {
+    match op.op_type {
+        ast::UnaryOpType::Not => match op.operand {
+            Expr::Literal(literal) => match literal {
+                Literal::Closure(val) => {
+                    Literal::Bool(!is_truthy(Expr::Literal(Literal::Closure(val)), scope))
+                }
+                Literal::Int(val) => {
+                    Literal::Bool(!is_truthy(Expr::Literal(Literal::Int(val)), scope))
+                }
+                Literal::Float(val) => {
+                    Literal::Bool(!is_truthy(Expr::Literal(Literal::Float(val)), scope))
+                }
+                Literal::String(val) => {
+                    Literal::Bool(!is_truthy(Expr::Literal(Literal::String(val)), scope))
+                }
+                Literal::Bool(val) => {
+                    Literal::Bool(!is_truthy(Expr::Literal(Literal::Bool(val)), scope))
+                }
+                Literal::Null => Literal::Bool(!is_truthy(Expr::Literal(Literal::Null), scope)),
+                Literal::Void => Literal::Bool(!is_truthy(Expr::Literal(Literal::Void), scope)),
+            },
+            expr => {
+                let literal_from_expr = eval(expr, scope);
+                let new_unary_op = UnaryOp {
+                    op_type: ast::UnaryOpType::Not,
+                    operand: Expr::Literal(literal_from_expr),
+                };
+                eval_unary_op(new_unary_op, scope)
+            }
+        },
     }
 }
 
@@ -166,6 +199,7 @@ pub fn eval<T: Scope + Clone>(expr: Expr, scope: &T) -> Literal {
         }
         Expr::Call(call) => eval_call(call, scope),
         Expr::Symbol(symbol) => scope.get(&symbol),
+        Expr::UnaryOp(op) => eval_unary_op(*op, scope),
     }
 }
 
@@ -478,5 +512,29 @@ mod tests {
         eval_program(program, &scope);
         let final_count = scope.get("count");
         assert_eq!(final_count, Literal::Int(10));
+    }
+    #[test]
+    fn test_unary_op() {
+        let scope = HashScope::default();
+        assert_eq!(
+            eval(
+                Expr::UnaryOp(Box::new(UnaryOp {
+                    op_type: ast::UnaryOpType::Not,
+                    operand: Expr::Literal(Literal::Bool(true))
+                })),
+                &scope
+            ),
+            Literal::Bool(false)
+        );
+        assert_eq!(
+            eval(
+                Expr::UnaryOp(Box::new(UnaryOp {
+                    op_type: ast::UnaryOpType::Not,
+                    operand: Expr::Literal(Literal::Bool(false))
+                })),
+                &scope
+            ),
+            Literal::Bool(true)
+        );
     }
 }
