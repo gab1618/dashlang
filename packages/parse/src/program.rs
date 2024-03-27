@@ -23,7 +23,8 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     use ast::{
-        Asignment, BinaryOp, BinaryOpType, Call, Closure, Expr, Instruction, Literal, Stmt, While,
+        Asignment, BinaryOp, BinaryOpType, Call, Closure, Expr, If, Instruction, Literal, Stmt,
+        While,
     };
 
     use super::*;
@@ -131,6 +132,31 @@ mod tests {
                             op_type: BinaryOpType::Ge
                         }
                     ))))]
+                })))
+            }))]
+        );
+    }
+    #[test]
+    fn test_say_adult() {
+        assert_eq!(
+            get_example_program("say_adult.dash"),
+            vec![Instruction::Expr(Expr::Asignment(Asignment {
+                symbol: String::from("sayAdult"),
+                value: Box::new(Expr::Literal(Literal::Closure(Closure {
+                    params: vec![String::from("age")],
+                    body: vec![Instruction::Stmt(Stmt::If(If {
+                        cond: Expr::BinaryOp(Box::new(BinaryOp {
+                            left: Expr::Symbol(String::from("age")),
+                            right: Expr::Literal(Literal::Int(18)),
+                            op_type: BinaryOpType::Ge
+                        })),
+                        body: vec![Instruction::Stmt(Stmt::Print(Expr::Literal(
+                            Literal::String(String::from("Adult"))
+                        )))],
+                        else_block: Some(vec![Instruction::Stmt(Stmt::Print(Expr::Literal(
+                            Literal::String(String::from("Minor"))
+                        )))])
+                    }))]
                 })))
             }))]
         );
