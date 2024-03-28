@@ -1,3 +1,4 @@
+use super::parse_expression;
 use crate::{value::parse_values, DashlangParser, Rule};
 use ast::{BinaryOp, BinaryOpType, Expr, Literal};
 use pest::Parser;
@@ -34,10 +35,8 @@ pub fn parse_binary_expression(input: &str) -> BinaryOp {
                 flat_expression.push(BinaryExpressionToken::Value(parse_values(element.as_str())));
             }
             Rule::expression => {
-                let parsed = parse_binary_expression(element.as_str());
-                flat_expression.push(BinaryExpressionToken::Expr(Expr::BinaryOp(Box::new(
-                    parsed,
-                ))));
+                let parsed = parse_expression(element.as_str());
+                flat_expression.push(BinaryExpressionToken::Expr(parsed));
             }
             Rule::symbol => {
                 let parsed = element.as_str().to_owned();
@@ -283,6 +282,14 @@ mod tests {
                 })),
                 right: Expr::Literal(Literal::Int(1)),
                 op_type: BinaryOpType::Add
+            }
+        );
+        assert_eq!(
+            parse_binary_expression("1 + n"),
+            BinaryOp {
+                left: Expr::Literal(Literal::Int(1)),
+                op_type: BinaryOpType::Add,
+                right: Expr::Symbol(String::from("n"))
             }
         );
     }

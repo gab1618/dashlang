@@ -124,3 +124,7 @@ fn test_say_adult() {
         }))]
     );
 }
+#[test]
+fn test_fatorial_example() {
+    // assert_eq!(get_example_program("fatorial.dash"), vec![]);
+}

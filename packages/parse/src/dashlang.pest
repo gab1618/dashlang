@@ -9,7 +9,7 @@ symbol               = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_AL
 asignment_expression =  { symbol ~ "=" ~ (expression | value) }
 binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression       = _{ "(" ~ expression ~ ")" }
-binary_expression    =  { (value | symbol | sub_expression) ~ (binary_operator ~ (value | sub_expression))+ }
+binary_expression    =  { (value | symbol | sub_expression) ~ (binary_operator ~ (value | sub_expression | expression))+ }
 call_arg             =  { expression | value }
 call_expression      =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
 expression           =  { binary_expression | asignment_expression | call_expression | symbol }
