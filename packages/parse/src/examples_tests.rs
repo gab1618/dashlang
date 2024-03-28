@@ -126,5 +126,38 @@ fn test_say_adult() {
 }
 #[test]
 fn test_fatorial_example() {
-    // assert_eq!(get_example_program("fatorial.dash"), vec![]);
+    assert_eq!(
+        get_example_program("fatorial.dash"),
+        vec![Instruction::Expr(Expr::Asignment(Asignment {
+            symbol: String::from("fat"),
+            value: Box::new(Expr::Literal(Literal::Closure(Closure {
+                params: vec![String::from("n")],
+                body: vec![
+                    Instruction::Stmt(Stmt::If(If {
+                        cond: Expr::BinaryOp(Box::new(BinaryOp {
+                            left: Expr::Symbol(String::from("n")),
+                            right: Expr::Literal(Literal::Int(1)),
+                            op_type: BinaryOpType::Le
+                        })),
+                        body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                            Literal::Int(1)
+                        )))],
+                        else_block: None
+                    })),
+                    Instruction::Stmt(Stmt::Return(Expr::BinaryOp(Box::new(BinaryOp {
+                        left: Expr::Symbol(String::from("n")),
+                        right: Expr::Call(Call {
+                            symbol: String::from("fat"),
+                            args: vec![Expr::BinaryOp(Box::new(BinaryOp {
+                                left: Expr::Symbol(String::from("n")),
+                                right: Expr::Literal(Literal::Int(1)),
+                                op_type: BinaryOpType::Sub
+                            }))]
+                        }),
+                        op_type: BinaryOpType::Mul
+                    }))))
+                ]
+            })))
+        }))]
+    );
 }
