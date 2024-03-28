@@ -1,6 +1,8 @@
 use ast::Program;
 use parser::{DashlangParser, Rule};
 
+#[cfg(test)]
+mod examples_tests;
 mod expression;
 mod instruction;
 mod parser;
