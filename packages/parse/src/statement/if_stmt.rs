@@ -1,4 +1,4 @@
-use ast::If;
+use ast::{If, Instruction, Program, Stmt};
 use pest::Parser;
 
 use crate::{
@@ -16,13 +16,60 @@ pub fn parse_if_stmt(input: &str) -> If {
     let ast_cond = parse_expression(inner_ast.next().expect("Could not get condition").as_str());
     let ast_body = parse_body(inner_ast.next().expect("Could not get scope").as_str());
     let ast_else = match inner_ast.next() {
-        Some(pair) => Some(parse_body(pair.into_inner().next().unwrap().as_str())),
+        Some(pair) => match pair.as_rule() {
+            Rule::else_stmt => Some(parse_else_stmt(pair.as_str())),
+            Rule::else_if_stmt => Some(vec![Instruction::Stmt(Stmt::If(parse_else_if_stmt(
+                pair.as_str(),
+            )))]),
+            _ => unreachable!(),
+        },
         None => None,
     };
     If {
         cond: ast_cond,
         body: ast_body,
         else_block: ast_else,
+    }
+}
+fn parse_else_stmt(input: &str) -> Program {
+    let ast = DashlangParser::parse(Rule::else_stmt, input)
+        .expect("Could not parse else statement")
+        .next()
+        .expect("Could not get else statement");
+    parse_body(ast.into_inner().next().unwrap().as_str())
+}
+fn parse_else_if_stmt(input: &str) -> If {
+    let ast = DashlangParser::parse(Rule::else_if_stmt, input)
+        .expect("Could not parse else if statement")
+        .next()
+        .expect("Could not get else if statement");
+    let mut inner_ast = ast.into_inner();
+    let cond_expr = parse_expression(
+        inner_ast
+            .next()
+            .expect("Could not get else if statement condition")
+            .as_str(),
+    );
+    let else_if_body = parse_body(
+        inner_ast
+            .next()
+            .expect("Could not get else if statement body")
+            .as_str(),
+    );
+    let else_element: Option<Vec<Instruction>> = match inner_ast.next() {
+        Some(element) => match element.as_rule() {
+            Rule::else_stmt => Some(parse_else_stmt(element.as_str())),
+            Rule::else_if_stmt => Some(vec![Instruction::Stmt(Stmt::If(parse_else_if_stmt(
+                element.as_str(),
+            )))]),
+            _ => unreachable!(),
+        },
+        None => None,
+    };
+    If {
+        cond: cond_expr,
+        body: else_if_body,
+        else_block: else_element,
     }
 }
 #[cfg(test)]
@@ -84,6 +131,27 @@ mod tests {
                 else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Bool(false)
                 )))])
+            }
+        );
+    }
+    #[test]
+    fn test_if_else() {
+        assert_eq!(
+            parse_if_stmt("if true {return true} else if true {return true} else {return false}"),
+            If {
+                cond: Expr::Literal(Literal::Bool(true)),
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                    Literal::Bool(true)
+                )))],
+                else_block: Some(vec![Instruction::Stmt(Stmt::If(If {
+                    cond: Expr::Literal(Literal::Bool(true)),
+                    body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                        Literal::Bool(true)
+                    )))],
+                    else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
+                        Literal::Bool(false)
+                    )))])
+                }))])
             }
         );
     }
