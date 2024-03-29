@@ -10,6 +10,7 @@ use self::{
 mod asignment_expression;
 mod binary_expression;
 mod call_expression;
+mod unary_expression;
 
 pub fn parse_expression(input: &str) -> Expr {
     let ast = DashlangParser::parse(Rule::expression, input)
