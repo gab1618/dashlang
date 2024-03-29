@@ -50,7 +50,7 @@ mod tests {
             Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(2)),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             }))
         );
     }
@@ -63,7 +63,7 @@ mod tests {
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(5)),
                     right: Expr::Literal(Literal::Int(1)),
-                    op_type: BinaryOperator::Add
+                    operator: BinaryOperator::Add
                 })))
             })
         );

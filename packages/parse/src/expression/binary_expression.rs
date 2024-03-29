@@ -141,7 +141,7 @@ fn merge_flat_binary_op_tokens(
                     panic!("Expected token after operator to be a value or expression")
                 }
             },
-            op_type: op,
+            operator: op,
         }))),
     );
 }
@@ -157,7 +157,7 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(2)),
-                op_type: BinaryOperator::Mul
+                operator: BinaryOperator::Mul
             }
         );
         assert_eq!(
@@ -165,7 +165,7 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(2)),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             }
         );
         assert_eq!(
@@ -175,9 +175,9 @@ mod tests {
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(2)),
                     right: Expr::Literal(Literal::Int(2)),
-                    op_type: BinaryOperator::Mul
+                    operator: BinaryOperator::Mul
                 })),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             }
         );
         assert_eq!(
@@ -188,12 +188,12 @@ mod tests {
                     left: Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Literal(Literal::Int(2)),
                         right: Expr::Literal(Literal::Int(2)),
-                        op_type: BinaryOperator::Mul
+                        operator: BinaryOperator::Mul
                     })),
                     right: Expr::Literal(Literal::Int(2)),
-                    op_type: BinaryOperator::Div
+                    operator: BinaryOperator::Div
                 })),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             }
         );
     }
@@ -204,7 +204,7 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(2)),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             }
         );
         assert_eq!(
@@ -212,7 +212,7 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(2)),
                 right: Expr::Literal(Literal::Int(1)),
-                op_type: BinaryOperator::Gt
+                operator: BinaryOperator::Gt
             }
         );
         assert_eq!(
@@ -220,7 +220,7 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(2)),
                 right: Expr::Literal(Literal::Int(2)),
-                op_type: BinaryOperator::Eq
+                operator: BinaryOperator::Eq
             }
         );
         assert_eq!(
@@ -228,7 +228,7 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Bool(true)),
                 right: Expr::Literal(Literal::Bool(false)),
-                op_type: BinaryOperator::Or
+                operator: BinaryOperator::Or
             }
         );
         assert_eq!(
@@ -236,7 +236,7 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Bool(true)),
                 right: Expr::Literal(Literal::Bool(false)),
-                op_type: BinaryOperator::And
+                operator: BinaryOperator::And
             }
         );
     }
@@ -249,9 +249,9 @@ mod tests {
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(2)),
                     right: Expr::Literal(Literal::Int(1)),
-                    op_type: BinaryOperator::Add
+                    operator: BinaryOperator::Add
                 })),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             }
         );
         assert_eq!(
@@ -260,10 +260,10 @@ mod tests {
                 left: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(1)),
                     right: Expr::Literal(Literal::Int(2)),
-                    op_type: BinaryOperator::Add
+                    operator: BinaryOperator::Add
                 })),
                 right: Expr::Literal(Literal::Int(1)),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             }
         );
         assert_eq!(
@@ -273,24 +273,24 @@ mod tests {
                     left: Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Literal(Literal::Int(1)),
                         right: Expr::Literal(Literal::Int(2)),
-                        op_type: BinaryOperator::Add
+                        operator: BinaryOperator::Add
                     })),
                     right: Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Literal(Literal::Int(1)),
                         right: Expr::Literal(Literal::Int(1)),
-                        op_type: BinaryOperator::Add
+                        operator: BinaryOperator::Add
                     })),
-                    op_type: BinaryOperator::Sub
+                    operator: BinaryOperator::Sub
                 })),
                 right: Expr::Literal(Literal::Int(1)),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             }
         );
         assert_eq!(
             parse_binary_expression("1 + n"),
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
-                op_type: BinaryOperator::Add,
+                operator: BinaryOperator::Add,
                 right: Expr::Symbol(String::from("n"))
             }
         );

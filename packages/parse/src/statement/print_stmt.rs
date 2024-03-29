@@ -43,7 +43,7 @@ mod tests {
             Stmt::Print(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Symbol(String::from("age")),
                 right: Expr::Literal(Literal::Int(18)),
-                op_type: BinaryOperator::Gt
+                operator: BinaryOperator::Gt
             })))
         );
     }

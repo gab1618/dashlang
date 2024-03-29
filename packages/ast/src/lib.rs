@@ -21,14 +21,14 @@ pub enum BinaryOperator {
 pub struct BinaryExpr {
     pub left: Expr,
     pub right: Expr,
-    pub op_type: BinaryOperator,
+    pub operator: BinaryOperator,
 }
 impl BinaryExpr {
     pub fn new(left: Expr, right: Expr, op_type: BinaryOperator) -> Self {
         Self {
             left,
             right,
-            op_type,
+            operator: op_type,
         }
     }
 }
@@ -38,7 +38,7 @@ pub enum UnaryOperator {
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct UnaryExpr {
-    pub op_type: UnaryOperator,
+    pub operator: UnaryOperator,
     pub operand: Expr,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

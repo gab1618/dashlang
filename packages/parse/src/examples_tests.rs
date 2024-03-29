@@ -42,7 +42,7 @@ fn test_while() {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    op_type: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt
                 })),
                 body: vec![
                     Instruction::Stmt(Stmt::Print(Expr::Symbol(String::from("count")))),
@@ -51,7 +51,7 @@ fn test_while() {
                         value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                             left: Expr::Symbol(String::from("count")),
                             right: Expr::Literal(Literal::Int(1)),
-                            op_type: BinaryOperator::Add
+                            operator: BinaryOperator::Add
                         })))
                     }))
                 ]
@@ -92,7 +92,7 @@ fn test_is_adult() {
                     BinaryExpr {
                         left: Expr::Symbol(String::from("age")),
                         right: Expr::Literal(Literal::Int(18)),
-                        op_type: BinaryOperator::Ge
+                        operator: BinaryOperator::Ge
                     }
                 ))))]
             })))
@@ -111,7 +111,7 @@ fn test_say_adult() {
                     cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Symbol(String::from("age")),
                         right: Expr::Literal(Literal::Int(18)),
-                        op_type: BinaryOperator::Ge
+                        operator: BinaryOperator::Ge
                     })),
                     body: vec![Instruction::Stmt(Stmt::Print(Expr::Literal(
                         Literal::String(String::from("Adult"))
@@ -137,7 +137,7 @@ fn test_fatorial_example() {
                         cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                             left: Expr::Symbol(String::from("n")),
                             right: Expr::Literal(Literal::Int(1)),
-                            op_type: BinaryOperator::Le
+                            operator: BinaryOperator::Le
                         })),
                         body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                             Literal::Int(1)
@@ -151,10 +151,10 @@ fn test_fatorial_example() {
                             args: vec![Expr::BinaryExpr(Box::new(BinaryExpr {
                                 left: Expr::Symbol(String::from("n")),
                                 right: Expr::Literal(Literal::Int(1)),
-                                op_type: BinaryOperator::Sub
+                                operator: BinaryOperator::Sub
                             }))]
                         }),
-                        op_type: BinaryOperator::Mul
+                        operator: BinaryOperator::Mul
                     }))))
                 ]
             })))

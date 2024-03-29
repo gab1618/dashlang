@@ -18,7 +18,7 @@ pub fn parse_unary_expression(input: &str) -> UnaryExpr {
         .next()
         .expect("Could not get unary expression operand");
     UnaryExpr {
-        op_type: match operator.as_str() {
+        operator: match operator.as_str() {
             "!" => UnaryOperator::Not,
             any => panic!("Invalid unary operator: {any}"),
         },
@@ -37,7 +37,7 @@ mod tests {
         assert_eq!(
             parse_unary_expression("!true"),
             UnaryExpr {
-                op_type: ast::UnaryOperator::Not,
+                operator: ast::UnaryOperator::Not,
                 operand: Expr::Literal(Literal::Bool(true))
             }
         );
@@ -47,11 +47,11 @@ mod tests {
         assert_eq!(
             parse_unary_expression("!(true && false)"),
             UnaryExpr {
-                op_type: UnaryOperator::Not,
+                operator: UnaryOperator::Not,
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Bool(true)),
                     right: Expr::Literal(Literal::Bool(false)),
-                    op_type: BinaryOperator::And
+                    operator: BinaryOperator::And
                 }))
             }
         );

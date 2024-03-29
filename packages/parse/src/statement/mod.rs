@@ -45,7 +45,7 @@ mod tests {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(5)),
-                    op_type: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt
                 })),
                 else_block: None,
                 body: vec![]
@@ -60,7 +60,7 @@ mod tests {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(5)),
-                    op_type: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt
                 })),
                 body: vec![]
             })

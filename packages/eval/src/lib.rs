@@ -17,7 +17,7 @@ macro_rules! define_aritmetic_operation {
                 BinaryExpr::new(
                     Expr::Literal(eval(left, $scope)),
                     Expr::Literal(eval(right, $scope)),
-                    $op.op_type,
+                    $op.operator,
                 ),
                 $scope,
             ),
@@ -39,7 +39,7 @@ macro_rules! define_boolean_operation {
                 BinaryExpr::new(
                     Expr::Literal(eval(left, $scope)),
                     Expr::Literal(eval(right, $scope)),
-                    $op.op_type,
+                    $op.operator,
                 ),
                 $scope,
             ),
@@ -63,7 +63,7 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &T) -> bool {
 }
 
 fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, scope: &T) -> Literal {
-    match op.op_type {
+    match op.operator {
         BinaryOperator::Add => define_aritmetic_operation!(+, op, scope),
         BinaryOperator::Sub => define_aritmetic_operation!(-, op, scope),
         BinaryOperator::Mul => define_aritmetic_operation!(*, op, scope),
@@ -82,7 +82,7 @@ fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, scope: &T) -> Literal {
     }
 }
 fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, scope: &T) -> Literal {
-    match op.op_type {
+    match op.operator {
         ast::UnaryOperator::Not => match op.operand {
             Expr::Literal(literal) => match literal {
                 Literal::Closure(val) => {
@@ -106,7 +106,7 @@ fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, scope: &T) -> Literal {
             expr => {
                 let literal_from_expr = eval(expr, scope);
                 let new_unary_op = UnaryExpr {
-                    op_type: ast::UnaryOperator::Not,
+                    operator: ast::UnaryOperator::Not,
                     operand: Expr::Literal(literal_from_expr),
                 };
                 eval_unary_op(new_unary_op, scope)
@@ -258,7 +258,7 @@ mod tests {
                 Expr::Literal(Literal::Int(5)),
                 BinaryOperator::Add,
             ))),
-            op_type: BinaryOperator::Add,
+            operator: BinaryOperator::Add,
         }));
         let result = eval(op, &scope);
         let expected = Literal::Float(19.5);
@@ -290,7 +290,7 @@ mod tests {
                 Expr::Literal(Literal::Float(3.5)),
                 BinaryOperator::Sub,
             ))),
-            op_type: BinaryOperator::Add,
+            operator: BinaryOperator::Add,
         }));
         let result = eval(op, &scope);
         let expected = Literal::Float(3.0);
@@ -311,7 +311,7 @@ mod tests {
                 Expr::Literal(Literal::Int(5)),
                 BinaryOperator::Mul,
             ))),
-            op_type: BinaryOperator::Add,
+            operator: BinaryOperator::Add,
         }));
         let result = eval(op, &scope);
         let expected = Literal::Float(38.5);
@@ -334,7 +334,7 @@ mod tests {
                 Expr::Literal(Literal::Float(0.5)),
                 BinaryOperator::Div,
             ))),
-            op_type: BinaryOperator::Add,
+            operator: BinaryOperator::Add,
         }));
         let result = eval(op, &scope);
         let expected = Literal::Float(15.0);
@@ -523,7 +523,7 @@ mod tests {
         assert_eq!(
             eval(
                 Expr::UnaryExpr(Box::new(UnaryExpr {
-                    op_type: ast::UnaryOperator::Not,
+                    operator: ast::UnaryOperator::Not,
                     operand: Expr::Literal(Literal::Bool(true))
                 })),
                 &scope
@@ -533,7 +533,7 @@ mod tests {
         assert_eq!(
             eval(
                 Expr::UnaryExpr(Box::new(UnaryExpr {
-                    op_type: ast::UnaryOperator::Not,
+                    operator: ast::UnaryOperator::Not,
                     operand: Expr::Literal(Literal::Bool(false))
                 })),
                 &scope

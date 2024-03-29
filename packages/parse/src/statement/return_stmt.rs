@@ -49,7 +49,7 @@ mod tests {
             Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(1)),
-                op_type: BinaryOperator::Add
+                operator: BinaryOperator::Add
             })))
         );
         assert_eq!(
@@ -59,9 +59,9 @@ mod tests {
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(2)),
                     right: Expr::Literal(Literal::Int(2)),
-                    op_type: BinaryOperator::Add
+                    operator: BinaryOperator::Add
                 })),
-                op_type: BinaryOperator::Mul
+                operator: BinaryOperator::Mul
             })))
         );
     }
