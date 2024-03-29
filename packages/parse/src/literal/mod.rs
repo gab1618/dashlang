@@ -1,8 +1,8 @@
 use ast::{Closure, Literal, Program};
 use pest::Parser;
 
+use crate::body::parse_body;
 use crate::parser::{DashlangParser, Rule};
-use crate::scope::parse_scope;
 
 pub fn parse_literal(input: &str) -> Literal {
     let parsed = DashlangParser::parse(Rule::literal, input)
@@ -50,8 +50,8 @@ pub fn parse_literal(input: &str) -> Literal {
                             params.push(param.as_str().to_owned());
                         }
                     }
-                    Rule::scope => {
-                        let parsed = parse_scope(component.as_str());
+                    Rule::body => {
+                        let parsed = parse_body(component.as_str());
                         for instruction in parsed {
                             body.push(instruction);
                         }

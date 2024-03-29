@@ -2,10 +2,10 @@ use ast::{Expr, Literal, While};
 use pest::Parser;
 
 use crate::{
+    body::parse_body,
     expression::parse_expression,
     literal::parse_literal,
     parser::{DashlangParser, Rule},
-    scope::parse_scope,
 };
 
 pub fn parse_while_stmt(input: &str) -> While {
@@ -25,8 +25,8 @@ pub fn parse_while_stmt(input: &str) -> While {
             Rule::expression => {
                 final_while.cond = parse_expression(element.as_str());
             }
-            Rule::scope => {
-                final_while.body = parse_scope(element.as_str());
+            Rule::body => {
+                final_while.body = parse_body(element.as_str());
             }
             _ => unreachable!(),
         }

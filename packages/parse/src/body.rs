@@ -6,9 +6,9 @@ use crate::{
     parser::{DashlangParser, Rule},
 };
 
-pub fn parse_scope(input: &str) -> Program {
+pub fn parse_body(input: &str) -> Program {
     let mut body: Program = vec![];
-    let ast = DashlangParser::parse(Rule::scope, input)
+    let ast = DashlangParser::parse(Rule::body, input)
         .expect("Could not parse scope")
         .next()
         .expect("Could not parse scope")

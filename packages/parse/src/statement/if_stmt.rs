@@ -2,9 +2,9 @@ use ast::If;
 use pest::Parser;
 
 use crate::{
+    body::parse_body,
     expression::parse_expression,
     parser::{DashlangParser, Rule},
-    scope::parse_scope,
 };
 
 pub fn parse_if_stmt(input: &str) -> If {
@@ -14,9 +14,9 @@ pub fn parse_if_stmt(input: &str) -> If {
         .expect("Could not parse if statement");
     let mut inner_ast = ast.into_inner();
     let ast_cond = parse_expression(inner_ast.next().expect("Could not get condition").as_str());
-    let ast_body = parse_scope(inner_ast.next().expect("Could not get scope").as_str());
+    let ast_body = parse_body(inner_ast.next().expect("Could not get scope").as_str());
     let ast_else = match inner_ast.next() {
-        Some(pair) => Some(parse_scope(pair.into_inner().next().unwrap().as_str())),
+        Some(pair) => Some(parse_body(pair.into_inner().next().unwrap().as_str())),
         None => None,
     };
     If {
