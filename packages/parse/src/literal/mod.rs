@@ -1,4 +1,4 @@
-use ast::{Closure, Literal, Program};
+use ast::{Closure, Literal};
 use pest::Parser;
 
 use crate::body::parse_body;
@@ -41,24 +41,19 @@ pub fn parse_literal(input: &str) -> Literal {
                 .to_owned(),
         ),
         Rule::closure => {
-            let mut params: Vec<String> = vec![];
-            let mut body: Program = vec![];
-            for component in inner_value.into_inner() {
-                match component.as_rule() {
-                    Rule::closure_params => {
-                        for param in component.into_inner() {
-                            params.push(param.as_str().to_owned());
-                        }
-                    }
-                    Rule::body => {
-                        let parsed = parse_body(component.as_str());
-                        for instruction in parsed {
-                            body.push(instruction);
-                        }
-                    }
-                    _ => unreachable!(),
-                }
-            }
+            let mut inner_ast = inner_value.into_inner();
+            let params: Vec<String> = inner_ast
+                .next()
+                .expect("Could not get closure params")
+                .into_inner()
+                .map(|component| component.as_str().to_owned())
+                .collect();
+            let body = parse_body(
+                inner_ast
+                    .next()
+                    .expect("Could not get closure body")
+                    .as_str(),
+            );
             Literal::Closure(Closure { params, body })
         }
         _ => unreachable!(),
