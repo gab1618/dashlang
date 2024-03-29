@@ -1,37 +1,29 @@
 use pest::Parser;
 
-use crate::{expression::parse_expression, literal::parse_literal, DashlangParser, Rule};
-use ast::{Asignment, Expr, Literal};
+use crate::{expression::parse_expression, DashlangParser, Rule};
+use ast::Asignment;
 
 pub fn parse_asignment_expression(input: &str) -> Asignment {
-    let mut final_asignment = Asignment {
-        symbol: String::from(""),
-        value: Box::new(Expr::Literal(Literal::Void)),
-    };
     let ast = DashlangParser::parse(Rule::asignment_expression, input)
         .expect("Could not parse asignment expression")
         .next()
         .expect("Could not parse asignment expression");
-    for item in ast.into_inner() {
-        match item.as_rule() {
-            Rule::literal => {
-                final_asignment.value = Box::new(Expr::Literal(parse_literal(item.as_str())));
-            }
-            Rule::symbol => {
-                final_asignment.symbol = item.as_str().to_owned();
-            }
-            Rule::expression => {
-                final_asignment.value = Box::new(parse_expression(item.as_str()));
-            }
-            _ => unreachable!(),
-        }
+    let mut ast_inner = ast.into_inner();
+    let ast_symbol = ast_inner
+        .next()
+        .expect("Could not get asignment expression symbol");
+    let ast_value = ast_inner
+        .next()
+        .expect("Could not get asignment expression value");
+    Asignment {
+        symbol: ast_symbol.as_str().to_owned(),
+        value: Box::new(parse_expression(ast_value.as_str())),
     }
-    final_asignment
 }
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
 
     use super::*;
     #[test]
