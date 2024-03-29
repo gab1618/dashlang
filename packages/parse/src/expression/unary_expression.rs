@@ -1,10 +1,7 @@
-use ast::{Expr, Literal, UnaryOp, UnaryOpType};
+use ast::{UnaryOp, UnaryOpType};
 use pest::Parser;
 
-use crate::{
-    literal::parse_literal,
-    parser::{DashlangParser, Rule},
-};
+use crate::parser::{DashlangParser, Rule};
 
 use super::parse_expression;
 
@@ -25,12 +22,14 @@ pub fn parse_unary_expression(input: &str) -> UnaryOp {
             "!" => UnaryOpType::Not,
             any => panic!("Invalid unary operator: {any}"),
         },
-        operand: Expr::Literal(parse_literal(operand.as_str())),
+        operand: (parse_expression(operand.as_str())),
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use ast::{BinaryOp, BinaryOpType, Expr, Literal};
+
     use super::*;
 
     #[test]
@@ -40,6 +39,20 @@ mod tests {
             UnaryOp {
                 op_type: ast::UnaryOpType::Not,
                 operand: Expr::Literal(Literal::Bool(true))
+            }
+        );
+    }
+    #[test]
+    fn test_sub() {
+        assert_eq!(
+            parse_unary_expression("!(true && false)"),
+            UnaryOp {
+                op_type: UnaryOpType::Not,
+                operand: Expr::BinaryOp(Box::new(BinaryOp {
+                    left: Expr::Literal(Literal::Bool(true)),
+                    right: Expr::Literal(Literal::Bool(false)),
+                    op_type: BinaryOpType::And
+                }))
             }
         );
     }

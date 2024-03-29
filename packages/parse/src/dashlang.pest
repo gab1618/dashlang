@@ -11,7 +11,7 @@ binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<"
 sub_expression       = _{ "(" ~ expression ~ ")" }
 binary_expression    =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | expression))+ }
 unary_operator       =  { "!" }
-unary_expression     =  { unary_operator ~ expression }
+unary_expression     =  { unary_operator ~ (expression | sub_expression) }
 call_arg             =  { expression }
 call_expression      =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
 expression           =  { binary_expression | unary_expression | asignment_expression | call_expression | symbol | literal }
