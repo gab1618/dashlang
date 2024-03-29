@@ -4,7 +4,7 @@ use pest::Parser;
 
 use self::{
     asignment_expression::parse_asignment_expression, binary_expression::parse_binary_expression,
-    call_expression::parse_call_expression,
+    call_expression::parse_call_expression, unary_expression::parse_unary_expression,
 };
 
 mod asignment_expression;
@@ -36,13 +36,16 @@ pub fn parse_expression(input: &str) -> Expr {
         }
         Rule::symbol => Expr::Symbol(expression.as_str().to_owned()),
         Rule::literal => Expr::Literal(parse_literal(expression.as_str())),
+        Rule::unary_expression => {
+            Expr::UnaryExpr(Box::new(parse_unary_expression(expression.as_str())))
+        }
         any => unreachable!("{:#?}", any),
     }
 }
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{Asignment, BinaryExpr, BinaryOperator, Expr, Literal};
+    use ast::{Asignment, BinaryExpr, BinaryOperator, Expr, Literal, UnaryExpr};
     #[test]
     fn test_parse_expression() {
         assert_eq!(
@@ -66,6 +69,20 @@ mod tests {
                     operator: BinaryOperator::Add
                 })))
             })
+        );
+    }
+    #[test]
+    fn test_unary_expression() {
+        assert_eq!(
+            parse_expression("!(true && false)"),
+            Expr::UnaryExpr(Box::new(UnaryExpr {
+                operator: ast::UnaryOperator::Not,
+                operand: Expr::BinaryExpr(Box::new(BinaryExpr {
+                    left: Expr::Literal(Literal::Bool(true)),
+                    right: Expr::Literal(Literal::Bool(false)),
+                    operator: BinaryOperator::And
+                }))
+            }))
         );
     }
 }
