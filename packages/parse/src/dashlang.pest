@@ -9,7 +9,7 @@ symbol               = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_AL
 asignment_expression =  { symbol ~ "=" ~ expression }
 binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression       = _{ "(" ~ expression ~ ")" }
-binary_expression    =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | expression))+ }
+binary_expression    =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | literal | call_expression | symbol))+ }
 unary_operator       =  { "!" }
 unary_expression     =  { unary_operator ~ (expression | sub_expression) }
 call_arg             =  { expression }
@@ -31,3 +31,4 @@ literal              =  { string | float | int | boolean | closure }
 program = { instruction* }
 
 WHITESPACE = _{ " " | "\n" }
+

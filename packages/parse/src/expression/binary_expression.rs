@@ -5,7 +5,7 @@ use pest::Parser;
 
 #[derive(Debug, Clone, PartialEq)]
 enum BinaryExpressionToken {
-    Value(Literal),
+    Literal(Literal),
     Expr(Expr),
     Operator(BinaryOperator),
 }
@@ -32,7 +32,7 @@ pub fn parse_binary_expression(input: &str) -> BinaryExpr {
                 _ => unreachable!(),
             },
             Rule::literal => {
-                flat_expression.push(BinaryExpressionToken::Value(parse_literal(
+                flat_expression.push(BinaryExpressionToken::Literal(parse_literal(
                     element.as_str(),
                 )));
             }
@@ -43,6 +43,10 @@ pub fn parse_binary_expression(input: &str) -> BinaryExpr {
             Rule::symbol => {
                 let parsed = element.as_str().to_owned();
                 flat_expression.push(BinaryExpressionToken::Expr(Expr::Symbol(parsed)));
+            }
+            Rule::call_expression => {
+                let parsed = parse_expression(element.as_str());
+                flat_expression.push(BinaryExpressionToken::Expr(parsed));
             }
             _ => unreachable!(),
         }
@@ -92,7 +96,7 @@ fn flat_binary_expression_to_ast(flat_expression: &mut Vec<BinaryExpressionToken
             Expr::BinaryExpr(op) => *op.to_owned(),
             _ => panic!("Expected expression to be binary operation"),
         },
-        BinaryExpressionToken::Value(_) => {
+        BinaryExpressionToken::Literal(_) => {
             panic!("Expected binary operation to not have just a value")
         }
         BinaryExpressionToken::Operator(_) => {
@@ -128,14 +132,14 @@ fn merge_flat_binary_op_tokens(
         &mut flat_expression[operator_pos - 1], // Since we removed the previous item, we use position - 1
         BinaryExpressionToken::Expr(Expr::BinaryExpr(Box::new(BinaryExpr {
             left: match previous_element {
-                BinaryExpressionToken::Value(val) => Expr::Literal(val.clone()),
+                BinaryExpressionToken::Literal(val) => Expr::Literal(val.clone()),
                 BinaryExpressionToken::Expr(expr) => expr,
                 BinaryExpressionToken::Operator(_) => {
                     panic!("Expected token after operator to be a value or expression")
                 }
             },
             right: match next_element {
-                BinaryExpressionToken::Value(val) => Expr::Literal(val.clone()),
+                BinaryExpressionToken::Literal(val) => Expr::Literal(val.clone()),
                 BinaryExpressionToken::Expr(expr) => expr,
                 BinaryExpressionToken::Operator(_) => {
                     panic!("Expected token after operator to be a value or expression")
