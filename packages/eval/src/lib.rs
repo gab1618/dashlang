@@ -1,6 +1,6 @@
 pub mod scope;
 
-use ast::{BinaryOp, BinaryOpType, Call, Expr, Instruction, Literal, Program, Stmt, UnaryOp};
+use ast::{BinaryExpr, BinaryOperator, Call, Expr, Instruction, Literal, Program, Stmt, UnaryExpr};
 use scope::Scope;
 
 macro_rules! define_aritmetic_operation {
@@ -14,7 +14,7 @@ macro_rules! define_aritmetic_operation {
                 (_, _) => panic!("Unsuported operation"),
             },
             (left, right) => eval_binary_op(
-                BinaryOp::new(
+                BinaryExpr::new(
                     Expr::Literal(eval(left, $scope)),
                     Expr::Literal(eval(right, $scope)),
                     $op.op_type,
@@ -36,7 +36,7 @@ macro_rules! define_boolean_operation {
                 (_, _) => panic!("Unsuported operation"),
             },
             (left, right) => eval_binary_op(
-                BinaryOp::new(
+                BinaryExpr::new(
                     Expr::Literal(eval(left, $scope)),
                     Expr::Literal(eval(right, $scope)),
                     $op.op_type,
@@ -62,24 +62,28 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &T) -> bool {
     }
 }
 
-fn eval_binary_op<T: Scope + Clone>(op: BinaryOp, scope: &T) -> Literal {
+fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, scope: &T) -> Literal {
     match op.op_type {
-        BinaryOpType::Add => define_aritmetic_operation!(+, op, scope),
-        BinaryOpType::Sub => define_aritmetic_operation!(-, op, scope),
-        BinaryOpType::Mul => define_aritmetic_operation!(*, op, scope),
-        BinaryOpType::Div => define_aritmetic_operation!(/, op, scope),
-        BinaryOpType::Gt => define_boolean_operation!(>, op, scope),
-        BinaryOpType::Eq => define_boolean_operation!(==, op, scope),
-        BinaryOpType::Ge => define_boolean_operation!(>=, op, scope),
-        BinaryOpType::Lt => define_boolean_operation!(<, op, scope),
-        BinaryOpType::Le => define_boolean_operation!(<=, op, scope),
-        BinaryOpType::And => Literal::Bool(is_truthy(op.left, scope) && is_truthy(op.right, scope)),
-        BinaryOpType::Or => Literal::Bool(is_truthy(op.left, scope) || is_truthy(op.right, scope)),
+        BinaryOperator::Add => define_aritmetic_operation!(+, op, scope),
+        BinaryOperator::Sub => define_aritmetic_operation!(-, op, scope),
+        BinaryOperator::Mul => define_aritmetic_operation!(*, op, scope),
+        BinaryOperator::Div => define_aritmetic_operation!(/, op, scope),
+        BinaryOperator::Gt => define_boolean_operation!(>, op, scope),
+        BinaryOperator::Eq => define_boolean_operation!(==, op, scope),
+        BinaryOperator::Ge => define_boolean_operation!(>=, op, scope),
+        BinaryOperator::Lt => define_boolean_operation!(<, op, scope),
+        BinaryOperator::Le => define_boolean_operation!(<=, op, scope),
+        BinaryOperator::And => {
+            Literal::Bool(is_truthy(op.left, scope) && is_truthy(op.right, scope))
+        }
+        BinaryOperator::Or => {
+            Literal::Bool(is_truthy(op.left, scope) || is_truthy(op.right, scope))
+        }
     }
 }
-fn eval_unary_op<T: Scope + Clone>(op: UnaryOp, scope: &T) -> Literal {
+fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, scope: &T) -> Literal {
     match op.op_type {
-        ast::UnaryOpType::Not => match op.operand {
+        ast::UnaryOperator::Not => match op.operand {
             Expr::Literal(literal) => match literal {
                 Literal::Closure(val) => {
                     Literal::Bool(!is_truthy(Expr::Literal(Literal::Closure(val)), scope))
@@ -101,8 +105,8 @@ fn eval_unary_op<T: Scope + Clone>(op: UnaryOp, scope: &T) -> Literal {
             },
             expr => {
                 let literal_from_expr = eval(expr, scope);
-                let new_unary_op = UnaryOp {
-                    op_type: ast::UnaryOpType::Not,
+                let new_unary_op = UnaryExpr {
+                    op_type: ast::UnaryOperator::Not,
                     operand: Expr::Literal(literal_from_expr),
                 };
                 eval_unary_op(new_unary_op, scope)
@@ -191,7 +195,7 @@ fn eval_call<T: Scope + Clone>(call: Call, scope: &T) -> Literal {
 pub fn eval<T: Scope + Clone>(expr: Expr, scope: &T) -> Literal {
     match expr {
         Expr::Literal(val) => val,
-        Expr::BinaryOp(op) => eval_binary_op(*op, scope),
+        Expr::BinaryExpr(op) => eval_binary_op(*op, scope),
         Expr::Asignment(asign) => {
             let evaluated = eval(*asign.value, scope);
             scope.set(&asign.symbol, evaluated.clone());
@@ -199,7 +203,7 @@ pub fn eval<T: Scope + Clone>(expr: Expr, scope: &T) -> Literal {
         }
         Expr::Call(call) => eval_call(call, scope),
         Expr::Symbol(symbol) => scope.get(&symbol),
-        Expr::UnaryOp(op) => eval_unary_op(*op, scope),
+        Expr::UnaryExpr(op) => eval_unary_op(*op, scope),
     }
 }
 
@@ -243,18 +247,18 @@ mod tests {
     #[test]
     fn eval_add_operation() {
         let scope = HashScope::default();
-        let op = Expr::BinaryOp(Box::new(BinaryOp {
-            left: Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr {
+            left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Literal(Literal::Int(2)),
                 Expr::Literal(Literal::Int(8)),
-                BinaryOpType::Add,
+                BinaryOperator::Add,
             ))),
-            right: Expr::BinaryOp(Box::new(BinaryOp::new(
+            right: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Literal(Literal::Float(4.5)),
                 Expr::Literal(Literal::Int(5)),
-                BinaryOpType::Add,
+                BinaryOperator::Add,
             ))),
-            op_type: BinaryOpType::Add,
+            op_type: BinaryOperator::Add,
         }));
         let result = eval(op, &scope);
         let expected = Literal::Float(19.5);
@@ -265,28 +269,28 @@ mod tests {
     fn try_operate_string() {
         let scope = HashScope::default();
 
-        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
             Expr::Literal(Literal::String(String::from("Gab"))),
             Expr::Literal(Literal::String(String::from("riel"))),
-            BinaryOpType::Add,
+            BinaryOperator::Add,
         )));
         eval(op, &scope);
     }
     #[test]
     fn eval_sub_operation() {
         let scope = HashScope::default();
-        let op = Expr::BinaryOp(Box::new(BinaryOp {
-            left: Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr {
+            left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Literal(Literal::Int(8)),
                 Expr::Literal(Literal::Int(6)),
-                BinaryOpType::Sub,
+                BinaryOperator::Sub,
             ))),
-            right: Expr::BinaryOp(Box::new(BinaryOp::new(
+            right: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Literal(Literal::Float(4.5)),
                 Expr::Literal(Literal::Float(3.5)),
-                BinaryOpType::Sub,
+                BinaryOperator::Sub,
             ))),
-            op_type: BinaryOpType::Add,
+            op_type: BinaryOperator::Add,
         }));
         let result = eval(op, &scope);
         let expected = Literal::Float(3.0);
@@ -296,18 +300,18 @@ mod tests {
     fn eval_multiplication() {
         let scope = HashScope::default();
 
-        let op = Expr::BinaryOp(Box::new(BinaryOp {
-            left: Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr {
+            left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Literal(Literal::Int(2)),
                 Expr::Literal(Literal::Int(8)),
-                BinaryOpType::Mul,
+                BinaryOperator::Mul,
             ))),
-            right: Expr::BinaryOp(Box::new(BinaryOp::new(
+            right: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Literal(Literal::Float(4.5)),
                 Expr::Literal(Literal::Int(5)),
-                BinaryOpType::Mul,
+                BinaryOperator::Mul,
             ))),
-            op_type: BinaryOpType::Add,
+            op_type: BinaryOperator::Add,
         }));
         let result = eval(op, &scope);
         let expected = Literal::Float(38.5);
@@ -319,18 +323,18 @@ mod tests {
 
         scope.set("age", Literal::Int(10));
 
-        let op = Expr::BinaryOp(Box::new(BinaryOp {
-            left: Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr {
+            left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Symbol(String::from("age")),
                 Expr::Literal(Literal::Int(2)),
-                BinaryOpType::Div,
+                BinaryOperator::Div,
             ))),
-            right: Expr::BinaryOp(Box::new(BinaryOp::new(
+            right: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Literal(Literal::Int(5)),
                 Expr::Literal(Literal::Float(0.5)),
-                BinaryOpType::Div,
+                BinaryOperator::Div,
             ))),
-            op_type: BinaryOpType::Add,
+            op_type: BinaryOperator::Add,
         }));
         let result = eval(op, &scope);
         let expected = Literal::Float(15.0);
@@ -340,10 +344,10 @@ mod tests {
     fn eval_gt() {
         let scope = HashScope::default();
 
-        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
             Expr::Literal(Literal::Int(8)),
             Expr::Literal(Literal::Int(4)),
-            BinaryOpType::Gt,
+            BinaryOperator::Gt,
         )));
         let result = eval(op, &scope);
         let expected = Literal::Bool(true);
@@ -373,10 +377,10 @@ mod tests {
         assert_eq!(is_truthy(Expr::Literal(Literal::Float(0.0)), &scope), false);
         assert_eq!(
             is_truthy(
-                Expr::BinaryOp(Box::new(BinaryOp::new(
+                Expr::BinaryExpr(Box::new(BinaryExpr::new(
                     Expr::Literal(Literal::Int(4)),
                     Expr::Literal(Literal::Int(7)),
-                    BinaryOpType::Add
+                    BinaryOperator::Add
                 ))),
                 &scope
             ),
@@ -384,10 +388,10 @@ mod tests {
         );
         assert_eq!(
             is_truthy(
-                Expr::BinaryOp(Box::new(BinaryOp::new(
+                Expr::BinaryExpr(Box::new(BinaryExpr::new(
                     Expr::Literal(Literal::Int(4)),
                     Expr::Literal(Literal::Int(4)),
-                    BinaryOpType::Sub
+                    BinaryOperator::Sub
                 ))),
                 &scope
             ),
@@ -397,31 +401,31 @@ mod tests {
     #[test]
     fn logical_operations() {
         let scope = HashScope::default();
-        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
             Expr::Literal(Literal::Bool(true)),
             Expr::Literal(Literal::Bool(false)),
-            BinaryOpType::Or,
+            BinaryOperator::Or,
         )));
         assert_eq!(eval(op, &scope), Literal::Bool(true));
 
-        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
             Expr::Literal(Literal::Bool(true)),
             Expr::Literal(Literal::Bool(false)),
-            BinaryOpType::And,
+            BinaryOperator::And,
         )));
         assert_eq!(eval(op, &scope), Literal::Bool(false));
 
-        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
             Expr::Literal(Literal::Bool(true)),
             Expr::Literal(Literal::Bool(true)),
-            BinaryOpType::And,
+            BinaryOperator::And,
         )));
         assert_eq!(eval(op, &scope), Literal::Bool(true));
 
-        let op = Expr::BinaryOp(Box::new(BinaryOp::new(
+        let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
             Expr::Literal(Literal::Bool(false)),
             Expr::Literal(Literal::Bool(false)),
-            BinaryOpType::Or,
+            BinaryOperator::Or,
         )));
         assert_eq!(eval(op, &scope), Literal::Bool(false));
     }
@@ -450,10 +454,10 @@ mod tests {
         let is_adult_fn = Closure {
             params: vec![String::from("age")],
             body: vec![Instruction::Stmt(Stmt::If(If {
-                cond: Expr::BinaryOp(Box::new(BinaryOp::new(
+                cond: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                     Expr::Symbol(String::from("age")),
                     Expr::Literal(Literal::Int(18)),
-                    BinaryOpType::Ge,
+                    BinaryOperator::Ge,
                 ))),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Bool(true),
@@ -491,17 +495,17 @@ mod tests {
         let scope = HashScope::default();
         scope.set("count", Literal::Int(0));
         let program: Program = vec![Instruction::Stmt(Stmt::While(While {
-            cond: Expr::BinaryOp(Box::new(BinaryOp::new(
+            cond: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Symbol(String::from("count")),
                 Expr::Literal(Literal::Int(10)),
-                BinaryOpType::Lt,
+                BinaryOperator::Lt,
             ))),
             body: vec![Instruction::Expr(Expr::Asignment(Asignment {
                 symbol: String::from("count"),
-                value: Box::new(Expr::BinaryOp(Box::new(BinaryOp::new(
+                value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr::new(
                     Expr::Symbol(String::from("count")),
                     Expr::Literal(Literal::Int(1)),
-                    BinaryOpType::Add,
+                    BinaryOperator::Add,
                 )))),
             }))],
         }))];
@@ -518,8 +522,8 @@ mod tests {
         let scope = HashScope::default();
         assert_eq!(
             eval(
-                Expr::UnaryOp(Box::new(UnaryOp {
-                    op_type: ast::UnaryOpType::Not,
+                Expr::UnaryExpr(Box::new(UnaryExpr {
+                    op_type: ast::UnaryOperator::Not,
                     operand: Expr::Literal(Literal::Bool(true))
                 })),
                 &scope
@@ -528,8 +532,8 @@ mod tests {
         );
         assert_eq!(
             eval(
-                Expr::UnaryOp(Box::new(UnaryOp {
-                    op_type: ast::UnaryOpType::Not,
+                Expr::UnaryExpr(Box::new(UnaryExpr {
+                    op_type: ast::UnaryOperator::Not,
                     operand: Expr::Literal(Literal::Bool(false))
                 })),
                 &scope

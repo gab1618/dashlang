@@ -44,7 +44,7 @@ pub fn parse_if_stmt(input: &str) -> If {
 #[cfg(test)]
 mod tests {
 
-    use ast::{BinaryOp, BinaryOpType, Expr, Instruction, Literal, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Instruction, Literal, Stmt};
 
     use super::*;
 
@@ -64,10 +64,10 @@ mod tests {
         assert_eq!(
             parse_if_stmt("if count < 10 {}"),
             If {
-                cond: Expr::BinaryOp(Box::new(BinaryOp {
+                cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    op_type: BinaryOpType::Lt
+                    op_type: BinaryOperator::Lt
                 })),
                 body: vec![],
                 else_block: None
@@ -76,10 +76,10 @@ mod tests {
         assert_eq!(
             parse_if_stmt("if count < 10 {return true}"),
             If {
-                cond: Expr::BinaryOp(Box::new(BinaryOp {
+                cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    op_type: BinaryOpType::Lt
+                    op_type: BinaryOperator::Lt
                 })),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Bool(true)

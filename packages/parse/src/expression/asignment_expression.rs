@@ -31,7 +31,7 @@ pub fn parse_asignment_expression(input: &str) -> Asignment {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType};
+    use ast::{BinaryExpr, BinaryOperator};
 
     use super::*;
     #[test]
@@ -50,10 +50,10 @@ mod tests {
             parse_asignment_expression("age = 5 + 1"),
             Asignment {
                 symbol: String::from("age"),
-                value: Box::new(Expr::BinaryOp(Box::new(BinaryOp {
+                value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(5)),
                     right: Expr::Literal(Literal::Int(1)),
-                    op_type: BinaryOpType::Add
+                    op_type: BinaryOperator::Add
                 })))
             }
         );

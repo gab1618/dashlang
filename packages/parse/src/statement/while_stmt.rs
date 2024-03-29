@@ -35,7 +35,7 @@ pub fn parse_while_stmt(input: &str) -> While {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Instruction, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Instruction, Stmt};
 
     use super::*;
 
@@ -54,10 +54,10 @@ mod tests {
         assert_eq!(
             parse_while_stmt("while count < 10 {}"),
             While {
-                cond: Expr::BinaryOp(Box::new(BinaryOp {
+                cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    op_type: BinaryOpType::Lt
+                    op_type: BinaryOperator::Lt
                 })),
                 body: vec![]
             }
@@ -66,10 +66,10 @@ mod tests {
         assert_eq!(
             parse_while_stmt("while count < 10 {return 1}"),
             While {
-                cond: Expr::BinaryOp(Box::new(BinaryOp {
+                cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    op_type: BinaryOpType::Lt
+                    op_type: BinaryOperator::Lt
                 })),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Int(1)

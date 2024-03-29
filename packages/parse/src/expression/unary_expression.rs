@@ -1,11 +1,11 @@
-use ast::{UnaryOp, UnaryOpType};
+use ast::{UnaryExpr, UnaryOperator};
 use pest::Parser;
 
 use crate::parser::{DashlangParser, Rule};
 
 use super::parse_expression;
 
-pub fn parse_unary_expression(input: &str) -> UnaryOp {
+pub fn parse_unary_expression(input: &str) -> UnaryExpr {
     let parsed = DashlangParser::parse(Rule::unary_expression, input)
         .expect("Could not parse unary expression")
         .next()
@@ -17,9 +17,9 @@ pub fn parse_unary_expression(input: &str) -> UnaryOp {
     let operand = parsed_inner
         .next()
         .expect("Could not get unary expression operand");
-    UnaryOp {
+    UnaryExpr {
         op_type: match operator.as_str() {
-            "!" => UnaryOpType::Not,
+            "!" => UnaryOperator::Not,
             any => panic!("Invalid unary operator: {any}"),
         },
         operand: (parse_expression(operand.as_str())),
@@ -28,7 +28,7 @@ pub fn parse_unary_expression(input: &str) -> UnaryOp {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Expr, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
 
     use super::*;
 
@@ -36,8 +36,8 @@ mod tests {
     fn test_not_true() {
         assert_eq!(
             parse_unary_expression("!true"),
-            UnaryOp {
-                op_type: ast::UnaryOpType::Not,
+            UnaryExpr {
+                op_type: ast::UnaryOperator::Not,
                 operand: Expr::Literal(Literal::Bool(true))
             }
         );
@@ -46,12 +46,12 @@ mod tests {
     fn test_sub() {
         assert_eq!(
             parse_unary_expression("!(true && false)"),
-            UnaryOp {
-                op_type: UnaryOpType::Not,
-                operand: Expr::BinaryOp(Box::new(BinaryOp {
+            UnaryExpr {
+                op_type: UnaryOperator::Not,
+                operand: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Bool(true)),
                     right: Expr::Literal(Literal::Bool(false)),
-                    op_type: BinaryOpType::And
+                    op_type: BinaryOperator::And
                 }))
             }
         );

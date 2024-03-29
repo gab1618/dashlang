@@ -25,17 +25,17 @@ pub fn parse_instruction(input: &str) -> Instruction {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Expr, Literal, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Stmt};
 
     use super::*;
     #[test]
     fn test_parse_expr() {
         assert_eq!(
             parse_instruction("1 + 1"),
-            Instruction::Expr(Expr::BinaryOp(Box::new(BinaryOp {
+            Instruction::Expr(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(1)),
-                op_type: BinaryOpType::Add
+                op_type: BinaryOperator::Add
             })))
         );
     }

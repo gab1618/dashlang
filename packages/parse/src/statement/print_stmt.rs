@@ -25,7 +25,7 @@ pub fn parse_print_stmt(input: &str) -> Stmt {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Literal};
 
     use super::*;
     #[test]
@@ -40,10 +40,10 @@ mod tests {
         );
         assert_eq!(
             parse_print_stmt("print age > 18"),
-            Stmt::Print(Expr::BinaryOp(Box::new(BinaryOp {
+            Stmt::Print(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Symbol(String::from("age")),
                 right: Expr::Literal(Literal::Int(18)),
-                op_type: BinaryOpType::Gt
+                op_type: BinaryOperator::Gt
             })))
         );
     }

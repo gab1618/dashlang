@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use ast::{
-    Asignment, BinaryOp, BinaryOpType, Call, Closure, Expr, If, Instruction, Literal, Program,
+    Asignment, BinaryExpr, BinaryOperator, Call, Closure, Expr, If, Instruction, Literal, Program,
     Stmt, While,
 };
 
@@ -39,19 +39,19 @@ fn test_while() {
                 value: Box::new(Expr::Literal(Literal::Int(0)))
             })),
             Instruction::Stmt(Stmt::While(While {
-                cond: Expr::BinaryOp(Box::new(BinaryOp {
+                cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    op_type: BinaryOpType::Lt
+                    op_type: BinaryOperator::Lt
                 })),
                 body: vec![
                     Instruction::Stmt(Stmt::Print(Expr::Symbol(String::from("count")))),
                     Instruction::Expr(Expr::Asignment(Asignment {
                         symbol: String::from("count"),
-                        value: Box::new(Expr::BinaryOp(Box::new(BinaryOp {
+                        value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                             left: Expr::Symbol(String::from("count")),
                             right: Expr::Literal(Literal::Int(1)),
-                            op_type: BinaryOpType::Add
+                            op_type: BinaryOperator::Add
                         })))
                     }))
                 ]
@@ -88,11 +88,11 @@ fn test_is_adult() {
             symbol: String::from("is_adult"),
             value: Box::new(Expr::Literal(Literal::Closure(Closure {
                 params: vec![String::from("age")],
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::BinaryOp(Box::new(
-                    BinaryOp {
+                body: vec![Instruction::Stmt(Stmt::Return(Expr::BinaryExpr(Box::new(
+                    BinaryExpr {
                         left: Expr::Symbol(String::from("age")),
                         right: Expr::Literal(Literal::Int(18)),
-                        op_type: BinaryOpType::Ge
+                        op_type: BinaryOperator::Ge
                     }
                 ))))]
             })))
@@ -108,10 +108,10 @@ fn test_say_adult() {
             value: Box::new(Expr::Literal(Literal::Closure(Closure {
                 params: vec![String::from("age")],
                 body: vec![Instruction::Stmt(Stmt::If(If {
-                    cond: Expr::BinaryOp(Box::new(BinaryOp {
+                    cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Symbol(String::from("age")),
                         right: Expr::Literal(Literal::Int(18)),
-                        op_type: BinaryOpType::Ge
+                        op_type: BinaryOperator::Ge
                     })),
                     body: vec![Instruction::Stmt(Stmt::Print(Expr::Literal(
                         Literal::String(String::from("Adult"))
@@ -134,27 +134,27 @@ fn test_fatorial_example() {
                 params: vec![String::from("n")],
                 body: vec![
                     Instruction::Stmt(Stmt::If(If {
-                        cond: Expr::BinaryOp(Box::new(BinaryOp {
+                        cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                             left: Expr::Symbol(String::from("n")),
                             right: Expr::Literal(Literal::Int(1)),
-                            op_type: BinaryOpType::Le
+                            op_type: BinaryOperator::Le
                         })),
                         body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                             Literal::Int(1)
                         )))],
                         else_block: None
                     })),
-                    Instruction::Stmt(Stmt::Return(Expr::BinaryOp(Box::new(BinaryOp {
+                    Instruction::Stmt(Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Symbol(String::from("n")),
                         right: Expr::Call(Call {
                             symbol: String::from("fat"),
-                            args: vec![Expr::BinaryOp(Box::new(BinaryOp {
+                            args: vec![Expr::BinaryExpr(Box::new(BinaryExpr {
                                 left: Expr::Symbol(String::from("n")),
                                 right: Expr::Literal(Literal::Int(1)),
-                                op_type: BinaryOpType::Sub
+                                op_type: BinaryOperator::Sub
                             }))]
                         }),
-                        op_type: BinaryOpType::Mul
+                        op_type: BinaryOperator::Mul
                     }))))
                 ]
             })))

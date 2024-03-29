@@ -4,7 +4,7 @@ pub struct Asignment {
     pub value: Box<Expr>,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
-pub enum BinaryOpType {
+pub enum BinaryOperator {
     Add,
     Sub,
     Mul,
@@ -18,13 +18,13 @@ pub enum BinaryOpType {
     Or,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct BinaryOp {
+pub struct BinaryExpr {
     pub left: Expr,
     pub right: Expr,
-    pub op_type: BinaryOpType,
+    pub op_type: BinaryOperator,
 }
-impl BinaryOp {
-    pub fn new(left: Expr, right: Expr, op_type: BinaryOpType) -> Self {
+impl BinaryExpr {
+    pub fn new(left: Expr, right: Expr, op_type: BinaryOperator) -> Self {
         Self {
             left,
             right,
@@ -33,12 +33,12 @@ impl BinaryOp {
     }
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub enum UnaryOpType {
+pub enum UnaryOperator {
     Not,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub struct UnaryOp {
-    pub op_type: UnaryOpType,
+pub struct UnaryExpr {
+    pub op_type: UnaryOperator,
     pub operand: Expr,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -53,8 +53,8 @@ pub struct Closure {
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
-    BinaryOp(Box<BinaryOp>),
-    UnaryOp(Box<UnaryOp>),
+    BinaryExpr(Box<BinaryExpr>),
+    UnaryExpr(Box<UnaryExpr>),
     Asignment(Asignment),
     Call(Call),
     Symbol(String),

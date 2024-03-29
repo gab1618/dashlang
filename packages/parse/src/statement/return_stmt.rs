@@ -32,7 +32,7 @@ pub fn parse_return_stmt(input: &str) -> Stmt {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Expr, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
 
     use super::*;
     #[test]
@@ -46,22 +46,22 @@ mod tests {
     fn test_return_expression() {
         assert_eq!(
             parse_return_stmt("return 1 + 1"),
-            Stmt::Return(Expr::BinaryOp(Box::new(BinaryOp {
+            Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(1)),
-                op_type: BinaryOpType::Add
+                op_type: BinaryOperator::Add
             })))
         );
         assert_eq!(
             parse_return_stmt("return 2 * (2 + 2)"),
-            Stmt::Return(Expr::BinaryOp(Box::new(BinaryOp {
+            Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(2)),
-                right: Expr::BinaryOp(Box::new(BinaryOp {
+                right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(2)),
                     right: Expr::Literal(Literal::Int(2)),
-                    op_type: BinaryOpType::Add
+                    op_type: BinaryOperator::Add
                 })),
-                op_type: BinaryOpType::Mul
+                op_type: BinaryOperator::Mul
             })))
         );
     }

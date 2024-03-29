@@ -27,7 +27,7 @@ pub fn parse_statement(input: &str) -> Stmt {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryOp, BinaryOpType, Expr, If, Literal, Stmt, While};
+    use ast::{BinaryExpr, BinaryOperator, Expr, If, Literal, Stmt, While};
 
     use super::*;
     #[test]
@@ -42,10 +42,10 @@ mod tests {
         assert_eq!(
             parse_statement("if count < 5 {}"),
             Stmt::If(If {
-                cond: Expr::BinaryOp(Box::new(BinaryOp {
+                cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(5)),
-                    op_type: BinaryOpType::Lt
+                    op_type: BinaryOperator::Lt
                 })),
                 else_block: None,
                 body: vec![]
@@ -57,10 +57,10 @@ mod tests {
         assert_eq!(
             parse_statement("while count < 5 {}"),
             Stmt::While(While {
-                cond: Expr::BinaryOp(Box::new(BinaryOp {
+                cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(5)),
-                    op_type: BinaryOpType::Lt
+                    op_type: BinaryOperator::Lt
                 })),
                 body: vec![]
             })
