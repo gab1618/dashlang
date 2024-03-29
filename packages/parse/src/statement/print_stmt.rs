@@ -1,9 +1,8 @@
-use ast::{Expr, Stmt};
+use ast::Stmt;
 use pest::Parser;
 
 use crate::{
     expression::parse_expression,
-    literal::parse_literal,
     parser::{DashlangParser, Rule},
 };
 
@@ -18,14 +17,13 @@ pub fn parse_print_stmt(input: &str) -> Stmt {
         .expect("Could not get print statement arg");
     match arg.as_rule() {
         Rule::expression => Stmt::Print(parse_expression(arg.as_str())),
-        Rule::literal => Stmt::Print(Expr::Literal(parse_literal(arg.as_str()))),
         _ => unreachable!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
 
     use super::*;
     #[test]
