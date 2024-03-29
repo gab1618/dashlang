@@ -2,8 +2,8 @@ use ast::{Call, Expr};
 use pest::Parser;
 
 use crate::{
+    literal::parse_literal,
     parser::{DashlangParser, Rule},
-    value::parse_values,
 };
 
 use super::parse_expression;
@@ -29,10 +29,10 @@ pub fn parse_call_expression(input: &str) -> Call {
                     Rule::expression => {
                         final_call.args.push(parse_expression(inner_arg.as_str()));
                     }
-                    Rule::value => {
+                    Rule::literal => {
                         final_call
                             .args
-                            .push(Expr::Literal(parse_values(inner_arg.as_str())));
+                            .push(Expr::Literal(parse_literal(inner_arg.as_str())));
                     }
                     _ => unreachable!(),
                 }

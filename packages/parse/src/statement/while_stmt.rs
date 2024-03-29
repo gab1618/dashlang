@@ -3,9 +3,9 @@ use pest::Parser;
 
 use crate::{
     expression::parse_expression,
+    literal::parse_literal,
     parser::{DashlangParser, Rule},
     scope::parse_scope,
-    value::parse_values,
 };
 
 pub fn parse_while_stmt(input: &str) -> While {
@@ -19,8 +19,8 @@ pub fn parse_while_stmt(input: &str) -> While {
         .unwrap();
     for element in ast.into_inner() {
         match element.as_rule() {
-            Rule::value => {
-                final_while.cond = Expr::Literal(parse_values(element.as_str()));
+            Rule::literal => {
+                final_while.cond = Expr::Literal(parse_literal(element.as_str()));
             }
             Rule::expression => {
                 final_while.cond = parse_expression(element.as_str());

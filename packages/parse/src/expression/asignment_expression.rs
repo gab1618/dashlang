@@ -1,6 +1,6 @@
 use pest::Parser;
 
-use crate::{expression::parse_expression, value::parse_values, DashlangParser, Rule};
+use crate::{expression::parse_expression, literal::parse_literal, DashlangParser, Rule};
 use ast::{Asignment, Expr, Literal};
 
 pub fn parse_asignment_expression(input: &str) -> Asignment {
@@ -14,8 +14,8 @@ pub fn parse_asignment_expression(input: &str) -> Asignment {
         .expect("Could not parse asignment expression");
     for item in ast.into_inner() {
         match item.as_rule() {
-            Rule::value => {
-                final_asignment.value = Box::new(Expr::Literal(parse_values(item.as_str())));
+            Rule::literal => {
+                final_asignment.value = Box::new(Expr::Literal(parse_literal(item.as_str())));
             }
             Rule::symbol => {
                 final_asignment.symbol = item.as_str().to_owned();

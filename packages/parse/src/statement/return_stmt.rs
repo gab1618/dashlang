@@ -3,8 +3,8 @@ use pest::Parser;
 
 use crate::{
     expression::parse_expression,
+    literal::parse_literal,
     parser::{DashlangParser, Rule},
-    value::parse_values,
 };
 
 pub fn parse_return_stmt(input: &str) -> Stmt {
@@ -17,12 +17,12 @@ pub fn parse_return_stmt(input: &str) -> Stmt {
         .next()
         .expect("Could not get return statement");
     let return_value = match return_stmt.as_rule() {
-        Rule::value => {
+        Rule::literal => {
             let value = return_stmt
                 .into_inner()
                 .next()
                 .expect("Could not get value");
-            Expr::Literal(parse_values(value.as_str()))
+            Expr::Literal(parse_literal(value.as_str()))
         }
         Rule::expression => parse_expression(return_stmt.as_str()),
         _ => unreachable!(),

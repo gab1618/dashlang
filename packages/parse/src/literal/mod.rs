@@ -4,12 +4,12 @@ use pest::Parser;
 use crate::parser::{DashlangParser, Rule};
 use crate::scope::parse_scope;
 
-pub fn parse_values(input: &str) -> Literal {
-    let parsed = DashlangParser::parse(Rule::value, input)
+pub fn parse_literal(input: &str) -> Literal {
+    let parsed = DashlangParser::parse(Rule::literal, input)
         .expect("Could not parse value")
         .next()
         .expect("Could not parse value");
-    if parsed.as_rule() != Rule::value {
+    if parsed.as_rule() != Rule::literal {
         panic!("Expected rule to be value");
     }
     let inner_value = parsed.into_inner().next().expect("Could not parse value");
@@ -72,22 +72,22 @@ mod tests {
     use super::*;
     #[test]
     fn parse_value() {
-        assert_eq!(parse_values("10"), Literal::Int(10));
-        assert_eq!(parse_values("-10"), Literal::Int(-10));
-        assert_eq!(parse_values("10.5"), Literal::Float(10.5));
-        assert_eq!(parse_values("-10.5"), Literal::Float(-10.5));
-        assert_eq!(parse_values("true"), Literal::Bool(true));
-        assert_eq!(parse_values("false"), Literal::Bool(false));
+        assert_eq!(parse_literal("10"), Literal::Int(10));
+        assert_eq!(parse_literal("-10"), Literal::Int(-10));
+        assert_eq!(parse_literal("10.5"), Literal::Float(10.5));
+        assert_eq!(parse_literal("-10.5"), Literal::Float(-10.5));
+        assert_eq!(parse_literal("true"), Literal::Bool(true));
+        assert_eq!(parse_literal("false"), Literal::Bool(false));
         assert_eq!(
-            parse_values(r#""apple""#),
+            parse_literal(r#""apple""#),
             Literal::String(String::from("apple"))
         );
         assert_eq!(
-            parse_values(r#""green apple""#),
+            parse_literal(r#""green apple""#),
             Literal::String(String::from("green apple"))
         );
         assert_eq!(
-            parse_values("(name, age) {return true}"),
+            parse_literal("(name, age) {return true}"),
             Literal::Closure(Closure {
                 params: vec![String::from("name"), String::from("age")],
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(

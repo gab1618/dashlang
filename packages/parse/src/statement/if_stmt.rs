@@ -3,9 +3,9 @@ use pest::Parser;
 
 use crate::{
     expression::parse_expression,
+    literal::parse_literal,
     parser::{DashlangParser, Rule},
     scope::parse_scope,
-    value::parse_values,
 };
 
 pub fn parse_if_stmt(input: &str) -> If {
@@ -23,8 +23,8 @@ pub fn parse_if_stmt(input: &str) -> If {
             Rule::expression => {
                 final_if.cond = parse_expression(element.as_str());
             }
-            Rule::value => {
-                final_if.cond = Expr::Literal(parse_values(element.as_str()));
+            Rule::literal => {
+                final_if.cond = Expr::Literal(parse_literal(element.as_str()));
             }
             Rule::scope => {
                 final_if.body = parse_scope(element.as_str());

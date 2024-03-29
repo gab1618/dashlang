@@ -6,27 +6,27 @@ int                  = ${ "-"? ~ ASCII_DIGIT+ }
 boolean              =  { "true" | "false" }
 keyword              =  { "return" }
 symbol               = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
-asignment_expression =  { symbol ~ "=" ~ (expression | value) }
+asignment_expression =  { symbol ~ "=" ~ expression }
 binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression       = _{ "(" ~ expression ~ ")" }
-binary_expression    =  { (value | symbol | sub_expression) ~ (binary_operator ~ (value | sub_expression | expression))+ }
+binary_expression    =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | expression))+ }
 unary_operator       =  { "!" }
-unary_expression     =  { unary_operator ~ (expression | value) }
-call_arg             =  { expression | value }
+unary_expression     =  { unary_operator ~ expression }
+call_arg             =  { expression }
 call_expression      =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
-expression           =  { binary_expression | unary_expression | asignment_expression | call_expression | symbol }
-return_stmt          =  { "return" ~ (expression | value) }
+expression           =  { binary_expression | unary_expression | asignment_expression | call_expression | symbol | literal }
+return_stmt          =  { "return" ~ expression }
 scope                =  { "{" ~ program ~ "}" }
 else_stmt            =  { "else" ~ scope }
-if_stmt              =  { "if" ~ (expression | value) ~ scope ~ else_stmt? }
-while_stmt           =  { "while" ~ (expression | value) ~ scope }
-print_stmt           =  { "print" ~ (expression | value) }
+if_stmt              =  { "if" ~ expression ~ scope ~ else_stmt? }
+while_stmt           =  { "while" ~ expression ~ scope }
+print_stmt           =  { "print" ~ expression }
 statement            =  { return_stmt | if_stmt | while_stmt | print_stmt }
 instruction          =  { statement | expression }
 closure_param        =  { symbol }
 closure_params       =  { closure_param ~ ("," ~ closure_param)* }
 closure              =  { "(" ~ closure_params? ~ ")" ~ scope }
-value                =  { string | float | int | boolean | closure }
+literal              =  { string | float | int | boolean | closure }
 
 program = { instruction* }
 

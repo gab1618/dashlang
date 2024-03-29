@@ -1,4 +1,4 @@
-use crate::{DashlangParser, Rule};
+use crate::{literal::parse_literal, DashlangParser, Rule};
 use ast::Expr;
 use pest::Parser;
 
@@ -35,7 +35,8 @@ pub fn parse_expression(input: &str) -> Expr {
             Expr::Call(parsed)
         }
         Rule::symbol => Expr::Symbol(expression.as_str().to_owned()),
-        _ => unreachable!(),
+        Rule::literal => Expr::Literal(parse_literal(expression.as_str())),
+        any => unreachable!("{:#?}", any),
     }
 }
 #[cfg(test)]

@@ -1,5 +1,5 @@
 use super::parse_expression;
-use crate::{value::parse_values, DashlangParser, Rule};
+use crate::{literal::parse_literal, DashlangParser, Rule};
 use ast::{BinaryOp, BinaryOpType, Expr, Literal};
 use pest::Parser;
 
@@ -31,8 +31,10 @@ pub fn parse_binary_expression(input: &str) -> BinaryOp {
                 "||" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOpType::Or)),
                 _ => unreachable!(),
             },
-            Rule::value => {
-                flat_expression.push(BinaryExpressionToken::Value(parse_values(element.as_str())));
+            Rule::literal => {
+                flat_expression.push(BinaryExpressionToken::Value(parse_literal(
+                    element.as_str(),
+                )));
             }
             Rule::expression => {
                 let parsed = parse_expression(element.as_str());

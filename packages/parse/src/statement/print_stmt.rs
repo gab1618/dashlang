@@ -3,8 +3,8 @@ use pest::Parser;
 
 use crate::{
     expression::parse_expression,
+    literal::parse_literal,
     parser::{DashlangParser, Rule},
-    value::parse_values,
 };
 
 pub fn parse_print_stmt(input: &str) -> Stmt {
@@ -18,7 +18,7 @@ pub fn parse_print_stmt(input: &str) -> Stmt {
         .expect("Could not get print statement arg");
     match arg.as_rule() {
         Rule::expression => Stmt::Print(parse_expression(arg.as_str())),
-        Rule::value => Stmt::Print(Expr::Literal(parse_values(arg.as_str()))),
+        Rule::literal => Stmt::Print(Expr::Literal(parse_literal(arg.as_str()))),
         _ => unreachable!(),
     }
 }

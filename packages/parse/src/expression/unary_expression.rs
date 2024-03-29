@@ -2,8 +2,8 @@ use ast::{Expr, Literal, UnaryOp, UnaryOpType};
 use pest::Parser;
 
 use crate::{
+    literal::parse_literal,
     parser::{DashlangParser, Rule},
-    value::parse_values,
 };
 
 use super::parse_expression;
@@ -25,7 +25,7 @@ pub fn parse_unary_expression(input: &str) -> UnaryOp {
             "!" => UnaryOpType::Not,
             any => panic!("Invalid unary operator: {any}"),
         },
-        operand: Expr::Literal(parse_values(operand.as_str())),
+        operand: Expr::Literal(parse_literal(operand.as_str())),
     }
 }
 
