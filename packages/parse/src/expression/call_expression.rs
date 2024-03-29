@@ -1,46 +1,31 @@
 use ast::{Call, Expr};
 use pest::Parser;
 
-use crate::{
-    literal::parse_literal,
-    parser::{DashlangParser, Rule},
-};
+use crate::parser::{DashlangParser, Rule};
 
 use super::parse_expression;
 
 pub fn parse_call_expression(input: &str) -> Call {
-    let mut final_call = Call {
-        symbol: String::new(),
-        args: Vec::new(),
-    };
     let ast = DashlangParser::parse(Rule::call_expression, input)
         .expect("Could not parse call expression")
         .next()
         .expect("Could not parse call expression");
-    for element in ast.into_inner() {
-        match element.as_rule() {
-            Rule::symbol => final_call.symbol = element.as_str().to_owned(),
-            Rule::call_arg => {
-                let inner_arg = element
-                    .into_inner()
-                    .next()
-                    .expect("Could not get call arg content");
-                match inner_arg.as_rule() {
-                    Rule::expression => {
-                        final_call.args.push(parse_expression(inner_arg.as_str()));
-                    }
-                    Rule::literal => {
-                        final_call
-                            .args
-                            .push(Expr::Literal(parse_literal(inner_arg.as_str())));
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-    final_call
+    let mut ast_inner = ast.into_inner();
+    let symbol = ast_inner
+        .next()
+        .expect("Could not get call symbol")
+        .as_str()
+        .to_owned();
+    let args: Vec<Expr> = ast_inner
+        .map(|element| {
+            let inner_arg = element
+                .into_inner()
+                .next()
+                .expect("Could not get call arg content");
+            parse_expression(inner_arg.as_str())
+        })
+        .collect();
+    Call { symbol, args }
 }
 
 #[cfg(test)]
