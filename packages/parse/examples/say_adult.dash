@@ -1,7 +1,7 @@
 say_adult = (age) {
   if age >= 18 {
-      print "Adult"
+    println("Adult")
   } else {
-    print "Minor"
+    println("Minor")
   }
 }
