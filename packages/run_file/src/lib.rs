@@ -1,13 +1,14 @@
 use std::fs::read_to_string;
 
-use eval::{eval_program, scope::HashScope};
+use eval::{scope::HashScope, Context};
 use parse::parse;
 
 pub fn run_file(file_path: &str) -> Result<(), std::io::Error> {
     let scope = HashScope::default();
     let file_content = read_to_string(file_path)?;
+    let ctx = Context::new(scope);
     let program = parse(&file_content);
-    eval_program(program, &scope);
+    ctx.run_program(program);
 
     Ok(())
 }
