@@ -1,4 +1,4 @@
 say_hello = () {
-  print "Hello"
+  println("Hello")
 }
 say_hello()

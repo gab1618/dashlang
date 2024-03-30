@@ -87,7 +87,6 @@ pub enum Stmt {
     Return(Expr),
     If(If),
     While(While),
-    Print(Expr),
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

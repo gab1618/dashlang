@@ -1,5 +1,5 @@
 count = 0
 while count < 10 {
-  print count
+  println(count)
   count = count + 1
 }

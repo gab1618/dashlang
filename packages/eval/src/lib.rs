@@ -1,6 +1,9 @@
 pub mod scope;
+pub mod stdlib;
 #[cfg(test)]
 mod tests;
+
+use std::{collections::HashMap, rc::Rc};
 
 use ast::{BinaryExpr, BinaryOperator, Call, Expr, Instruction, Literal, Program, Stmt, UnaryExpr};
 use scope::Scope;
@@ -49,7 +52,7 @@ macro_rules! define_boolean_operation {
     };
 }
 
-fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &T) -> bool {
+fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> bool {
     match expr {
         Expr::Literal(value) => match value {
             Literal::Closure(_) => true,
@@ -64,57 +67,53 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &T) -> bool {
     }
 }
 
-fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, scope: &T) -> Literal {
+fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, ctx: &Context<T>) -> Literal {
     match op.operator {
-        BinaryOperator::Add => define_aritmetic_operation!(+, op, scope),
-        BinaryOperator::Sub => define_aritmetic_operation!(-, op, scope),
-        BinaryOperator::Mul => define_aritmetic_operation!(*, op, scope),
-        BinaryOperator::Div => define_aritmetic_operation!(/, op, scope),
-        BinaryOperator::Gt => define_boolean_operation!(>, op, scope),
-        BinaryOperator::Eq => define_boolean_operation!(==, op, scope),
-        BinaryOperator::Ge => define_boolean_operation!(>=, op, scope),
-        BinaryOperator::Lt => define_boolean_operation!(<, op, scope),
-        BinaryOperator::Le => define_boolean_operation!(<=, op, scope),
-        BinaryOperator::And => {
-            Literal::Bool(is_truthy(op.left, scope) && is_truthy(op.right, scope))
-        }
-        BinaryOperator::Or => {
-            Literal::Bool(is_truthy(op.left, scope) || is_truthy(op.right, scope))
-        }
+        BinaryOperator::Add => define_aritmetic_operation!(+, op, ctx),
+        BinaryOperator::Sub => define_aritmetic_operation!(-, op, ctx),
+        BinaryOperator::Mul => define_aritmetic_operation!(*, op, ctx),
+        BinaryOperator::Div => define_aritmetic_operation!(/, op, ctx),
+        BinaryOperator::Gt => define_boolean_operation!(>, op, ctx),
+        BinaryOperator::Eq => define_boolean_operation!(==, op, ctx),
+        BinaryOperator::Ge => define_boolean_operation!(>=, op, ctx),
+        BinaryOperator::Lt => define_boolean_operation!(<, op, ctx),
+        BinaryOperator::Le => define_boolean_operation!(<=, op, ctx),
+        BinaryOperator::And => Literal::Bool(is_truthy(op.left, ctx) && is_truthy(op.right, ctx)),
+        BinaryOperator::Or => Literal::Bool(is_truthy(op.left, ctx) || is_truthy(op.right, ctx)),
     }
 }
-fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, scope: &T) -> Literal {
+fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> Literal {
     match op.operator {
         ast::UnaryOperator::Not => match op.operand {
-            Expr::Literal(literal) => Literal::Bool(!is_truthy(Expr::Literal(literal), scope)),
+            Expr::Literal(literal) => Literal::Bool(!is_truthy(Expr::Literal(literal), ctx)),
             expr => {
-                let literal_from_expr = eval(expr, scope);
+                let literal_from_expr = eval(expr, ctx);
                 let new_unary_op = UnaryExpr {
                     operator: ast::UnaryOperator::Not,
                     operand: Expr::Literal(literal_from_expr),
                 };
-                eval_unary_op(new_unary_op, scope)
+                eval_unary_op(new_unary_op, ctx)
             }
         },
     }
 }
 
-pub fn eval_program<T: Scope + Clone>(program: Program, scope: &T) -> Literal {
+pub fn eval_program<T: Scope + Clone>(program: Program, ctx: &Context<T>) -> Literal {
     for instruction in program {
         match instruction {
             Instruction::Stmt(stmt) => match stmt {
                 Stmt::Return(val) => {
-                    return eval(val, scope);
+                    return eval(val, ctx);
                 }
                 Stmt::If(if_stmt) => {
-                    if is_truthy(if_stmt.cond, scope) {
-                        let block_result = eval_program(if_stmt.body, scope);
+                    if is_truthy(if_stmt.cond, ctx) {
+                        let block_result = eval_program(if_stmt.body, ctx);
                         match block_result {
                             Literal::Void => (),
                             val => return val,
                         }
                     } else if let Some(else_block) = if_stmt.else_block {
-                        let block_result = eval_program(else_block, scope);
+                        let block_result = eval_program(else_block, ctx);
                         match block_result {
                             Literal::Null => (),
                             val => return val,
@@ -122,71 +121,104 @@ pub fn eval_program<T: Scope + Clone>(program: Program, scope: &T) -> Literal {
                     }
                 }
                 Stmt::While(while_stmt) => {
-                    while is_truthy(while_stmt.clone().cond, scope) {
-                        let block_result = eval_program(while_stmt.clone().body, scope);
+                    while is_truthy(while_stmt.clone().cond, ctx) {
+                        let block_result = eval_program(while_stmt.clone().body, ctx);
                         match block_result {
                             Literal::Void => (),
                             val => return val,
                         }
                     }
                 }
-                Stmt::Print(expr) => {
-                    let val = eval(expr, scope);
-                    match val {
-                        Literal::Closure(_) => println!("[closure]"),
-                        Literal::Int(num) => println!("{num}"),
-                        Literal::Float(num) => println!("{num}"),
-                        Literal::String(string) => println!("{string}"),
-                        Literal::Bool(bool) => {
-                            if bool {
-                                println!("True")
-                            } else {
-                                println!("False")
-                            }
-                        }
-                        Literal::Null => println!("null"),
-                        Literal::Void => (),
-                    }
-                }
             },
             Instruction::Expr(expr) => {
-                eval(expr, scope);
+                eval(expr, ctx);
             }
         }
     }
     Literal::Void
 }
 
-fn eval_call<T: Scope + Clone>(call: Call, scope: &T) -> Literal {
-    let found = scope.get(&call.symbol);
-    if let Literal::Closure(closure) = found {
-        let local_scope = scope.clone();
+fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> Literal {
+    if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
+        let local_context = ctx.clone();
         let args: Vec<Literal> = call
             .args
             .into_iter()
-            .map(|expr| eval(expr, &local_scope))
+            .map(|expr| eval(expr, &local_context))
+            .collect();
+        for (symbol, val) in found_extension.params.iter().zip(args) {
+            // Inject all arguments into local scope
+            local_context.scope.set(symbol, val);
+        }
+        return (found_extension.implementation)(&local_context);
+    }
+    if let Literal::Closure(closure) = ctx.scope.get(&call.symbol) {
+        let local_context = ctx.clone();
+        let args: Vec<Literal> = call
+            .args
+            .into_iter()
+            .map(|expr| eval(expr, &local_context))
             .collect();
         for (symbol, val) in closure.params.into_iter().zip(args) {
             // Inject all arguments into local scope
-            local_scope.set(&symbol, val);
+            local_context.scope.set(&symbol, val);
         }
-        eval_program(closure.body, &local_scope)
-    } else {
-        panic!("Cannot call {}: not callable", call.symbol);
+        return eval_program(closure.body, &local_context);
+    }
+    panic!("Cannot call {}: not callable", call.symbol);
+}
+
+pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> Literal {
+    match expr {
+        Expr::Literal(val) => val,
+        Expr::BinaryExpr(op) => eval_binary_op(*op, &ctx),
+        Expr::Asignment(asign) => {
+            let evaluated = eval(*asign.value, &ctx);
+            ctx.scope.set(&asign.symbol, evaluated.clone());
+            evaluated
+        }
+        Expr::Call(call) => eval_call(call, &ctx),
+        Expr::Symbol(symbol) => ctx.scope.get(&symbol),
+        Expr::UnaryExpr(op) => eval_unary_op(*op, &ctx),
+    }
+}
+#[derive(Clone)]
+pub struct Extension<S: Scope> {
+    pub params: Vec<String>,
+    pub implementation: Rc<dyn Fn(&Context<S>) -> Literal>,
+}
+pub trait Plugin<T: Scope> {
+    fn get_extensions(&self) -> Vec<(String, Extension<T>)>;
+}
+pub struct Context<T: Scope> {
+    scope: T,
+    extensions: HashMap<String, Extension<T>>,
+}
+impl<T: Scope + Clone> Context<T> {
+    pub fn new(s: T) -> Self {
+        Self {
+            scope: s,
+            extensions: HashMap::new(),
+        }
+    }
+    pub fn use_extension(&mut self, extension: Extension<T>, name: String) {
+        self.extensions.insert(name, extension);
+    }
+    pub fn run_program(&self, program: Program) {
+        eval_program(program, &self);
+    }
+    pub fn use_plugin(&mut self, plug: &dyn Plugin<T>) {
+        for (name, extension) in plug.get_extensions() {
+            self.use_extension(extension, name);
+        }
     }
 }
 
-pub fn eval<T: Scope + Clone>(expr: Expr, scope: &T) -> Literal {
-    match expr {
-        Expr::Literal(val) => val,
-        Expr::BinaryExpr(op) => eval_binary_op(*op, scope),
-        Expr::Asignment(asign) => {
-            let evaluated = eval(*asign.value, scope);
-            scope.set(&asign.symbol, evaluated.clone());
-            evaluated
+impl<T: Scope + Clone> Clone for Context<T> {
+    fn clone(&self) -> Self {
+        Self {
+            scope: self.scope.clone(),
+            extensions: self.extensions.clone(),
         }
-        Expr::Call(call) => eval_call(call, scope),
-        Expr::Symbol(symbol) => scope.get(&symbol),
-        Expr::UnaryExpr(op) => eval_unary_op(*op, scope),
     }
 }
