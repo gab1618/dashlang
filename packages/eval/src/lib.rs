@@ -163,10 +163,9 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> Literal {
             // Inject all arguments into local scope
             local_context.scope.set(&symbol, val);
         }
-        eval_program(closure.body, &local_context)
-    } else {
-        panic!("Cannot call {}: not callable", call.symbol);
+        return eval_program(closure.body, &local_context);
     }
+    panic!("Cannot call {}: not callable", call.symbol);
 }
 
 pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> Literal {

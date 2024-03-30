@@ -1,8 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use ast::{
-    Asignment, BinaryExpr, BinaryOperator, Call, Closure, Expr, If, Instruction, Literal, Program,
-    Stmt, While,
+    Asignment, BinaryExpr, BinaryOperator, Closure, Expr, Instruction, Literal, Program, Stmt,
 };
 
 use crate::program::parse_program;
