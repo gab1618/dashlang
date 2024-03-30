@@ -1,4 +1,5 @@
 pub mod scope;
+pub mod stdlib;
 #[cfg(test)]
 mod tests;
 
@@ -128,24 +129,6 @@ pub fn eval_program<T: Scope + Clone>(program: Program, ctx: &Context<T>) -> Lit
                         }
                     }
                 }
-                Stmt::Print(expr) => {
-                    let val = eval(expr, ctx);
-                    match val {
-                        Literal::Closure(_) => println!("[closure]"),
-                        Literal::Int(num) => println!("{num}"),
-                        Literal::Float(num) => println!("{num}"),
-                        Literal::String(string) => println!("{string}"),
-                        Literal::Bool(bool) => {
-                            if bool {
-                                println!("True")
-                            } else {
-                                println!("False")
-                            }
-                        }
-                        Literal::Null => println!("null"),
-                        Literal::Void => (),
-                    }
-                }
             },
             Instruction::Expr(expr) => {
                 eval(expr, ctx);
@@ -167,7 +150,7 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> Literal {
             // Inject all arguments into local scope
             local_context.scope.set(symbol, val);
         }
-        return (found_extension.implementation)(&ctx);
+        return (found_extension.implementation)(&local_context);
     }
     if let Literal::Closure(closure) = ctx.scope.get(&call.symbol) {
         let local_context = ctx.clone();
@@ -205,6 +188,9 @@ pub struct Extension<S: Scope> {
     pub params: Vec<String>,
     pub implementation: Rc<dyn Fn(&Context<S>) -> Literal>,
 }
+pub trait Plugin<T: Scope> {
+    fn get_extensions(&self) -> Vec<(String, Extension<T>)>;
+}
 pub struct Context<T: Scope> {
     scope: T,
     extensions: HashMap<String, Extension<T>>,
@@ -216,12 +202,16 @@ impl<T: Scope + Clone> Context<T> {
             extensions: HashMap::new(),
         }
     }
-    pub fn use_extension(mut self, extension: Extension<T>, name: String) -> Self {
+    pub fn use_extension(&mut self, extension: Extension<T>, name: String) {
         self.extensions.insert(name, extension);
-        self
     }
     pub fn run_program(&self, program: Program) {
         eval_program(program, &self);
+    }
+    pub fn use_plugin(&mut self, plug: &dyn Plugin<T>) {
+        for (name, extension) in plug.get_extensions() {
+            self.use_extension(extension, name);
+        }
     }
 }
 

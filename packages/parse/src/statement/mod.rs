@@ -1,5 +1,4 @@
 mod if_stmt;
-mod print_stmt;
 mod return_stmt;
 mod while_stmt;
 use ast::Stmt;
@@ -9,7 +8,7 @@ use crate::parser::{DashlangParser, Rule};
 
 use return_stmt::parse_return_stmt;
 
-use self::{if_stmt::parse_if_stmt, print_stmt::parse_print_stmt, while_stmt::parse_while_stmt};
+use self::{if_stmt::parse_if_stmt, while_stmt::parse_while_stmt};
 
 pub fn parse_statement(input: &str) -> Stmt {
     let ast = DashlangParser::parse(Rule::statement, input)
@@ -21,7 +20,6 @@ pub fn parse_statement(input: &str) -> Stmt {
         Rule::return_stmt => parse_return_stmt(ast_statement.as_str()),
         Rule::if_stmt => Stmt::If(parse_if_stmt(ast_statement.as_str())),
         Rule::while_stmt => Stmt::While(parse_while_stmt(ast_statement.as_str())),
-        Rule::print_stmt => parse_print_stmt(ast_statement.as_str()),
         _ => unreachable!(),
     }
 }
@@ -64,13 +62,6 @@ mod tests {
                 })),
                 body: vec![]
             })
-        );
-    }
-    #[test]
-    fn test_parse_print() {
-        assert_eq!(
-            parse_statement("print name"),
-            Stmt::Print(Expr::Symbol(String::from("name")))
         );
     }
 }
