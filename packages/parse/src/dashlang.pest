@@ -1,6 +1,6 @@
 quote                = _{ "\"" }
-text                 =  { (!("\"") ~ ANY)* }
-string               =  { quote ~ text ~ quote }
+text                 = @{ (!("\"") ~ ANY)* }
+string               = ${ quote ~ text ~ quote }
 float                = ${ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
 int                  = ${ "-"? ~ ASCII_DIGIT+ }
 boolean              =  { "true" | "false" }
