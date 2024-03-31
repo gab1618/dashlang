@@ -1,0 +1,7 @@
+items = ["Apple", "Grape", "Orange"]
+
+index = 0
+while index < 3 {
+  println(nth(items, index))
+  index = index + 1
+}
