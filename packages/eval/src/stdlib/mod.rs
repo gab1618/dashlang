@@ -1,3 +1,4 @@
+mod input;
 mod len;
 mod nth;
 mod println;
@@ -5,6 +6,7 @@ mod push;
 
 use std::rc::Rc;
 
+use input::stdlib_input;
 use len::stdlib_len;
 use nth::stdlib_nth;
 use println::stdlib_println;
@@ -56,6 +58,13 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                         let base = ctx.scope.get("base");
                         stdlib_push(item, base)
                     }),
+                },
+            ),
+            (
+                String::from("input"),
+                Extension {
+                    params: vec![],
+                    implementation: Rc::new(|_| stdlib_input()),
                 },
             ),
         ]
