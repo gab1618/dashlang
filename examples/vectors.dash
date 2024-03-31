@@ -1,4 +1,5 @@
 items = ["Apple", "Grape", "Orange"]
+items = push(items, "Cherry")
 
 index = 0
 while index < len(items) {

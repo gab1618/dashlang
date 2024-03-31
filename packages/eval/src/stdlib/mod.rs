@@ -1,12 +1,16 @@
 mod len;
 mod nth;
 mod println;
+mod push;
+
 use std::rc::Rc;
 
+use len::stdlib_len;
 use nth::stdlib_nth;
 use println::stdlib_println;
+use push::stdlib_push;
 
-use crate::{scope::Scope, stdlib::len::stdlib_len, Extension, Plugin};
+use crate::{scope::Scope, Extension, Plugin};
 
 pub struct Stdlib {}
 impl<T: Scope + Clone> Plugin<T> for Stdlib {
@@ -40,6 +44,17 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                     implementation: Rc::new(|ctx| {
                         let item = ctx.scope.get("item");
                         stdlib_len(item)
+                    }),
+                },
+            ),
+            (
+                String::from("push"),
+                Extension {
+                    params: vec![String::from("item"), String::from("base")],
+                    implementation: Rc::new(|ctx| {
+                        let item = ctx.scope.get("item");
+                        let base = ctx.scope.get("base");
+                        stdlib_push(item, base)
                     }),
                 },
             ),
