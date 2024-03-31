@@ -59,6 +59,7 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> bool {
             Literal::Int(num) => num != 0,
             Literal::Float(num) => num != 0.0,
             Literal::String(string) => !string.is_empty(),
+            Literal::Vector(val) => val.len() > 0,
             Literal::Bool(bool) => bool,
             Literal::Null => false,
             Literal::Void => false,
