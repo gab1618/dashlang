@@ -2,6 +2,7 @@ use ast::{Closure, Literal};
 use pest::Parser;
 
 use crate::body::parse_body;
+use crate::expression::parse_expression;
 use crate::parser::{DashlangParser, Rule};
 
 pub fn parse_literal(input: &str) -> Literal {
@@ -56,6 +57,14 @@ pub fn parse_literal(input: &str) -> Literal {
             );
             Literal::Closure(Closure { params, body })
         }
+        Rule::vector => {
+            let inner_ast = inner_value.into_inner();
+            Literal::Vector(
+                inner_ast
+                    .map(|element| parse_expression(element.as_str()))
+                    .collect(),
+            )
+        }
         _ => unreachable!(),
     }
 }
@@ -89,6 +98,17 @@ mod tests {
                     Literal::Bool(true)
                 )))]
             })
+        );
+    }
+    #[test]
+    fn test_parse_vector() {
+        assert_eq!(
+            parse_literal("[1, 8, 7]"),
+            Literal::Vector(vec![
+                Expr::Literal(Literal::Int(1)),
+                Expr::Literal(Literal::Int(8)),
+                Expr::Literal(Literal::Int(7)),
+            ])
         );
     }
 }

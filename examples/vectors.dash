@@ -1,0 +1,8 @@
+items = ["Apple", "Grape", "Orange"]
+items = push(items, "Cherry")
+
+index = 0
+while index < len(items) {
+  println(nth(items, index))
+  index = index + 1
+}

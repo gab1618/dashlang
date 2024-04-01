@@ -1,0 +1,2 @@
+fruits = ["Apple", "Grape", "Orange"]
+println(fruits)

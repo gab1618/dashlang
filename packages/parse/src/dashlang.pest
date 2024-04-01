@@ -1,9 +1,10 @@
 quote                = _{ "\"" }
-text                 =  { (!("\"") ~ ANY)* }
-string               =  { quote ~ text ~ quote }
+text                 = @{ (!("\"") ~ ANY)* }
+string               = ${ quote ~ text ~ quote }
 float                = ${ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
 int                  = ${ "-"? ~ ASCII_DIGIT+ }
 boolean              =  { "true" | "false" }
+vector               =  { "[" ~ expression? ~ ("," ~ expression)* ~ "]" }
 keyword              =  { "return" }
 symbol               = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 asignment_expression =  { symbol ~ "=" ~ expression }
@@ -26,7 +27,7 @@ instruction          =  { statement | expression }
 closure_param        =  { symbol }
 closure_params       =  { (closure_param ~ ("," ~ closure_param)*)? }
 closure              =  { "(" ~ closure_params ~ ")" ~ body }
-literal              =  { string | float | int | boolean | closure }
+literal              =  { string | float | int | boolean | vector | closure }
 
 program = { instruction* }
 
