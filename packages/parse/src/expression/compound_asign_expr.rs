@@ -1,4 +1,4 @@
-use ast::{Asignment, BinaryExpr, BinaryOperator, Expr, Literal};
+use ast::{Asignment, BinaryExpr, Expr};
 use pest::Parser;
 
 use crate::parser::{DashlangParser, Rule};
@@ -34,7 +34,7 @@ pub fn parse_compound_asign_expr(input: &str) -> Asignment {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator};
+    use ast::{BinaryExpr, BinaryOperator, Literal};
 
     use super::*;
     #[test]
