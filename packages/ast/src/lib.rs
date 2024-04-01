@@ -82,12 +82,20 @@ pub struct While {
     pub cond: Expr,
     pub body: Program,
 }
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct For {
+    pub cond: Expr,
+    pub body: Program,
+    pub init: Instruction,
+    pub iteration: Instruction,
+}
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Stmt {
     Return(Expr),
     If(If),
     While(While),
+    For(Box<For>),
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

@@ -1,3 +1,4 @@
+mod for_stmt;
 mod if_stmt;
 mod return_stmt;
 mod while_stmt;
@@ -8,7 +9,7 @@ use crate::parser::{DashlangParser, Rule};
 
 use return_stmt::parse_return_stmt;
 
-use self::{if_stmt::parse_if_stmt, while_stmt::parse_while_stmt};
+use self::{for_stmt::parse_for_stmt, if_stmt::parse_if_stmt, while_stmt::parse_while_stmt};
 
 pub fn parse_statement(input: &str) -> Stmt {
     let ast = DashlangParser::parse(Rule::statement, input)
@@ -20,6 +21,7 @@ pub fn parse_statement(input: &str) -> Stmt {
         Rule::return_stmt => parse_return_stmt(ast_statement.as_str()),
         Rule::if_stmt => Stmt::If(parse_if_stmt(ast_statement.as_str())),
         Rule::while_stmt => Stmt::While(parse_while_stmt(ast_statement.as_str())),
+        Rule::for_stmt => Stmt::For(Box::new(parse_for_stmt(ast_statement.as_str()))),
         _ => unreachable!(),
     }
 }

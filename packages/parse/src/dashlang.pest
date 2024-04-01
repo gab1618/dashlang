@@ -8,6 +8,7 @@ vector                  =  { "[" ~ expression? ~ ("," ~ expression)* ~ "]" }
 keyword                 =  { "return" }
 symbol                  = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 asignment_expression    =  { symbol ~ "=" ~ expression }
+compound_asignment_expr =  { symbol ~ binary_operator ~ "=" ~ expression }
 binary_operator         =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression          = _{ "(" ~ expression ~ ")" }
 binary_expression       =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | literal | call_expression | symbol))+ }
@@ -22,8 +23,8 @@ else_stmt               =  { "else" ~ body }
 else_if_stmt            =  { "else" ~ "if" ~ expression ~ body ~ (else_stmt | else_if_stmt)? }
 if_stmt                 =  { "if" ~ expression ~ body ~ (else_stmt | else_if_stmt)? }
 while_stmt              =  { "while" ~ expression ~ body }
-compound_asignment_expr =  { symbol ~ binary_operator ~ "=" ~ expression }
-statement               =  { return_stmt | if_stmt | while_stmt }
+for_stmt                =  { "for" ~ instruction ~ ";" ~ expression ~ ";" ~ instruction ~ body }
+statement               =  { return_stmt | if_stmt | while_stmt | for_stmt }
 instruction             =  { statement | expression }
 closure_param           =  { symbol }
 closure_params          =  { (closure_param ~ ("," ~ closure_param)*)? }
@@ -33,3 +34,4 @@ literal                 =  { string | float | int | boolean | vector | closure }
 program = { instruction* }
 
 WHITESPACE = _{ " " | "\n" }
+

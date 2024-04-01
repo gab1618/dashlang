@@ -130,6 +130,17 @@ pub fn eval_program<T: Scope + Clone>(program: Program, ctx: &Context<T>) -> Lit
                         }
                     }
                 }
+                Stmt::For(for_stmt) => {
+                    eval_program(vec![for_stmt.clone().init], ctx);
+                    while is_truthy(for_stmt.clone().cond, ctx) {
+                        let block_result = eval_program(for_stmt.clone().body, ctx);
+                        match block_result {
+                            Literal::Void => (),
+                            val => return val,
+                        }
+                        eval_program(vec![for_stmt.clone().iteration], ctx);
+                    }
+                }
             },
             Instruction::Expr(expr) => {
                 eval(expr, ctx);
