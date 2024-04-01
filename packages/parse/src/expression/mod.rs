@@ -4,12 +4,15 @@ use pest::Parser;
 
 use self::{
     asignment_expression::parse_asignment_expression, binary_expression::parse_binary_expression,
-    call_expression::parse_call_expression, unary_expression::parse_unary_expression,
+    call_expression::parse_call_expression, compound_asign_expr::parse_compound_asign_expr,
+    unary_expression::parse_unary_expression,
 };
 
 mod asignment_expression;
 mod binary_expression;
+mod binary_operator;
 mod call_expression;
+mod compound_asign_expr;
 mod unary_expression;
 
 pub fn parse_expression(input: &str) -> Expr {
@@ -29,6 +32,9 @@ pub fn parse_expression(input: &str) -> Expr {
         Rule::asignment_expression => {
             let parsed = parse_asignment_expression(expression.as_str());
             Expr::Asignment(parsed)
+        }
+        Rule::compound_asignment_expr => {
+            Expr::Asignment(parse_compound_asign_expr(expression.as_str()))
         }
         Rule::call_expression => {
             let parsed = parse_call_expression(expression.as_str());
@@ -83,6 +89,20 @@ mod tests {
                     operator: BinaryOperator::And
                 }))
             }))
+        );
+    }
+    #[test]
+    fn test_compound_asign_expr() {
+        assert_eq!(
+            parse_expression("n += 1"),
+            Expr::Asignment(Asignment {
+                symbol: String::from("n"),
+                value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
+                    left: Expr::Symbol(String::from("n")),
+                    right: Expr::Literal(Literal::Int(1)),
+                    operator: BinaryOperator::Add
+                })))
+            })
         );
     }
 }

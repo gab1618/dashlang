@@ -1,4 +1,4 @@
-use super::parse_expression;
+use super::{binary_operator::parse_binary_operator, parse_expression};
 use crate::{literal::parse_literal, DashlangParser, Rule};
 use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
 use pest::Parser;
@@ -17,20 +17,9 @@ pub fn parse_binary_expression(input: &str) -> BinaryExpr {
     let mut flat_expression: Vec<BinaryExpressionToken> = vec![];
     for element in ast.into_inner() {
         match element.as_rule() {
-            Rule::binary_operator => match element.as_str() {
-                "+" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Add)),
-                "-" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Sub)),
-                "*" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Mul)),
-                "/" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Div)),
-                ">" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Gt)),
-                ">=" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Ge)),
-                "<" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Lt)),
-                "<=" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Le)),
-                "==" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Eq)),
-                "&&" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::And)),
-                "||" => flat_expression.push(BinaryExpressionToken::Operator(BinaryOperator::Or)),
-                _ => unreachable!(),
-            },
+            Rule::binary_operator => flat_expression.push(BinaryExpressionToken::Operator(
+                parse_binary_operator(element.as_str()),
+            )),
             Rule::literal => {
                 flat_expression.push(BinaryExpressionToken::Literal(parse_literal(
                     element.as_str(),

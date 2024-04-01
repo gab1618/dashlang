@@ -1,33 +1,34 @@
-quote                = _{ "\"" }
-text                 = @{ (!("\"") ~ ANY)* }
-string               = ${ quote ~ text ~ quote }
-float                = ${ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
-int                  = ${ "-"? ~ ASCII_DIGIT+ }
-boolean              =  { "true" | "false" }
-vector               =  { "[" ~ expression? ~ ("," ~ expression)* ~ "]" }
-keyword              =  { "return" }
-symbol               = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
-asignment_expression =  { symbol ~ "=" ~ expression }
-binary_operator      =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
-sub_expression       = _{ "(" ~ expression ~ ")" }
-binary_expression    =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | literal | call_expression | symbol))+ }
-unary_operator       =  { "!" }
-unary_expression     =  { unary_operator ~ (expression | sub_expression) }
-call_arg             =  { expression }
-call_expression      =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
-expression           =  { binary_expression | unary_expression | asignment_expression | call_expression | symbol | literal }
-return_stmt          =  { "return" ~ expression }
-body                 =  { "{" ~ program ~ "}" }
-else_stmt            =  { "else" ~ body }
-else_if_stmt         =  { "else" ~ "if" ~ expression ~ body ~ (else_stmt | else_if_stmt)? }
-if_stmt              =  { "if" ~ expression ~ body ~ (else_stmt | else_if_stmt)? }
-while_stmt           =  { "while" ~ expression ~ body }
-statement            =  { return_stmt | if_stmt | while_stmt }
-instruction          =  { statement | expression }
-closure_param        =  { symbol }
-closure_params       =  { (closure_param ~ ("," ~ closure_param)*)? }
-closure              =  { "(" ~ closure_params ~ ")" ~ body }
-literal              =  { string | float | int | boolean | vector | closure }
+quote                   = _{ "\"" }
+text                    = @{ (!("\"") ~ ANY)* }
+string                  = ${ quote ~ text ~ quote }
+float                   = ${ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+int                     = ${ "-"? ~ ASCII_DIGIT+ }
+boolean                 =  { "true" | "false" }
+vector                  =  { "[" ~ expression? ~ ("," ~ expression)* ~ "]" }
+keyword                 =  { "return" }
+symbol                  = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+asignment_expression    =  { symbol ~ "=" ~ expression }
+binary_operator         =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
+sub_expression          = _{ "(" ~ expression ~ ")" }
+binary_expression       =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | literal | call_expression | symbol))+ }
+unary_operator          =  { "!" }
+unary_expression        =  { unary_operator ~ (expression | sub_expression) }
+call_arg                =  { expression }
+call_expression         =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
+expression              =  { binary_expression | unary_expression | compound_asignment_expr | asignment_expression | call_expression | symbol | literal }
+return_stmt             =  { "return" ~ expression }
+body                    =  { "{" ~ program ~ "}" }
+else_stmt               =  { "else" ~ body }
+else_if_stmt            =  { "else" ~ "if" ~ expression ~ body ~ (else_stmt | else_if_stmt)? }
+if_stmt                 =  { "if" ~ expression ~ body ~ (else_stmt | else_if_stmt)? }
+while_stmt              =  { "while" ~ expression ~ body }
+compound_asignment_expr =  { symbol ~ binary_operator ~ "=" ~ expression }
+statement               =  { return_stmt | if_stmt | while_stmt }
+instruction             =  { statement | expression }
+closure_param           =  { symbol }
+closure_params          =  { (closure_param ~ ("," ~ closure_param)*)? }
+closure                 =  { "(" ~ closure_params ~ ")" ~ body }
+literal                 =  { string | float | int | boolean | vector | closure }
 
 program = { instruction* }
 
