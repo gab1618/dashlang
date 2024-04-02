@@ -1,4 +1,4 @@
-use ast::{Asignment, Closure, If, While};
+use ast::{Assignment, Closure, If, While};
 use scope::HashScope;
 
 use super::*;
@@ -24,7 +24,7 @@ fn eval_primitive() {
     assert_eq!(result, expected);
 
     eval(
-        Expr::Asignment(Asignment {
+        Expr::Assignment(Assignment {
             symbol: String::from("name"),
             value: Box::new(Expr::Literal(Literal::Int(4))),
         }),
@@ -298,7 +298,7 @@ fn test_while_loop() {
             Expr::Literal(Literal::Int(10)),
             BinaryOperator::Lt,
         ))),
-        body: vec![Instruction::Expr(Expr::Asignment(Asignment {
+        body: vec![Instruction::Expr(Expr::Assignment(Assignment {
             symbol: String::from("count"),
             value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Symbol(String::from("count")),

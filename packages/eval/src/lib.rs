@@ -184,9 +184,9 @@ pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> Literal {
     match expr {
         Expr::Literal(val) => val,
         Expr::BinaryExpr(op) => eval_binary_op(*op, &ctx),
-        Expr::Asignment(asign) => {
-            let evaluated = eval(*asign.value, &ctx);
-            ctx.scope.set(&asign.symbol, evaluated.clone());
+        Expr::Assignment(assign) => {
+            let evaluated = eval(*assign.value, &ctx);
+            ctx.scope.set(&assign.symbol, evaluated.clone());
             evaluated
         }
         Expr::Call(call) => eval_call(call, &ctx),

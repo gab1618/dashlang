@@ -19,14 +19,14 @@ Closure | `(n) {return n + 1}`
 
 ### Declaring a variable
 
-Declaring a variable is as simple as choosing a variable name and asigning a value to it:
+Declaring a variable is as simple as choosing a variable name and assigning a value to it:
 ```
 name = "Gabriel"
 ```
 
 ### Functions
 
-There is no functions in this language, we use instead closures asigned to variables:
+There is no functions in this language, we use instead closures assigned to variables:
 
 ```
 increment = (n) {return n + 1}
