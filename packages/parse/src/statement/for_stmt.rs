@@ -6,7 +6,6 @@ use crate::{
     expression::parse_expression,
     instruction::parse_instruction,
     parser::{DashlangParser, Rule},
-    program::parse_program,
 };
 
 pub fn parse_for_stmt(input: &str) -> For {
