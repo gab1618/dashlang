@@ -72,3 +72,10 @@ for count = 0; count < 10; count += 1 {
 ```
 
 As you can see in the `for` example, we also have the compound assignment expression operator (`+=`, `-=`, etc...)
+
+## Usage
+
+As we don't have a compiled interpreter yet, you can do some tests using the `cli` package. The only requirement is to have Rust installed. You can run a program with the command:
+
+`cargo run --package cli "<path-to-script>`
+
