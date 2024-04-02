@@ -16,7 +16,8 @@ unary_operator          =  { "!" }
 unary_expression        =  { unary_operator ~ (expression | sub_expression) }
 call_arg                =  { expression }
 call_expression         =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
-expression              =  { binary_expression | unary_expression | compound_asignment_expr | asignment_expression | call_expression | symbol | literal }
+piping_operation        =  { "|>" ~ call_expression }
+expression              =  { (binary_expression | unary_expression | compound_asignment_expr | asignment_expression | call_expression | symbol | literal) ~ (piping_operation)* }
 return_stmt             =  { "return" ~ expression }
 body                    =  { "{" ~ program ~ "}" }
 else_stmt               =  { "else" ~ body }
@@ -34,4 +35,3 @@ literal                 =  { string | float | int | boolean | vector | closure }
 program = { instruction* }
 
 WHITESPACE = _{ " " | "\n" }
-
