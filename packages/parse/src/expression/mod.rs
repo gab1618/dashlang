@@ -20,11 +20,9 @@ pub fn parse_expression(input: &str) -> Expr {
         .expect("Could not parse expression")
         .next()
         .expect("Could not parse expression");
-    let expression = ast
-        .into_inner()
-        .next()
-        .expect("Could not get expression type");
-    match expression.as_rule() {
+    let mut inner_ast = ast.into_inner();
+    let expression = inner_ast.next().expect("Could not get expression type");
+    let mut parsed = match expression.as_rule() {
         Rule::binary_expression => {
             let parsed = parse_binary_expression(expression.as_str());
             Expr::BinaryExpr(Box::new(parsed))
@@ -46,12 +44,22 @@ pub fn parse_expression(input: &str) -> Expr {
             Expr::UnaryExpr(Box::new(parse_unary_expression(expression.as_str())))
         }
         any => unreachable!("{:#?}", any),
+    };
+    while let Some(piping) = inner_ast.next() {
+        let inner_call = piping
+            .into_inner()
+            .next()
+            .expect("Could not get call from piping");
+        let mut parsed_inner_call = parse_call_expression(inner_call.as_str());
+        parsed_inner_call.args.insert(0, parsed);
+        parsed = Expr::Call(parsed_inner_call);
     }
+    parsed
 }
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{Asignment, BinaryExpr, BinaryOperator, Expr, Literal, UnaryExpr};
+    use ast::{Asignment, BinaryExpr, BinaryOperator, Call, Expr, Literal, UnaryExpr};
     #[test]
     fn test_parse_expression() {
         assert_eq!(
@@ -102,6 +110,45 @@ mod tests {
                     right: Expr::Literal(Literal::Int(1)),
                     operator: BinaryOperator::Add
                 })))
+            })
+        );
+    }
+    #[test]
+    fn test_piping() {
+        assert_eq!(
+            parse_expression("4 |> add(1)"),
+            Expr::Call(Call {
+                symbol: String::from("add"),
+                args: vec![
+                    Expr::Literal(Literal::Int(4)),
+                    Expr::Literal(Literal::Int(1))
+                ]
+            })
+        );
+        assert_eq!(
+            parse_expression("4 |> add(1) |> add(5)"),
+            Expr::Call(Call {
+                symbol: String::from("add"),
+                args: vec![
+                    Expr::Call(Call {
+                        symbol: String::from("add"),
+                        args: vec![
+                            Expr::Literal(Literal::Int(4)),
+                            Expr::Literal(Literal::Int(1))
+                        ]
+                    }),
+                    Expr::Literal(Literal::Int(5))
+                ]
+            })
+        );
+        assert_eq!(
+            parse_expression("\"Hello, \" |> push(\"World!\")"),
+            Expr::Call(Call {
+                symbol: String::from("push"),
+                args: vec![
+                    Expr::Literal(Literal::String(String::from("Hello, "))),
+                    Expr::Literal(Literal::String(String::from("World!")))
+                ]
             })
         );
     }
