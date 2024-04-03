@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use ast::{
-    Asignment, BinaryExpr, BinaryOperator, Closure, Expr, Instruction, Literal, Program, Stmt,
+    Assignment, BinaryExpr, BinaryOperator, Closure, Expr, Instruction, Literal, Program, Stmt,
 };
 
 use crate::program::parse_program;
@@ -23,7 +23,7 @@ fn get_example_program<P: AsRef<Path>>(filename: P) -> Program {
 fn test_is_adult() {
     assert_eq!(
         get_example_program("is_adult.dash"),
-        vec![Instruction::Expr(Expr::Asignment(Asignment {
+        vec![Instruction::Expr(Expr::Assignment(Assignment {
             symbol: String::from("is_adult"),
             value: Box::new(Expr::Literal(Literal::Closure(Closure {
                 params: vec![String::from("age")],

@@ -3,16 +3,16 @@ use ast::Expr;
 use pest::Parser;
 
 use self::{
-    asignment_expression::parse_asignment_expression, binary_expression::parse_binary_expression,
-    call_expression::parse_call_expression, compound_asign_expr::parse_compound_asign_expr,
+    assignment_expression::parse_assignment_expression, binary_expression::parse_binary_expression,
+    call_expression::parse_call_expression, compound_assign_expr::parse_compound_assign_expr,
     unary_expression::parse_unary_expression,
 };
 
-mod asignment_expression;
+mod assignment_expression;
 mod binary_expression;
 mod binary_operator;
 mod call_expression;
-mod compound_asign_expr;
+mod compound_assign_expr;
 mod unary_expression;
 
 pub fn parse_expression(input: &str) -> Expr {
@@ -27,12 +27,12 @@ pub fn parse_expression(input: &str) -> Expr {
             let parsed = parse_binary_expression(expression.as_str());
             Expr::BinaryExpr(Box::new(parsed))
         }
-        Rule::asignment_expression => {
-            let parsed = parse_asignment_expression(expression.as_str());
-            Expr::Asignment(parsed)
+        Rule::assignment_expression => {
+            let parsed = parse_assignment_expression(expression.as_str());
+            Expr::Assignment(parsed)
         }
-        Rule::compound_asignment_expr => {
-            Expr::Asignment(parse_compound_asign_expr(expression.as_str()))
+        Rule::compound_assignment_expr => {
+            Expr::Assignment(parse_compound_assign_expr(expression.as_str()))
         }
         Rule::call_expression => {
             let parsed = parse_call_expression(expression.as_str());
@@ -59,7 +59,7 @@ pub fn parse_expression(input: &str) -> Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{Asignment, BinaryExpr, BinaryOperator, Call, Expr, Literal, UnaryExpr};
+    use ast::{Assignment, BinaryExpr, BinaryOperator, Call, Expr, Literal, UnaryExpr};
     #[test]
     fn test_parse_expression() {
         assert_eq!(
@@ -72,10 +72,10 @@ mod tests {
         );
     }
     #[test]
-    fn test_asignment_expression() {
+    fn test_assignment_expression() {
         assert_eq!(
             parse_expression("age = 5 + 1"),
-            Expr::Asignment(Asignment {
+            Expr::Assignment(Assignment {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(5)),
@@ -100,10 +100,10 @@ mod tests {
         );
     }
     #[test]
-    fn test_compound_asign_expr() {
+    fn test_compound_assign_expr() {
         assert_eq!(
             parse_expression("n += 1"),
-            Expr::Asignment(Asignment {
+            Expr::Assignment(Assignment {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),

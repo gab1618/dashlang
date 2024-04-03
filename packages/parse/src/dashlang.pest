@@ -7,8 +7,8 @@ boolean                 =  { "true" | "false" }
 vector                  =  { "[" ~ expression? ~ ("," ~ expression)* ~ "]" }
 keyword                 =  { "return" }
 symbol                  = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
-asignment_expression    =  { symbol ~ "=" ~ expression }
-compound_asignment_expr =  { symbol ~ binary_operator ~ "=" ~ expression }
+assignment_expression    =  { symbol ~ "=" ~ expression }
+compound_assignment_expr =  { symbol ~ binary_operator ~ "=" ~ expression }
 binary_operator         =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
 sub_expression          = _{ "(" ~ expression ~ ")" }
 binary_expression       =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | literal | call_expression | symbol))+ }
@@ -17,7 +17,7 @@ unary_expression        =  { unary_operator ~ (expression | sub_expression) }
 call_arg                =  { expression }
 call_expression         =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
 piping_operation        =  { "|>" ~ call_expression }
-expression              =  { (binary_expression | unary_expression | compound_asignment_expr | asignment_expression | call_expression | symbol | literal) ~ (piping_operation)* }
+expression              =  { (binary_expression | unary_expression | compound_assignment_expr | assignment_expression | call_expression | symbol | literal) ~ (piping_operation)* }
 return_stmt             =  { "return" ~ expression }
 body                    =  { "{" ~ program ~ "}" }
 else_stmt               =  { "else" ~ body }

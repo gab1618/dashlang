@@ -1,0 +1,11 @@
+increment = (n) {
+  return n + 1
+}
+
+n = 0
+n = n
+|> increment()
+|> increment()
+|> increment()
+
+println(n)
