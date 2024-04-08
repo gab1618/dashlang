@@ -1,18 +1,23 @@
 use ast::{Expr, Literal};
 
-pub fn stdlib_push(base: Literal, item: Literal) -> Literal {
+use crate::errors::{RuntimeError, RuntimeErrorKind, RuntimeResult};
+
+pub fn stdlib_push(base: Literal, item: Literal) -> RuntimeResult<Literal> {
     match base {
         Literal::String(mut val) => {
             if let Literal::String(str_push) = item {
                 val.push_str(&str_push);
-                return Literal::String(val);
+                return Ok(Literal::String(val));
             }
             panic!("Unsuported operation");
         }
         Literal::Vector(mut vector) => {
             vector.push(Expr::Literal(item));
-            return Literal::Vector(vector);
+            return Ok(Literal::Vector(vector));
         }
-        _ => panic!("Unsuported operation"),
+        _ => Err(RuntimeError::new(
+            "Unsuported operation",
+            RuntimeErrorKind::NonCallableError,
+        )),
     }
 }

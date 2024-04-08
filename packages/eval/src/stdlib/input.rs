@@ -2,10 +2,15 @@ use std::io;
 
 use ast::Literal;
 
-pub fn stdlib_input() -> Literal {
+use crate::errors::{RuntimeError, RuntimeErrorKind, RuntimeResult};
+
+pub fn stdlib_input() -> RuntimeResult<Literal> {
     let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Could not read line");
-    Literal::String(input)
+    match io::stdin().read_line(&mut input) {
+        Ok(_) => Ok(Literal::String(input)),
+        Err(_) => Err(RuntimeError::new(
+            "Could not get input",
+            RuntimeErrorKind::NonCallableError,
+        )),
+    }
 }

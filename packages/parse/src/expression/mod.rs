@@ -45,7 +45,7 @@ pub fn parse_expression(input: &str) -> Expr {
         }
         any => unreachable!("{:#?}", any),
     };
-    while let Some(piping) = inner_ast.next() {
+    for piping in inner_ast {
         let inner_call = piping
             .into_inner()
             .next()
