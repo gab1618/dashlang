@@ -35,7 +35,7 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                     implementation: Rc::new(|ctx| {
                         let value = ctx.scope.get("value");
                         let index = ctx.scope.get("index");
-                        stdlib_nth(value, index, &ctx)
+                        stdlib_nth(value, index, ctx)
                     }),
                 },
             ),

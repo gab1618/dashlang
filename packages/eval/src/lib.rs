@@ -63,7 +63,7 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> RuntimeResult<
             Literal::Int(num) => Ok(num != 0),
             Literal::Float(num) => Ok(num != 0.0),
             Literal::String(string) => Ok(!string.is_empty()),
-            Literal::Vector(val) => Ok(val.len() > 0),
+            Literal::Vector(val) => Ok(!val.is_empty()),
             Literal::Bool(val) => Ok(val),
             Literal::Null => Ok(false),
             Literal::Void => Ok(false),
@@ -197,15 +197,15 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> RuntimeResult<Li
 pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> RuntimeResult<Literal> {
     match expr {
         Expr::Literal(val) => Ok(val),
-        Expr::BinaryExpr(op) => eval_binary_op(*op, &ctx),
+        Expr::BinaryExpr(op) => eval_binary_op(*op, ctx),
         Expr::Assignment(assign) => {
-            let evaluated = eval(*assign.value, &ctx)?;
+            let evaluated = eval(*assign.value, ctx)?;
             ctx.scope.set(&assign.symbol, evaluated.clone());
             Ok(evaluated)
         }
-        Expr::Call(call) => eval_call(call, &ctx),
+        Expr::Call(call) => eval_call(call, ctx),
         Expr::Symbol(symbol) => Ok(ctx.scope.get(&symbol)),
-        Expr::UnaryExpr(op) => eval_unary_op(*op, &ctx),
+        Expr::UnaryExpr(op) => eval_unary_op(*op, ctx),
     }
 }
 #[derive(Clone)]

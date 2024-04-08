@@ -12,9 +12,9 @@ fn stdlib_literal_display<T: Scope + Clone>(
         Literal::Float(val) => Ok(format!("{val}")),
         Literal::String(val) => Ok(format!("{val}")),
         Literal::Bool(val) => Ok(if val {
-            format!("True")
+            "True".to_string()
         } else {
-            format!("False")
+            "False".to_string()
         }),
         Literal::Vector(val) => {
             let display_args: RuntimeResult<Vec<String>> = val
@@ -26,8 +26,8 @@ fn stdlib_literal_display<T: Scope + Clone>(
                 Err(err) => Err(err),
             }
         }
-        Literal::Null => Ok(format!("Null")),
-        Literal::Void => Ok(format!("Void")),
+        Literal::Null => Ok("Null".to_string()),
+        Literal::Void => Ok("Void".to_string()),
     }
 }
 
