@@ -1,6 +1,6 @@
 use ast::Literal;
 
-use crate::errors::{RuntimeError, RuntimeErrorKind, RuntimeResult};
+use crate::errors::{RuntimeError, RuntimeResult};
 
 pub fn stdlib_len(item: Literal) -> RuntimeResult<Literal> {
     match item {
@@ -8,7 +8,6 @@ pub fn stdlib_len(item: Literal) -> RuntimeResult<Literal> {
         Literal::Vector(val) => Ok(Literal::Int(val.len() as i64)),
         _ => Err(RuntimeError::new(
             "Could not get length: unsuported operation",
-            RuntimeErrorKind::NonCallableError,
         )),
     }
 }

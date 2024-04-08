@@ -1,6 +1,6 @@
 use ast::{Expr, Literal};
 
-use crate::errors::{RuntimeError, RuntimeErrorKind, RuntimeResult};
+use crate::errors::{RuntimeError, RuntimeResult};
 
 pub fn stdlib_push(base: Literal, item: Literal) -> RuntimeResult<Literal> {
     match base {
@@ -15,9 +15,6 @@ pub fn stdlib_push(base: Literal, item: Literal) -> RuntimeResult<Literal> {
             vector.push(Expr::Literal(item));
             return Ok(Literal::Vector(vector));
         }
-        _ => Err(RuntimeError::new(
-            "Unsuported operation",
-            RuntimeErrorKind::NonCallableError,
-        )),
+        _ => Err(RuntimeError::new("Unsuported operation")),
     }
 }

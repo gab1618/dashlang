@@ -10,7 +10,7 @@ use ast::{BinaryExpr, BinaryOperator, Call, Expr, Instruction, Literal, Program,
 use errors::RuntimeResult;
 use scope::Scope;
 
-use crate::errors::{RuntimeError, RuntimeErrorKind};
+use crate::errors::RuntimeError;
 
 macro_rules! define_aritmetic_operation {
     ($operator:tt, $op:expr, $scope:expr) => {
@@ -188,10 +188,10 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> RuntimeResult<Li
         }
         return eval_program(closure.body, &local_context);
     }
-    Err(RuntimeError::new(
-        &format!("Cannot call '{}': not callable", call.symbol),
-        RuntimeErrorKind::NonCallableError,
-    ))
+    Err(RuntimeError::new(&format!(
+        "Cannot call '{}': not callable",
+        call.symbol
+    )))
 }
 
 pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> RuntimeResult<Literal> {

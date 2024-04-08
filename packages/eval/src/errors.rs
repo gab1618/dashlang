@@ -1,21 +1,41 @@
-use std::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display, path::PathBuf};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum RuntimeErrorKind {
-    NonCallableError,
+pub struct ErrorLocation {
+    line: usize,
+    col: usize,
+    filepath: PathBuf,
+}
+impl Display for ErrorLocation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}:{}", self.filepath.display(), self.line, self.col)
+    }
+}
+impl ErrorLocation {
+    pub fn new(filepath: PathBuf, line: usize, col: usize) -> Self {
+        Self {
+            filepath,
+            line,
+            col,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct RuntimeError {
     message: String,
-    kind: RuntimeErrorKind,
+    location: Option<ErrorLocation>,
 }
 impl RuntimeError {
-    pub fn new(message: &str, kind: RuntimeErrorKind) -> Self {
+    pub fn new(message: &str) -> Self {
         Self {
             message: message.to_owned(),
-            kind,
+            location: None,
         }
+    }
+    pub fn location(mut self, location: ErrorLocation) -> Self {
+        self.location = Some(location);
+        self
     }
 }
 impl Display for RuntimeError {
