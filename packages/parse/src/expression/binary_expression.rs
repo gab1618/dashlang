@@ -77,7 +77,7 @@ fn flat_binary_expression_to_ast(flat_expression: &mut Vec<BinaryExpressionToken
         );
     }
     match flat_expression
-        .into_iter()
+        .iter_mut()
         .next()
         .expect("Expected expression to ended with at least 1 element")
     {

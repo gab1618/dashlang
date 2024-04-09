@@ -7,10 +7,10 @@ fn stdlib_literal_display<T: Scope + Clone>(
     ctx: &Context<T>,
 ) -> RuntimeResult<String> {
     match value {
-        Literal::Closure(_) => Ok(format!("Closure")),
+        Literal::Closure(_) => Ok("Closure".to_string()),
         Literal::Int(val) => Ok(format!("{val}")),
         Literal::Float(val) => Ok(format!("{val}")),
-        Literal::String(val) => Ok(format!("{val}")),
+        Literal::String(val) => Ok(val),
         Literal::Bool(val) => Ok(if val {
             "True".to_string()
         } else {
