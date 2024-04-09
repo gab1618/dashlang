@@ -4,7 +4,7 @@ pub mod stdlib;
 #[cfg(test)]
 mod tests;
 
-use std::{collections::HashMap, rc::Rc};
+use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use ast::{BinaryExpr, BinaryOperator, Call, Expr, Instruction, Literal, Program, Stmt, UnaryExpr};
 use errors::RuntimeResult;
@@ -163,40 +163,64 @@ pub fn eval_program<T: Scope + Clone>(
 
 fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> RuntimeResult<Literal> {
     if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
-        let local_context = ctx.clone();
-        let args: RuntimeResult<Vec<Literal>> = call
-            .args
-            .into_iter()
-            .map(|expr| eval(expr, &local_context))
-            .collect();
-        match args {
-            Ok(ok_args) => {
-                for (symbol, val) in found_extension.params.iter().zip(ok_args) {
-                    // Inject all arguments into local scope
-                    local_context.scope.set(symbol, val);
-                }
+        match found_extension.params.len().cmp(&call.args.len()) {
+            Ordering::Less | Ordering::Greater => {
+                return Err(RuntimeError::new(&format!(
+                    "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
+                    call.symbol,
+                    found_extension.params.len(),
+                    call.args.len()
+                )))
             }
-            Err(args_err) => return Err(args_err),
+            Ordering::Equal => {
+                let local_context = ctx.clone();
+                let args: RuntimeResult<Vec<Literal>> = call
+                    .args
+                    .into_iter()
+                    .map(|expr| eval(expr, &local_context))
+                    .collect();
+                match args {
+                    Ok(ok_args) => {
+                        for (symbol, val) in found_extension.params.iter().zip(ok_args) {
+                            // Inject all arguments into local scope
+                            local_context.scope.set(symbol, val);
+                        }
+                    }
+                    Err(args_err) => return Err(args_err),
+                }
+                return (found_extension.implementation)(&local_context);
+            }
         }
-        return (found_extension.implementation)(&local_context);
     }
     if let Literal::Closure(closure) = ctx.scope.get(&call.symbol) {
-        let local_context = ctx.clone();
-        let args: RuntimeResult<Vec<Literal>> = call
-            .args
-            .into_iter()
-            .map(|expr| eval(expr, &local_context))
-            .collect();
-        match args {
-            Ok(ok_args) => {
-                for (symbol, val) in closure.params.iter().zip(ok_args) {
-                    // Inject all arguments into local scope
-                    local_context.scope.set(symbol, val);
-                }
+        match closure.params.len().cmp(&call.args.len()) {
+            Ordering::Less | Ordering::Greater => {
+                return Err(RuntimeError::new(&format!(
+                    "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
+                    call.symbol,
+                    closure.params.len(),
+                    call.args.len()
+                )))
             }
-            Err(args_err) => return Err(args_err),
+            Ordering::Equal => {
+                let local_context = ctx.clone();
+                let args: RuntimeResult<Vec<Literal>> = call
+                    .args
+                    .into_iter()
+                    .map(|expr| eval(expr, &local_context))
+                    .collect();
+                match args {
+                    Ok(ok_args) => {
+                        for (symbol, val) in closure.params.iter().zip(ok_args) {
+                            // Inject all arguments into local scope
+                            local_context.scope.set(symbol, val);
+                        }
+                    }
+                    Err(args_err) => return Err(args_err),
+                }
+                return eval_program(closure.body, &local_context);
+            }
         }
-        return eval_program(closure.body, &local_context);
     }
     Err(RuntimeError::new(&format!(
         "Cannot call '{}': not callable",
