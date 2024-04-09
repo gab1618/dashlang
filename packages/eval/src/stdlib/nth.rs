@@ -1,6 +1,6 @@
 use ast::Literal;
 
-use crate::{eval, scope::Scope, Context, RuntimeResult};
+use crate::{errors::RuntimeError, eval, scope::Scope, Context, RuntimeResult};
 
 pub fn stdlib_nth<T: Scope + Clone>(
     value: Literal,
@@ -12,9 +12,9 @@ pub fn stdlib_nth<T: Scope + Clone>(
             if (int_index as usize) < vec.len() {
                 return eval(vec[int_index as usize].clone(), ctx);
             }
-            panic!("Cannot index vector: index out of bounds")
+            return Err(RuntimeError::new("Index out of bound"));
         }
-        panic!("Expected vector to be indexed")
+        return Err(RuntimeError::new("Expected vector to be indexed"));
     }
-    panic!("Expected integer to index vector")
+    Err(RuntimeError::new("Expected integer to index vector"))
 }

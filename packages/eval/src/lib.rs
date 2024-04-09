@@ -20,7 +20,7 @@ macro_rules! define_aritmetic_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(left $operator (right as f64))),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float((left as f64) $operator right)),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(left $operator right)),
-                (_, _) => panic!("Unsuported operation"),
+                (_, _) => Err(RuntimeError::new("Unsuported operation")),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -42,7 +42,7 @@ macro_rules! define_boolean_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(left $operator (right as f64))),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool((left as f64) $operator right)),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(left $operator right)),
-                (_, _) => panic!("Unsuported operation"),
+                (_, _) => Err(RuntimeError::new("Unsuported operation")),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -164,27 +164,37 @@ pub fn eval_program<T: Scope + Clone>(
 fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> RuntimeResult<Literal> {
     if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
         let local_context = ctx.clone();
-        let args: Vec<Literal> = call
+        let args: RuntimeResult<Vec<Literal>> = call
             .args
             .into_iter()
-            .map(|expr| eval(expr, &local_context).unwrap())
+            .map(|expr| eval(expr, &local_context))
             .collect();
-        for (symbol, val) in found_extension.params.iter().zip(args) {
-            // Inject all arguments into local scope
-            local_context.scope.set(symbol, val);
+        match args {
+            Ok(ok_args) => {
+                for (symbol, val) in found_extension.params.iter().zip(ok_args) {
+                    // Inject all arguments into local scope
+                    local_context.scope.set(symbol, val);
+                }
+            }
+            Err(args_err) => return Err(args_err),
         }
         return (found_extension.implementation)(&local_context);
     }
     if let Literal::Closure(closure) = ctx.scope.get(&call.symbol) {
         let local_context = ctx.clone();
-        let args: Vec<Literal> = call
+        let args: RuntimeResult<Vec<Literal>> = call
             .args
             .into_iter()
-            .map(|expr| eval(expr, &local_context).unwrap())
+            .map(|expr| eval(expr, &local_context))
             .collect();
-        for (symbol, val) in closure.params.into_iter().zip(args) {
-            // Inject all arguments into local scope
-            local_context.scope.set(&symbol, val);
+        match args {
+            Ok(ok_args) => {
+                for (symbol, val) in closure.params.iter().zip(ok_args) {
+                    // Inject all arguments into local scope
+                    local_context.scope.set(symbol, val);
+                }
+            }
+            Err(args_err) => return Err(args_err),
         }
         return eval_program(closure.body, &local_context);
     }
