@@ -1,4 +1,4 @@
-use ast::{If, Instruction, Program, Stmt};
+use ast::{If, Instruction, Location, Program, Stmt};
 use pest::Parser;
 
 use crate::{
@@ -29,6 +29,7 @@ pub fn parse_if_stmt(input: &str) -> If {
         cond: ast_cond,
         body: ast_body,
         else_block: ast_else,
+        location: Location::default(),
     }
 }
 fn parse_else_stmt(input: &str) -> Program {
@@ -70,6 +71,7 @@ fn parse_else_if_stmt(input: &str) -> If {
         cond: cond_expr,
         body: else_if_body,
         else_block: else_element,
+        location: Location::default(),
     }
 }
 #[cfg(test)]
@@ -86,7 +88,8 @@ mod tests {
             If {
                 cond: Expr::Literal(Literal::Bool(true)),
                 body: vec![],
-                else_block: None
+                else_block: None,
+                location: Location::default(),
             }
         );
     }
@@ -98,10 +101,12 @@ mod tests {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    operator: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt,
+                    location: Location::default(),
                 })),
                 body: vec![],
-                else_block: None
+                else_block: None,
+                location: Location::default(),
             }
         );
         assert_eq!(
@@ -110,12 +115,14 @@ mod tests {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    operator: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt,
+                    location: Location::default(),
                 })),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Bool(true)
                 )))],
-                else_block: None
+                else_block: None,
+                location: Location::default(),
             }
         );
     }
@@ -130,7 +137,8 @@ mod tests {
                 )))],
                 else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Bool(false)
-                )))])
+                )))]),
+                location: Location::default(),
             }
         );
     }
@@ -150,8 +158,10 @@ mod tests {
                     )))],
                     else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                         Literal::Bool(false)
-                    )))])
-                }))])
+                    )))]),
+                    location: Location::default(),
+                }))]),
+                location: Location::default(),
             }
         );
     }

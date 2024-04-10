@@ -1,4 +1,4 @@
-use ast::{AssignmentExpr, Closure, If, While};
+use ast::{AssignmentExpr, Closure, If, Location, While};
 use scope::HashScope;
 
 use super::*;
@@ -23,6 +23,7 @@ fn eval_primitive() {
         Expr::Assignment(AssignmentExpr {
             symbol: String::from("name"),
             value: Box::new(Expr::Literal(Literal::Int(4))),
+            location: Location::default(),
         }),
         &ctx,
     )
@@ -47,6 +48,7 @@ fn eval_add_operation() {
             BinaryOperator::Add,
         ))),
         operator: BinaryOperator::Add,
+        location: Location::default(),
     }));
     let result = eval(op, &ctx);
     assert_eq!(result, Ok(Literal::Float(19.5)));
@@ -80,6 +82,7 @@ fn eval_sub_operation() {
             BinaryOperator::Sub,
         ))),
         operator: BinaryOperator::Add,
+        location: Location::default(),
     }));
     let result = eval(op, &ctx);
     assert_eq!(result, Ok(Literal::Float(3.0)));
@@ -101,6 +104,7 @@ fn eval_multiplication() {
             BinaryOperator::Mul,
         ))),
         operator: BinaryOperator::Add,
+        location: Location::default(),
     }));
     let result = eval(op, &ctx);
     assert_eq!(result, Ok(Literal::Float(38.5)));
@@ -124,6 +128,7 @@ fn eval_division() {
             BinaryOperator::Div,
         ))),
         operator: BinaryOperator::Add,
+        location: Location::default(),
     }));
     let result = eval(op, &ctx);
     assert_eq!(result, Ok(Literal::Float(15.0)));
@@ -239,11 +244,13 @@ fn test_eval_call() {
             body: vec![Instruction::Stmt(Stmt::Return(Expr::Symbol(String::from(
                 "name",
             ))))],
+            location: Location::default(),
         }),
     );
     let call = Expr::Call(Call {
         symbol: String::from("greet"),
         args: vec![Expr::Literal(Literal::String(String::from("John")))],
+        location: Location::default(),
     });
     let result = eval(call, &ctx);
     assert_eq!(result, Ok(Literal::String(String::from("John"))));
@@ -266,7 +273,9 @@ fn test_if_else() {
             else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                 Literal::Bool(false),
             )))]),
+            location: Location::default(),
         }))],
+        location: Location::default(),
     };
     // Rust equivalent to this function:
     // fn is_adult(age: i64) -> bool {
@@ -280,6 +289,7 @@ fn test_if_else() {
     let call = Expr::Call(Call {
         symbol: String::from("is_adult"),
         args: vec![Expr::Literal(Literal::Int(18))],
+        location: Location::default(),
     });
     let result = eval(call, &ctx);
     assert_eq!(result, Ok(Literal::Bool(true)));
@@ -287,6 +297,7 @@ fn test_if_else() {
     let call = Expr::Call(Call {
         symbol: String::from("is_adult"),
         args: vec![Expr::Literal(Literal::Int(17))],
+        location: Location::default(),
     });
     let result = eval(call, &ctx);
     assert_eq!(result, Ok(Literal::Bool(false)));
@@ -309,7 +320,9 @@ fn test_while_loop() {
                 Expr::Literal(Literal::Int(1)),
                 BinaryOperator::Add,
             )))),
+            location: Location::default(),
         }))],
+        location: Location::default(),
     }))];
     // Rust equivalent
     // while count < 10 {
@@ -327,7 +340,8 @@ fn test_unary_op() {
         eval(
             Expr::UnaryExpr(Box::new(UnaryExpr {
                 operator: ast::UnaryOperator::Not,
-                operand: Expr::Literal(Literal::Bool(true))
+                operand: Expr::Literal(Literal::Bool(true)),
+                location: Location::default(),
             })),
             &ctx
         ),
@@ -337,7 +351,8 @@ fn test_unary_op() {
         eval(
             Expr::UnaryExpr(Box::new(UnaryExpr {
                 operator: ast::UnaryOperator::Not,
-                operand: Expr::Literal(Literal::Bool(false))
+                operand: Expr::Literal(Literal::Bool(false)),
+                location: Location::default(),
             })),
             &ctx
         ),

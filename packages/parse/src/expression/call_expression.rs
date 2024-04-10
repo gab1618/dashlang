@@ -1,4 +1,4 @@
-use ast::{Call, Expr};
+use ast::{Call, Expr, Location};
 use pest::Parser;
 
 use crate::parser::{DashlangParser, Rule};
@@ -25,7 +25,11 @@ pub fn parse_call_expression(input: &str) -> Call {
             parse_expression(inner_arg.as_str())
         })
         .collect();
-    Call { symbol, args }
+    Call {
+        symbol,
+        args,
+        location: Location::new(0, 0),
+    }
 }
 
 #[cfg(test)]
@@ -40,7 +44,8 @@ mod tests {
             parse_call_expression("println()"),
             Call {
                 symbol: String::from("println"),
-                args: vec![]
+                args: vec![],
+                location: Location::new(0, 0)
             }
         );
     }
@@ -50,14 +55,16 @@ mod tests {
             parse_call_expression("println(18)"),
             Call {
                 symbol: String::from("println"),
-                args: vec![Expr::Literal(Literal::Int(18))]
+                args: vec![Expr::Literal(Literal::Int(18))],
+                location: Location::default()
             }
         );
         assert_eq!(
             parse_call_expression("println(name)"),
             Call {
                 symbol: String::from("println"),
-                args: vec![Expr::Symbol(String::from("name"))]
+                args: vec![Expr::Symbol(String::from("name"))],
+                location: Location::default()
             }
         );
         assert_eq!(
@@ -66,8 +73,10 @@ mod tests {
                 symbol: String::from("println"),
                 args: vec![Expr::Call(Call {
                     symbol: String::from("getName"),
-                    args: vec![]
-                })]
+                    args: vec![],
+                    location: Location::default()
+                })],
+                location: Location::default()
             }
         );
         assert_eq!(
@@ -76,8 +85,10 @@ mod tests {
                 symbol: String::from("println"),
                 args: vec![Expr::Call(Call {
                     symbol: String::from("getName"),
-                    args: vec![Expr::Symbol(String::from("id"))]
-                })]
+                    args: vec![Expr::Symbol(String::from("id"))],
+                    location: Location::default()
+                })],
+                location: Location::default()
             }
         );
     }

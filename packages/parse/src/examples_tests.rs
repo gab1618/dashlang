@@ -1,7 +1,8 @@
 use std::path::{Path, PathBuf};
 
 use ast::{
-    AssignmentExpr, BinaryExpr, BinaryOperator, Closure, Expr, Instruction, Literal, Program, Stmt,
+    AssignmentExpr, BinaryExpr, BinaryOperator, Closure, Expr, Instruction, Literal, Location,
+    Program, Stmt,
 };
 
 use crate::program::parse_program;
@@ -31,10 +32,13 @@ fn test_is_adult() {
                     BinaryExpr {
                         left: Expr::Symbol(String::from("age")),
                         right: Expr::Literal(Literal::Int(18)),
-                        operator: BinaryOperator::Ge
+                        operator: BinaryOperator::Ge,
+                        location: Location::default(),
                     }
-                ))))]
-            })))
+                ))))],
+                location: Location::default(),
+            }))),
+            location: Location::default(),
         }))]
     );
 }

@@ -1,7 +1,7 @@
 use pest::Parser;
 
 use crate::{expression::parse_expression, DashlangParser, Rule};
-use ast::AssignmentExpr;
+use ast::{AssignmentExpr, Location};
 
 pub fn parse_assignment_expression(input: &str) -> AssignmentExpr {
     let ast = DashlangParser::parse(Rule::assignment_expression, input)
@@ -18,6 +18,7 @@ pub fn parse_assignment_expression(input: &str) -> AssignmentExpr {
     AssignmentExpr {
         symbol: ast_symbol.as_str().to_owned(),
         value: Box::new(parse_expression(ast_value.as_str())),
+        location: Location::default(),
     }
 }
 
@@ -32,7 +33,8 @@ mod tests {
             parse_assignment_expression("age = 5"),
             AssignmentExpr {
                 symbol: String::from("age"),
-                value: Box::new(Expr::Literal(Literal::Int(5)))
+                value: Box::new(Expr::Literal(Literal::Int(5))),
+                location: Location::default(),
             }
         );
     }
@@ -45,8 +47,10 @@ mod tests {
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(5)),
                     right: Expr::Literal(Literal::Int(1)),
-                    operator: BinaryOperator::Add
-                })))
+                    operator: BinaryOperator::Add,
+                    location: Location::default(),
+                }))),
+                location: Location::default(),
             }
         );
     }

@@ -59,7 +59,9 @@ pub fn parse_expression(input: &str) -> Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{AssignmentExpr, BinaryExpr, BinaryOperator, Call, Expr, Literal, UnaryExpr};
+    use ast::{
+        AssignmentExpr, BinaryExpr, BinaryOperator, Call, Expr, Literal, Location, UnaryExpr,
+    };
     #[test]
     fn test_parse_expression() {
         assert_eq!(
@@ -67,7 +69,8 @@ mod tests {
             Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(2)),
-                operator: BinaryOperator::Add
+                operator: BinaryOperator::Add,
+                location: Location::default(),
             }))
         );
     }
@@ -80,8 +83,10 @@ mod tests {
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(5)),
                     right: Expr::Literal(Literal::Int(1)),
-                    operator: BinaryOperator::Add
-                })))
+                    operator: BinaryOperator::Add,
+                    location: Location::default(),
+                }))),
+                location: Location::default(),
             })
         );
     }
@@ -94,8 +99,10 @@ mod tests {
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Bool(true)),
                     right: Expr::Literal(Literal::Bool(false)),
-                    operator: BinaryOperator::And
-                }))
+                    operator: BinaryOperator::And,
+                    location: Location::default(),
+                })),
+                location: Location::default(),
             }))
         );
     }
@@ -108,8 +115,10 @@ mod tests {
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),
                     right: Expr::Literal(Literal::Int(1)),
-                    operator: BinaryOperator::Add
-                })))
+                    operator: BinaryOperator::Add,
+                    location: Location::default(),
+                }))),
+                location: Location::default(),
             })
         );
     }
@@ -122,7 +131,8 @@ mod tests {
                 args: vec![
                     Expr::Literal(Literal::Int(4)),
                     Expr::Literal(Literal::Int(1))
-                ]
+                ],
+                location: Location::default(),
             })
         );
         assert_eq!(
@@ -135,10 +145,12 @@ mod tests {
                         args: vec![
                             Expr::Literal(Literal::Int(4)),
                             Expr::Literal(Literal::Int(1))
-                        ]
+                        ],
+                        location: Location::default(),
                     }),
                     Expr::Literal(Literal::Int(5))
-                ]
+                ],
+                location: Location::default(),
             })
         );
         assert_eq!(
@@ -148,7 +160,8 @@ mod tests {
                 args: vec![
                     Expr::Literal(Literal::String(String::from("Hello, "))),
                     Expr::Literal(Literal::String(String::from("World!")))
-                ]
+                ],
+                location: Location::default(),
             })
         );
     }

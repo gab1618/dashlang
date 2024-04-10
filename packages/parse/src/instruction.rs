@@ -25,7 +25,7 @@ pub fn parse_instruction(input: &str) -> Instruction {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location, Stmt};
 
     use super::*;
     #[test]
@@ -35,7 +35,8 @@ mod tests {
             Instruction::Expr(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(1)),
-                operator: BinaryOperator::Add
+                operator: BinaryOperator::Add,
+                location: Location::default(),
             })))
         );
     }

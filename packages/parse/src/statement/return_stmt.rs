@@ -32,7 +32,7 @@ pub fn parse_return_stmt(input: &str) -> Stmt {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location};
 
     use super::*;
     #[test]
@@ -49,7 +49,8 @@ mod tests {
             Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(1)),
                 right: Expr::Literal(Literal::Int(1)),
-                operator: BinaryOperator::Add
+                operator: BinaryOperator::Add,
+                location: Location::default(),
             })))
         );
         assert_eq!(
@@ -59,9 +60,11 @@ mod tests {
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(2)),
                     right: Expr::Literal(Literal::Int(2)),
-                    operator: BinaryOperator::Add
+                    operator: BinaryOperator::Add,
+                    location: Location::default(),
                 })),
-                operator: BinaryOperator::Mul
+                operator: BinaryOperator::Mul,
+                location: Location::default(),
             })))
         );
     }

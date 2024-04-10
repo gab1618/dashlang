@@ -27,7 +27,7 @@ pub fn parse_statement(input: &str) -> Stmt {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, If, Literal, Stmt, While};
+    use ast::{BinaryExpr, BinaryOperator, Expr, If, Literal, Location, Stmt, While};
 
     use super::*;
     #[test]
@@ -45,10 +45,12 @@ mod tests {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(5)),
-                    operator: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt,
+                    location: Location::default(),
                 })),
                 else_block: None,
-                body: vec![]
+                body: vec![],
+                location: Location::default(),
             })
         );
     }
@@ -60,9 +62,11 @@ mod tests {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(5)),
-                    operator: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt,
+                    location: Location::default(),
                 })),
-                body: vec![]
+                body: vec![],
+                location: Location::default(),
             })
         );
     }

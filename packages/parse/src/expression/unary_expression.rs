@@ -1,4 +1,4 @@
-use ast::{UnaryExpr, UnaryOperator};
+use ast::{Location, UnaryExpr, UnaryOperator};
 use pest::Parser;
 
 use crate::parser::{DashlangParser, Rule};
@@ -23,6 +23,7 @@ pub fn parse_unary_expression(input: &str) -> UnaryExpr {
             any => panic!("Invalid unary operator: {any}"),
         },
         operand: (parse_expression(operand.as_str())),
+        location: Location::default(),
     }
 }
 
@@ -38,7 +39,8 @@ mod tests {
             parse_unary_expression("!true"),
             UnaryExpr {
                 operator: ast::UnaryOperator::Not,
-                operand: Expr::Literal(Literal::Bool(true))
+                operand: Expr::Literal(Literal::Bool(true)),
+                location: Location::default(),
             }
         );
     }
@@ -51,8 +53,10 @@ mod tests {
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Bool(true)),
                     right: Expr::Literal(Literal::Bool(false)),
-                    operator: BinaryOperator::And
-                }))
+                    operator: BinaryOperator::And,
+                    location: Location::default(),
+                })),
+                location: Location::default(),
             }
         );
     }

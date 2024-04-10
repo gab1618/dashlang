@@ -1,4 +1,4 @@
-use ast::{Closure, Literal};
+use ast::{Closure, Literal, Location};
 use pest::Parser;
 
 use crate::body::parse_body;
@@ -55,7 +55,11 @@ pub fn parse_literal(input: &str) -> Literal {
                     .expect("Could not get closure body")
                     .as_str(),
             );
-            Literal::Closure(Closure { params, body })
+            Literal::Closure(Closure {
+                params,
+                body,
+                location: Location::default(),
+            })
         }
         Rule::vector => {
             let inner_ast = inner_value.into_inner();
@@ -96,7 +100,8 @@ mod tests {
                 params: vec![String::from("name"), String::from("age")],
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Bool(true)
-                )))]
+                )))],
+                location: Location::default(),
             })
         );
     }

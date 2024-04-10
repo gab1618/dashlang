@@ -1,7 +1,23 @@
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Location {
+    pub start: usize,
+    pub end: usize,
+}
+impl Location {
+    pub fn new(start: usize, end: usize) -> Self {
+        Self { start, end }
+    }
+}
+impl Default for Location {
+    fn default() -> Self {
+        Location::new(0, 0)
+    }
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct AssignmentExpr {
     pub symbol: String,
     pub value: Box<Expr>,
+    pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub enum BinaryOperator {
@@ -22,6 +38,7 @@ pub struct BinaryExpr {
     pub left: Expr,
     pub right: Expr,
     pub operator: BinaryOperator,
+    pub location: Location,
 }
 impl BinaryExpr {
     pub fn new(left: Expr, right: Expr, op_type: BinaryOperator) -> Self {
@@ -29,6 +46,7 @@ impl BinaryExpr {
             left,
             right,
             operator: op_type,
+            location: Location::new(0, 0),
         }
     }
 }
@@ -40,16 +58,19 @@ pub enum UnaryOperator {
 pub struct UnaryExpr {
     pub operator: UnaryOperator,
     pub operand: Expr,
+    pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Call {
     pub symbol: String,
     pub args: Vec<Expr>,
+    pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Closure {
     pub params: Vec<String>,
     pub body: Program,
+    pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
@@ -76,11 +97,13 @@ pub struct If {
     pub cond: Expr,
     pub body: Program,
     pub else_block: Option<Program>,
+    pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct While {
     pub cond: Expr,
     pub body: Program,
+    pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct For {
@@ -88,6 +111,7 @@ pub struct For {
     pub body: Program,
     pub init: Instruction,
     pub iteration: Instruction,
+    pub location: Location,
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

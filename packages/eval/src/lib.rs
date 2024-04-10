@@ -6,7 +6,10 @@ mod tests;
 
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
-use ast::{BinaryExpr, BinaryOperator, Call, Expr, Instruction, Literal, Program, Stmt, UnaryExpr};
+use ast::{
+    BinaryExpr, BinaryOperator, Call, Expr, Instruction, Literal, Location, Program, Stmt,
+    UnaryExpr,
+};
 use errors::RuntimeResult;
 use scope::Scope;
 
@@ -100,6 +103,7 @@ fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> RuntimeRe
                 let new_unary_op = UnaryExpr {
                     operator: ast::UnaryOperator::Not,
                     operand: Expr::Literal(literal_from_expr),
+                    location: Location::default(),
                 };
                 eval_unary_op(new_unary_op, ctx)
             }

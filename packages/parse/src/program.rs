@@ -21,7 +21,7 @@ pub fn parse_program(input: &str) -> Program {
 #[cfg(test)]
 mod tests {
 
-    use ast::{AssignmentExpr, Expr, Instruction, Literal};
+    use ast::{AssignmentExpr, Expr, Instruction, Literal, Location};
 
     use super::*;
 
@@ -32,11 +32,13 @@ mod tests {
             vec![
                 Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("age"),
-                    value: Box::new(Expr::Literal(Literal::Int(5)))
+                    value: Box::new(Expr::Literal(Literal::Int(5))),
+                    location: Location::default(),
                 })),
                 Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("count"),
-                    value: Box::new(Expr::Literal(Literal::Int(1)))
+                    value: Box::new(Expr::Literal(Literal::Int(1))),
+                    location: Location::default(),
                 }))
             ]
         )

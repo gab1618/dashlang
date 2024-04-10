@@ -1,4 +1,4 @@
-use ast::{Expr, Literal, While};
+use ast::{Expr, Literal, Location, While};
 use pest::Parser;
 
 use crate::{
@@ -12,6 +12,7 @@ pub fn parse_while_stmt(input: &str) -> While {
     let mut final_while = While {
         cond: Expr::Literal(Literal::Bool(true)),
         body: vec![],
+        location: Location::default(),
     };
     let ast = DashlangParser::parse(Rule::while_stmt, input)
         .expect("Could not parse while loop")
@@ -46,6 +47,7 @@ mod tests {
             While {
                 cond: Expr::Literal(Literal::Bool(true)),
                 body: vec![],
+                location: Location::default(),
             }
         );
     }
@@ -57,9 +59,11 @@ mod tests {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    operator: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt,
+                    location: Location::default(),
                 })),
-                body: vec![]
+                body: vec![],
+                location: Location::default(),
             }
         );
 
@@ -69,11 +73,13 @@ mod tests {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(10)),
-                    operator: BinaryOperator::Lt
+                    operator: BinaryOperator::Lt,
+                    location: Location::default(),
                 })),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Int(1)
-                )))]
+                )))],
+                location: Location::default(),
             }
         );
     }

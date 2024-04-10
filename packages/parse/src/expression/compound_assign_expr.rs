@@ -1,4 +1,4 @@
-use ast::{AssignmentExpr, BinaryExpr, Expr};
+use ast::{AssignmentExpr, BinaryExpr, Expr, Location};
 use pest::Parser;
 
 use crate::parser::{DashlangParser, Rule};
@@ -28,7 +28,9 @@ pub fn parse_compound_assign_expr(input: &str) -> AssignmentExpr {
             left: Expr::Symbol(ast_symbol.as_str().to_owned()),
             right: parsed_ast_operand,
             operator: parse_binary_operator(ast_operator.as_str()),
+            location: Location::default(),
         }))),
+        location: Location::default(),
     }
 }
 
@@ -46,8 +48,10 @@ mod tests {
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),
                     right: Expr::Literal(Literal::Int(1)),
-                    operator: BinaryOperator::Add
-                })))
+                    operator: BinaryOperator::Add,
+                    location: Location::default(),
+                }))),
+                location: Location::default(),
             }
         );
         assert_eq!(
@@ -57,8 +61,10 @@ mod tests {
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("x")),
                     right: Expr::Literal(Literal::Int(5)),
-                    operator: BinaryOperator::Sub
-                })))
+                    operator: BinaryOperator::Sub,
+                    location: Location::default(),
+                }))),
+                location: Location::default(),
             }
         );
     }
