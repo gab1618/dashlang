@@ -1,11 +1,11 @@
-use ast::{Assignment, BinaryExpr, Expr};
+use ast::{AssignmentExpr, BinaryExpr, Expr};
 use pest::Parser;
 
 use crate::parser::{DashlangParser, Rule};
 
 use super::{binary_operator::parse_binary_operator, parse_expression};
 
-pub fn parse_compound_assign_expr(input: &str) -> Assignment {
+pub fn parse_compound_assign_expr(input: &str) -> AssignmentExpr {
     let ast = DashlangParser::parse(Rule::compound_assignment_expr, input)
         .expect("Could not parse compound assignment expression")
         .next()
@@ -22,7 +22,7 @@ pub fn parse_compound_assign_expr(input: &str) -> Assignment {
         .next()
         .expect("Could not get operand operator from compound assignment");
     let parsed_ast_operand = parse_expression(ast_operand.as_str());
-    Assignment {
+    AssignmentExpr {
         symbol: ast_symbol.as_str().to_owned(),
         value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
             left: Expr::Symbol(ast_symbol.as_str().to_owned()),
@@ -41,7 +41,7 @@ mod tests {
     fn test_compound_assignment() {
         assert_eq!(
             parse_compound_assign_expr("n += 1"),
-            Assignment {
+            AssignmentExpr {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),
@@ -52,7 +52,7 @@ mod tests {
         );
         assert_eq!(
             parse_compound_assign_expr("x -= 5"),
-            Assignment {
+            AssignmentExpr {
                 symbol: String::from("x"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("x")),

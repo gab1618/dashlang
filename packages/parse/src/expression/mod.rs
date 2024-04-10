@@ -59,7 +59,7 @@ pub fn parse_expression(input: &str) -> Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{Assignment, BinaryExpr, BinaryOperator, Call, Expr, Literal, UnaryExpr};
+    use ast::{AssignmentExpr, BinaryExpr, BinaryOperator, Call, Expr, Literal, UnaryExpr};
     #[test]
     fn test_parse_expression() {
         assert_eq!(
@@ -75,7 +75,7 @@ mod tests {
     fn test_assignment_expression() {
         assert_eq!(
             parse_expression("age = 5 + 1"),
-            Expr::Assignment(Assignment {
+            Expr::Assignment(AssignmentExpr {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(5)),
@@ -103,7 +103,7 @@ mod tests {
     fn test_compound_assign_expr() {
         assert_eq!(
             parse_expression("n += 1"),
-            Expr::Assignment(Assignment {
+            Expr::Assignment(AssignmentExpr {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),

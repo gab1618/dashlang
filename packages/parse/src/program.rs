@@ -21,7 +21,7 @@ pub fn parse_program(input: &str) -> Program {
 #[cfg(test)]
 mod tests {
 
-    use ast::{Assignment, Expr, Instruction, Literal};
+    use ast::{AssignmentExpr, Expr, Instruction, Literal};
 
     use super::*;
 
@@ -30,11 +30,11 @@ mod tests {
         assert_eq!(
             parse_program("age = 5 count = 1"),
             vec![
-                Instruction::Expr(Expr::Assignment(Assignment {
+                Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("age"),
                     value: Box::new(Expr::Literal(Literal::Int(5)))
                 })),
-                Instruction::Expr(Expr::Assignment(Assignment {
+                Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("count"),
                     value: Box::new(Expr::Literal(Literal::Int(1)))
                 }))

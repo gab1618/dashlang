@@ -35,9 +35,8 @@ pub fn parse_for_stmt(input: &str) -> For {
 
 #[cfg(test)]
 mod tests {
-    use ast::{Assignment, BinaryExpr, BinaryOperator, Expr, Instruction, Literal};
-
     use super::*;
+    use ast::{AssignmentExpr, BinaryExpr, BinaryOperator, Expr, Instruction, Literal};
     #[test]
     fn test_for_stmt() {
         assert_eq!(
@@ -49,11 +48,11 @@ mod tests {
                     operator: BinaryOperator::Lt
                 })),
                 body: vec![],
-                init: Instruction::Expr(Expr::Assignment(Assignment {
+                init: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::Literal(Literal::Int(1)))
                 })),
-                iteration: Instruction::Expr(Expr::Assignment(Assignment {
+                iteration: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Symbol(String::from("n")),
@@ -72,11 +71,11 @@ mod tests {
                     operator: BinaryOperator::Gt
                 })),
                 body: vec![],
-                init: Instruction::Expr(Expr::Assignment(Assignment {
+                init: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::Literal(Literal::Int(10)))
                 })),
-                iteration: Instruction::Expr(Expr::Assignment(Assignment {
+                iteration: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Symbol(String::from("n")),
