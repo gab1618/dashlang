@@ -36,7 +36,7 @@ pub fn parse_compound_assign_expr(input: &str) -> AssignmentExpr {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Int, Literal};
 
     use super::*;
     #[test]
@@ -47,7 +47,10 @@ mod tests {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),
-                    right: Expr::Literal(Literal::Int(1)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 }))),
@@ -60,7 +63,10 @@ mod tests {
                 symbol: String::from("x"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("x")),
-                    right: Expr::Literal(Literal::Int(5)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 5,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Sub,
                     location: Location::default(),
                 }))),

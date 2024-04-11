@@ -29,7 +29,7 @@ pub fn parse_unary_expression(input: &str) -> UnaryExpr {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Literal};
 
     use super::*;
 
@@ -39,7 +39,10 @@ mod tests {
             parse_unary_expression("!true"),
             UnaryExpr {
                 operator: ast::UnaryOperator::Not,
-                operand: Expr::Literal(Literal::Bool(true)),
+                operand: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default()
+                })),
                 location: Location::default(),
             }
         );
@@ -51,8 +54,14 @@ mod tests {
             UnaryExpr {
                 operator: UnaryOperator::Not,
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Bool(true)),
-                    right: Expr::Literal(Literal::Bool(false)),
+                    left: Expr::Literal(Literal::Bool(Boolean {
+                        value: true,
+                        location: Default::default()
+                    })),
+                    right: Expr::Literal(Literal::Bool(Boolean {
+                        value: false,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::And,
                     location: Location::default(),
                 })),

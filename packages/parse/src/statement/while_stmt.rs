@@ -1,4 +1,4 @@
-use ast::{Expr, Literal, Location, While};
+use ast::{Boolean, Expr, Literal, Location, While};
 use pest::Parser;
 
 use crate::{
@@ -10,7 +10,10 @@ use crate::{
 
 pub fn parse_while_stmt(input: &str) -> While {
     let mut final_while = While {
-        cond: Expr::Literal(Literal::Bool(true)),
+        cond: Expr::Literal(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default(),
+        })),
         body: vec![],
         location: Location::default(),
     };
@@ -36,7 +39,7 @@ pub fn parse_while_stmt(input: &str) -> While {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Instruction, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Instruction, Int, Stmt};
 
     use super::*;
 
@@ -45,7 +48,10 @@ mod tests {
         assert_eq!(
             parse_while_stmt("while true {}"),
             While {
-                cond: Expr::Literal(Literal::Bool(true)),
+                cond: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default()
+                })),
                 body: vec![],
                 location: Location::default(),
             }
@@ -58,7 +64,10 @@ mod tests {
             While {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Literal(Literal::Int(10)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 10,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),
@@ -72,12 +81,18 @@ mod tests {
             While {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Literal(Literal::Int(10)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 10,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Int(1)
+                    Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    })
                 )))],
                 location: Location::default(),
             }

@@ -1,4 +1,4 @@
-use ast::Literal;
+use ast::{Literal, Location, Void};
 
 use crate::{errors::RuntimeResult, eval, scope::Scope, Context};
 
@@ -8,16 +8,17 @@ fn stdlib_literal_display<T: Scope + Clone>(
 ) -> RuntimeResult<String> {
     match value {
         Literal::Closure(_) => Ok("Closure".to_string()),
-        Literal::Int(val) => Ok(format!("{val}")),
-        Literal::Float(val) => Ok(format!("{val}")),
-        Literal::String(val) => Ok(val),
-        Literal::Bool(val) => Ok(if val {
+        Literal::Int(val) => Ok(format!("{}", val.value)),
+        Literal::Float(val) => Ok(format!("{}", val.value)),
+        Literal::String(val) => Ok(val.value),
+        Literal::Bool(val) => Ok(if val.value {
             "True".to_string()
         } else {
             "False".to_string()
         }),
         Literal::Vector(val) => {
             let display_args: RuntimeResult<Vec<String>> = val
+                .value
                 .into_iter()
                 .map(|item| stdlib_literal_display(eval(item.clone(), ctx)?, ctx))
                 .collect();
@@ -26,8 +27,8 @@ fn stdlib_literal_display<T: Scope + Clone>(
                 Err(err) => Err(err),
             }
         }
-        Literal::Null => Ok("Null".to_string()),
-        Literal::Void => Ok("Void".to_string()),
+        Literal::Null(_) => Ok("Null".to_string()),
+        Literal::Void(_) => Ok("Void".to_string()),
     }
 }
 
@@ -36,5 +37,7 @@ pub fn stdlib_println<T: Scope + Clone>(
     ctx: &Context<T>,
 ) -> RuntimeResult<Literal> {
     println!("{}", stdlib_literal_display(value, ctx)?);
-    Ok(Literal::Void)
+    Ok(Literal::Void(Void {
+        location: Location::default(),
+    }))
 }

@@ -9,8 +9,8 @@ pub fn stdlib_nth<T: Scope + Clone>(
 ) -> RuntimeResult<Literal> {
     if let Literal::Int(int_index) = index {
         if let Literal::Vector(vec) = value {
-            if (int_index as usize) < vec.len() {
-                return eval(vec[int_index as usize].clone(), ctx);
+            if (int_index.value as usize) < vec.value.len() {
+                return eval(vec.value[int_index.value as usize].clone(), ctx);
             }
             return Err(RuntimeError::new("Index out of bound"));
         }

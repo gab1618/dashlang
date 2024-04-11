@@ -60,15 +60,22 @@ pub fn parse_expression(input: &str) -> Expr {
 mod tests {
     use super::*;
     use ast::{
-        AssignmentExpr, BinaryExpr, BinaryOperator, Call, Expr, Literal, Location, UnaryExpr,
+        AssignmentExpr, BinaryExpr, BinaryOperator, Boolean, Call, Expr, Int, Literal, Location,
+        Str, UnaryExpr,
     };
     #[test]
     fn test_parse_expression() {
         assert_eq!(
             parse_expression("1 + 2"),
             Expr::BinaryExpr(Box::new(BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(2)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
             }))
@@ -81,8 +88,14 @@ mod tests {
             Expr::Assignment(AssignmentExpr {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(5)),
-                    right: Expr::Literal(Literal::Int(1)),
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 5,
+                        location: Default::default()
+                    })),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 }))),
@@ -97,8 +110,14 @@ mod tests {
             Expr::UnaryExpr(Box::new(UnaryExpr {
                 operator: ast::UnaryOperator::Not,
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Bool(true)),
-                    right: Expr::Literal(Literal::Bool(false)),
+                    left: Expr::Literal(Literal::Bool(Boolean {
+                        value: true,
+                        location: Default::default()
+                    })),
+                    right: Expr::Literal(Literal::Bool(Boolean {
+                        value: false,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::And,
                     location: Location::default(),
                 })),
@@ -114,7 +133,10 @@ mod tests {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),
-                    right: Expr::Literal(Literal::Int(1)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 }))),
@@ -129,8 +151,14 @@ mod tests {
             Expr::Call(Call {
                 symbol: String::from("add"),
                 args: vec![
-                    Expr::Literal(Literal::Int(4)),
-                    Expr::Literal(Literal::Int(1))
+                    Expr::Literal(Literal::Int(Int {
+                        value: 4,
+                        location: Default::default()
+                    })),
+                    Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    }))
                 ],
                 location: Location::default(),
             })
@@ -143,12 +171,21 @@ mod tests {
                     Expr::Call(Call {
                         symbol: String::from("add"),
                         args: vec![
-                            Expr::Literal(Literal::Int(4)),
-                            Expr::Literal(Literal::Int(1))
+                            Expr::Literal(Literal::Int(Int {
+                                value: 4,
+                                location: Default::default()
+                            })),
+                            Expr::Literal(Literal::Int(Int {
+                                value: 1,
+                                location: Default::default()
+                            }))
                         ],
                         location: Location::default(),
                     }),
-                    Expr::Literal(Literal::Int(5))
+                    Expr::Literal(Literal::Int(Int {
+                        value: 5,
+                        location: Default::default()
+                    }))
                 ],
                 location: Location::default(),
             })
@@ -158,8 +195,14 @@ mod tests {
             Expr::Call(Call {
                 symbol: String::from("push"),
                 args: vec![
-                    Expr::Literal(Literal::String(String::from("Hello, "))),
-                    Expr::Literal(Literal::String(String::from("World!")))
+                    Expr::Literal(Literal::String(Str {
+                        value: String::from("Hello, "),
+                        location: Default::default()
+                    })),
+                    Expr::Literal(Literal::String(Str {
+                        value: String::from("World!"),
+                        location: Default::default()
+                    }))
                 ],
                 location: Location::default(),
             })

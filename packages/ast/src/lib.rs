@@ -82,15 +82,48 @@ pub enum Expr {
     Literal(Literal),
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Int {
+    pub value: i64,
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Float {
+    pub value: f64,
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Str {
+    pub value: String,
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Boolean {
+    pub value: bool,
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Vector {
+    pub value: Vec<Expr>,
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Null {
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Void {
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Literal {
     Closure(Closure),
-    Int(i64),
-    Float(f64),
-    String(String),
-    Bool(bool),
-    Vector(Vec<Expr>),
-    Null,
-    Void,
+    Int(Int),
+    Float(Float),
+    String(Str),
+    Bool(Boolean),
+    Vector(Vector),
+    Null(Null),
+    Void(Void),
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct If {

@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use ast::{
-    AssignmentExpr, BinaryExpr, BinaryOperator, Closure, Expr, Instruction, Literal, Location,
+    AssignmentExpr, BinaryExpr, BinaryOperator, Closure, Expr, Instruction, Int, Literal, Location,
     Program, Stmt,
 };
 
@@ -31,7 +31,10 @@ fn test_is_adult() {
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::BinaryExpr(Box::new(
                     BinaryExpr {
                         left: Expr::Symbol(String::from("age")),
-                        right: Expr::Literal(Literal::Int(18)),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 18,
+                            location: Default::default()
+                        })),
                         operator: BinaryOperator::Ge,
                         location: Location::default(),
                     }

@@ -34,7 +34,7 @@ pub fn parse_call_expression(input: &str) -> Call {
 
 #[cfg(test)]
 mod tests {
-    use ast::{Expr, Literal};
+    use ast::{Expr, Int, Literal};
 
     use super::*;
 
@@ -55,7 +55,10 @@ mod tests {
             parse_call_expression("println(18)"),
             Call {
                 symbol: String::from("println"),
-                args: vec![Expr::Literal(Literal::Int(18))],
+                args: vec![Expr::Literal(Literal::Int(Int {
+                    value: 18,
+                    location: Default::default()
+                }))],
                 location: Location::default()
             }
         );

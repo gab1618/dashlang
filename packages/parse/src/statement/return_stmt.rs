@@ -32,14 +32,17 @@ pub fn parse_return_stmt(input: &str) -> Stmt {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Int, Literal, Location};
 
     use super::*;
     #[test]
     fn test_return_value() {
         assert_eq!(
             parse_return_stmt("return 1"),
-            Stmt::Return(Expr::Literal(Literal::Int(1)))
+            Stmt::Return(Expr::Literal(Literal::Int(Int {
+                value: 1,
+                location: Default::default()
+            })))
         );
     }
     #[test]
@@ -47,8 +50,14 @@ mod tests {
         assert_eq!(
             parse_return_stmt("return 1 + 1"),
             Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(1)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
             })))
@@ -56,10 +65,19 @@ mod tests {
         assert_eq!(
             parse_return_stmt("return 2 * (2 + 2)"),
             Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
-                left: Expr::Literal(Literal::Int(2)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Default::default()
+                })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(2)),
-                    right: Expr::Literal(Literal::Int(2)),
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Default::default()
+                    })),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 })),

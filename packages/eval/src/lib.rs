@@ -7,8 +7,8 @@ mod tests;
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use ast::{
-    BinaryExpr, BinaryOperator, Call, Expr, Instruction, Literal, Location, Program, Stmt,
-    UnaryExpr,
+    BinaryExpr, BinaryOperator, Boolean, Call, Expr, Float, Instruction, Int, Literal, Location,
+    Program, Stmt, UnaryExpr, Void,
 };
 use errors::RuntimeResult;
 use scope::Scope;
@@ -19,10 +19,10 @@ macro_rules! define_aritmetic_operation {
     ($operator:tt, $op:expr, $scope:expr) => {
         match ($op.left, $op.right) {
             (Expr::Literal(left), Expr::Literal(right)) => match (left, right) {
-                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(left $operator right)),
-                (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(left $operator (right as f64))),
-                (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float((left as f64) $operator right)),
-                (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(left $operator right)),
+                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int{value: left.value $operator right.value, location: Default::default()})),
+                (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float{value: left.value $operator (right.value as f64), location: Default::default()})),
+                (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: (left.value as f64) $operator right.value, location: Default::default()})),
+                (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: left.value $operator right.value, location: Default::default()})),
                 (_, _) => Err(RuntimeError::new("Unsuported operation")),
             },
             (left, right) => eval_binary_op(
@@ -41,10 +41,10 @@ macro_rules! define_boolean_operation {
     ($operator:tt, $op:expr, $scope:expr) => {
         match ($op.left, $op.right) {
             (Expr::Literal(left), Expr::Literal(right)) => match (left, right) {
-                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Bool(left $operator right)),
-                (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(left $operator (right as f64))),
-                (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool((left as f64) $operator right)),
-                (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(left $operator right)),
+                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
+                (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator (right.value as f64), location: Default::default()})),
+                (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: (left.value as f64) $operator right.value, location: Default::default()})),
+                (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
                 (_, _) => Err(RuntimeError::new("Unsuported operation")),
             },
             (left, right) => eval_binary_op(
@@ -63,13 +63,13 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> RuntimeResult<
     match expr {
         Expr::Literal(value) => match value {
             Literal::Closure(_) => Ok(true),
-            Literal::Int(num) => Ok(num != 0),
-            Literal::Float(num) => Ok(num != 0.0),
-            Literal::String(string) => Ok(!string.is_empty()),
-            Literal::Vector(val) => Ok(!val.is_empty()),
-            Literal::Bool(val) => Ok(val),
-            Literal::Null => Ok(false),
-            Literal::Void => Ok(false),
+            Literal::Int(num) => Ok(num.value != 0),
+            Literal::Float(num) => Ok(num.value != 0.0),
+            Literal::String(string) => Ok(!string.value.is_empty()),
+            Literal::Vector(val) => Ok(!val.value.is_empty()),
+            Literal::Bool(val) => Ok(val.value),
+            Literal::Null(_) => Ok(false),
+            Literal::Void(_) => Ok(false),
         },
         expr => is_truthy(Expr::Literal(eval(expr, scope)?), scope),
     }
@@ -86,18 +86,23 @@ fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, ctx: &Context<T>) -> Runtime
         BinaryOperator::Ge => define_boolean_operation!(>=, op, ctx),
         BinaryOperator::Lt => define_boolean_operation!(<, op, ctx),
         BinaryOperator::Le => define_boolean_operation!(<=, op, ctx),
-        BinaryOperator::And => Ok(Literal::Bool(
-            is_truthy(op.left, ctx)? && is_truthy(op.right, ctx)?,
-        )),
-        BinaryOperator::Or => Ok(Literal::Bool(
-            is_truthy(op.left, ctx)? || is_truthy(op.right, ctx)?,
-        )),
+        BinaryOperator::And => Ok(Literal::Bool(Boolean {
+            value: is_truthy(op.left, ctx)? && is_truthy(op.right, ctx)?,
+            location: Default::default(),
+        })),
+        BinaryOperator::Or => Ok(Literal::Bool(Boolean {
+            value: is_truthy(op.left, ctx)? || is_truthy(op.right, ctx)?,
+            location: Default::default(),
+        })),
     }
 }
 fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> RuntimeResult<Literal> {
     match op.operator {
         ast::UnaryOperator::Not => match op.operand {
-            Expr::Literal(literal) => Ok(Literal::Bool(!is_truthy(Expr::Literal(literal), ctx)?)),
+            Expr::Literal(literal) => Ok(Literal::Bool(Boolean {
+                value: !is_truthy(Expr::Literal(literal), ctx)?,
+                location: Default::default(),
+            })),
             expr => {
                 let literal_from_expr = eval(expr, ctx)?;
                 let new_unary_op = UnaryExpr {
@@ -125,13 +130,13 @@ pub fn eval_program<T: Scope + Clone>(
                     if is_truthy(if_stmt.cond, ctx)? {
                         let block_result = eval_program(if_stmt.body, ctx)?;
                         match block_result {
-                            Literal::Void => (),
+                            Literal::Void(_) => (),
                             val => return Ok(val),
                         }
                     } else if let Some(else_block) = if_stmt.else_block {
                         let block_result = eval_program(else_block, ctx)?;
                         match block_result {
-                            Literal::Null => (),
+                            Literal::Null(_) => (),
                             val => return Ok(val),
                         }
                     }
@@ -140,7 +145,7 @@ pub fn eval_program<T: Scope + Clone>(
                     while is_truthy(while_stmt.clone().cond, ctx)? {
                         let block_result = eval_program(while_stmt.clone().body, ctx)?;
                         match block_result {
-                            Literal::Void => (),
+                            Literal::Void(_) => (),
                             val => return Ok(val),
                         }
                     }
@@ -150,7 +155,7 @@ pub fn eval_program<T: Scope + Clone>(
                     while is_truthy(for_stmt.clone().cond, ctx)? {
                         let block_result = eval_program(for_stmt.clone().body, ctx)?;
                         match block_result {
-                            Literal::Void => (),
+                            Literal::Void(_) => (),
                             val => return Ok(val),
                         }
                         eval_program(vec![for_stmt.clone().iteration], ctx)?;
@@ -162,7 +167,9 @@ pub fn eval_program<T: Scope + Clone>(
             }
         }
     }
-    Ok(Literal::Void)
+    Ok(Literal::Void(Void {
+        location: Default::default(),
+    }))
 }
 
 fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> RuntimeResult<Literal> {

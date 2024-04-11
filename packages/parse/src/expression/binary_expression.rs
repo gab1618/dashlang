@@ -142,6 +142,8 @@ fn merge_flat_binary_op_tokens(
 
 #[cfg(test)]
 mod tests {
+    use ast::{Boolean, Int};
+
     use super::*;
 
     #[test]
@@ -149,8 +151,14 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 * 2"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(2)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Mul,
                 location: Location::default(),
             }
@@ -158,8 +166,14 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + 2"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(2)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
             }
@@ -167,10 +181,19 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + 2 * 2"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(2)),
-                    right: Expr::Literal(Literal::Int(2)),
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Default::default()
+                    })),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Mul,
                     location: Location::default(),
                 })),
@@ -181,15 +204,27 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + 2 * 2 / 2"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::BinaryExpr(Box::new(BinaryExpr {
-                        left: Expr::Literal(Literal::Int(2)),
-                        right: Expr::Literal(Literal::Int(2)),
+                        left: Expr::Literal(Literal::Int(Int {
+                            value: 2,
+                            location: Default::default()
+                        })),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 2,
+                            location: Default::default()
+                        })),
                         operator: BinaryOperator::Mul,
                         location: Location::default(),
                     })),
-                    right: Expr::Literal(Literal::Int(2)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Div,
                     location: Location::default(),
                 })),
@@ -203,8 +238,14 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + 2"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(2)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
             }
@@ -212,8 +253,14 @@ mod tests {
         assert_eq!(
             parse_binary_expression("2 > 1"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(2)),
-                right: Expr::Literal(Literal::Int(1)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Gt,
                 location: Location::default(),
             }
@@ -221,8 +268,14 @@ mod tests {
         assert_eq!(
             parse_binary_expression("2 == 2"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(2)),
-                right: Expr::Literal(Literal::Int(2)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Eq,
                 location: Location::default(),
             }
@@ -230,8 +283,14 @@ mod tests {
         assert_eq!(
             parse_binary_expression("true || false"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Bool(true)),
-                right: Expr::Literal(Literal::Bool(false)),
+                left: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Bool(Boolean {
+                    value: false,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Or,
                 location: Location::default(),
             }
@@ -239,8 +298,14 @@ mod tests {
         assert_eq!(
             parse_binary_expression("true && false"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Bool(true)),
-                right: Expr::Literal(Literal::Bool(false)),
+                left: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default()
+                })),
+                right: Expr::Literal(Literal::Bool(Boolean {
+                    value: false,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::And,
                 location: Location::default(),
             }
@@ -251,10 +316,19 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + (2 + 1)"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(2)),
-                    right: Expr::Literal(Literal::Int(1)),
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Default::default()
+                    })),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 })),
@@ -266,12 +340,21 @@ mod tests {
             parse_binary_expression("(1 + 2) + 1"),
             BinaryExpr {
                 left: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(1)),
-                    right: Expr::Literal(Literal::Int(2)),
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    })),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 })),
-                right: Expr::Literal(Literal::Int(1)),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
             }
@@ -281,21 +364,36 @@ mod tests {
             BinaryExpr {
                 left: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::BinaryExpr(Box::new(BinaryExpr {
-                        left: Expr::Literal(Literal::Int(1)),
-                        right: Expr::Literal(Literal::Int(2)),
+                        left: Expr::Literal(Literal::Int(Int {
+                            value: 1,
+                            location: Default::default()
+                        })),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 2,
+                            location: Default::default()
+                        })),
                         operator: BinaryOperator::Add,
                         location: Location::default(),
                     })),
                     right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                        left: Expr::Literal(Literal::Int(1)),
-                        right: Expr::Literal(Literal::Int(1)),
+                        left: Expr::Literal(Literal::Int(Int {
+                            value: 1,
+                            location: Default::default()
+                        })),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 1,
+                            location: Default::default()
+                        })),
                         operator: BinaryOperator::Add,
                         location: Location::default(),
                     })),
                     operator: BinaryOperator::Sub,
                     location: Location::default(),
                 })),
-                right: Expr::Literal(Literal::Int(1)),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
             }
@@ -303,7 +401,10 @@ mod tests {
         assert_eq!(
             parse_binary_expression("1 + n"),
             BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default()
+                })),
                 operator: BinaryOperator::Add,
                 right: Expr::Symbol(String::from("n")),
                 location: Location::default(),

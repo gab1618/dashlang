@@ -77,7 +77,7 @@ fn parse_else_if_stmt(input: &str) -> If {
 #[cfg(test)]
 mod tests {
 
-    use ast::{BinaryExpr, BinaryOperator, Expr, Instruction, Literal, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Instruction, Int, Literal, Stmt};
 
     use super::*;
 
@@ -86,7 +86,10 @@ mod tests {
         assert_eq!(
             parse_if_stmt("if true {}"),
             If {
-                cond: Expr::Literal(Literal::Bool(true)),
+                cond: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default()
+                })),
                 body: vec![],
                 else_block: None,
                 location: Location::default(),
@@ -100,7 +103,10 @@ mod tests {
             If {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Literal(Literal::Int(10)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 10,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),
@@ -114,12 +120,18 @@ mod tests {
             If {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Literal(Literal::Int(10)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 10,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(true)
+                    Literal::Bool(Boolean {
+                        value: true,
+                        location: Default::default()
+                    })
                 )))],
                 else_block: None,
                 location: Location::default(),
@@ -131,12 +143,21 @@ mod tests {
         assert_eq!(
             parse_if_stmt("if true {return true} else {return false}"),
             If {
-                cond: Expr::Literal(Literal::Bool(true)),
+                cond: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default()
+                })),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(true)
+                    Literal::Bool(Boolean {
+                        value: true,
+                        location: Default::default()
+                    })
                 )))],
                 else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(false)
+                    Literal::Bool(Boolean {
+                        value: false,
+                        location: Default::default()
+                    })
                 )))]),
                 location: Location::default(),
             }
@@ -147,17 +168,32 @@ mod tests {
         assert_eq!(
             parse_if_stmt("if true {return true} else if true {return true} else {return false}"),
             If {
-                cond: Expr::Literal(Literal::Bool(true)),
+                cond: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default()
+                })),
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(true)
+                    Literal::Bool(Boolean {
+                        value: true,
+                        location: Default::default()
+                    })
                 )))],
                 else_block: Some(vec![Instruction::Stmt(Stmt::If(If {
-                    cond: Expr::Literal(Literal::Bool(true)),
+                    cond: Expr::Literal(Literal::Bool(Boolean {
+                        value: true,
+                        location: Default::default()
+                    })),
                     body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                        Literal::Bool(true)
+                        Literal::Bool(Boolean {
+                            value: true,
+                            location: Default::default()
+                        })
                     )))],
                     else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                        Literal::Bool(false)
+                        Literal::Bool(Boolean {
+                            value: false,
+                            location: Default::default()
+                        })
                     )))]),
                     location: Location::default(),
                 }))]),

@@ -24,7 +24,7 @@ pub fn parse_assignment_expression(input: &str) -> AssignmentExpr {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Int, Literal};
 
     use super::*;
     #[test]
@@ -33,7 +33,10 @@ mod tests {
             parse_assignment_expression("age = 5"),
             AssignmentExpr {
                 symbol: String::from("age"),
-                value: Box::new(Expr::Literal(Literal::Int(5))),
+                value: Box::new(Expr::Literal(Literal::Int(Int {
+                    value: 5,
+                    location: Default::default()
+                }))),
                 location: Location::default(),
             }
         );
@@ -45,8 +48,14 @@ mod tests {
             AssignmentExpr {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(5)),
-                    right: Expr::Literal(Literal::Int(1)),
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 5,
+                        location: Default::default()
+                    })),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 }))),

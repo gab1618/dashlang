@@ -37,7 +37,9 @@ pub fn parse_for_stmt(input: &str) -> For {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{AssignmentExpr, BinaryExpr, BinaryOperator, Expr, Instruction, Literal, Location};
+    use ast::{
+        AssignmentExpr, BinaryExpr, BinaryOperator, Expr, Instruction, Int, Literal, Location,
+    };
     #[test]
     fn test_for_stmt() {
         assert_eq!(
@@ -45,21 +47,30 @@ mod tests {
             For {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),
-                    right: Expr::Literal(Literal::Int(10)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 10,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),
                 body: vec![],
                 init: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
-                    value: Box::new(Expr::Literal(Literal::Int(1))),
+                    value: Box::new(Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    }))),
                     location: Location::default(),
                 })),
                 iteration: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Symbol(String::from("n")),
-                        right: Expr::Literal(Literal::Int(1)),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 1,
+                            location: Default::default()
+                        })),
                         operator: BinaryOperator::Add,
                         location: Location::default(),
                     }))),
@@ -73,21 +84,30 @@ mod tests {
             For {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("n")),
-                    right: Expr::Literal(Literal::Int(0)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 0,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Gt,
                     location: Location::default(),
                 })),
                 body: vec![],
                 init: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
-                    value: Box::new(Expr::Literal(Literal::Int(10))),
+                    value: Box::new(Expr::Literal(Literal::Int(Int {
+                        value: 10,
+                        location: Default::default()
+                    }))),
                     location: Location::default(),
                 })),
                 iteration: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Symbol(String::from("n")),
-                        right: Expr::Literal(Literal::Int(1)),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 1,
+                            location: Default::default()
+                        })),
                         operator: BinaryOperator::Sub,
                         location: Location::default(),
                     }))),

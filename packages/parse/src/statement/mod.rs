@@ -27,14 +27,17 @@ pub fn parse_statement(input: &str) -> Stmt {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, If, Literal, Location, Stmt, While};
+    use ast::{BinaryExpr, BinaryOperator, Expr, If, Int, Literal, Location, Stmt, While};
 
     use super::*;
     #[test]
     fn test_parse_ret_stmt() {
         assert_eq!(
             parse_statement("return 5"),
-            Stmt::Return(Expr::Literal(Literal::Int(5)))
+            Stmt::Return(Expr::Literal(Literal::Int(Int {
+                value: 5,
+                location: Default::default()
+            })))
         );
     }
     #[test]
@@ -44,7 +47,10 @@ mod tests {
             Stmt::If(If {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Literal(Literal::Int(5)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 5,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),
@@ -61,7 +67,10 @@ mod tests {
             Stmt::While(While {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(String::from("count")),
-                    right: Expr::Literal(Literal::Int(5)),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 5,
+                        location: Default::default()
+                    })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),

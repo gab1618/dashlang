@@ -1,4 +1,4 @@
-use ast::{Closure, Literal, Location};
+use ast::{Boolean, Closure, Float, Int, Literal, Location, Str, Vector};
 use pest::Parser;
 
 use crate::body::parse_body;
@@ -20,27 +20,37 @@ pub fn parse_literal(input: &str) -> Literal {
                 .as_str()
                 .parse()
                 .expect("Could not parse integer value");
-            Literal::Int(parsed)
+            Literal::Int(Int {
+                value: parsed,
+                location: Default::default(),
+            })
         }
         Rule::float => {
             let parsed: f64 = inner_value
                 .as_str()
                 .parse()
                 .expect("Could not parse float value");
-            Literal::Float(parsed)
+            Literal::Float(Float {
+                value: parsed,
+                location: Default::default(),
+            })
         }
         Rule::boolean => {
             let val = inner_value.as_str() == "true";
-            Literal::Bool(val)
+            Literal::Bool(Boolean {
+                value: val,
+                location: Default::default(),
+            })
         }
-        Rule::string => Literal::String(
-            inner_value
+        Rule::string => Literal::String(Str {
+            value: inner_value
                 .into_inner()
                 .next()
                 .expect("Could not parse string")
                 .as_str()
                 .to_owned(),
-        ),
+            location: Default::default(),
+        }),
         Rule::closure => {
             let mut inner_ast = inner_value.into_inner();
             let params: Vec<String> = inner_ast
@@ -63,11 +73,12 @@ pub fn parse_literal(input: &str) -> Literal {
         }
         Rule::vector => {
             let inner_ast = inner_value.into_inner();
-            Literal::Vector(
-                inner_ast
+            Literal::Vector(Vector {
+                value: inner_ast
                     .map(|element| parse_expression(element.as_str()))
                     .collect(),
-            )
+                location: Default::default(),
+            })
         }
         _ => unreachable!(),
     }
@@ -80,26 +91,71 @@ mod tests {
     use super::*;
     #[test]
     fn parse_value() {
-        assert_eq!(parse_literal("10"), Literal::Int(10));
-        assert_eq!(parse_literal("-10"), Literal::Int(-10));
-        assert_eq!(parse_literal("10.5"), Literal::Float(10.5));
-        assert_eq!(parse_literal("-10.5"), Literal::Float(-10.5));
-        assert_eq!(parse_literal("true"), Literal::Bool(true));
-        assert_eq!(parse_literal("false"), Literal::Bool(false));
+        assert_eq!(
+            parse_literal("10"),
+            Literal::Int(Int {
+                value: 10,
+                location: Default::default()
+            })
+        );
+        assert_eq!(
+            parse_literal("-10"),
+            Literal::Int(Int {
+                value: -10,
+                location: Default::default()
+            })
+        );
+        assert_eq!(
+            parse_literal("10.5"),
+            Literal::Float(Float {
+                value: 10.5,
+                location: Default::default()
+            })
+        );
+        assert_eq!(
+            parse_literal("-10.5"),
+            Literal::Float(Float {
+                value: -10.5,
+                location: Default::default()
+            })
+        );
+        assert_eq!(
+            parse_literal("true"),
+            Literal::Bool(Boolean {
+                value: true,
+                location: Default::default()
+            })
+        );
+        assert_eq!(
+            parse_literal("false"),
+            Literal::Bool(Boolean {
+                value: false,
+                location: Default::default()
+            })
+        );
         assert_eq!(
             parse_literal(r#""apple""#),
-            Literal::String(String::from("apple"))
+            Literal::String(Str {
+                value: String::from("apple"),
+                location: Default::default()
+            })
         );
         assert_eq!(
             parse_literal(r#""green apple""#),
-            Literal::String(String::from("green apple"))
+            Literal::String(Str {
+                value: "green apple".to_owned(),
+                location: Default::default()
+            })
         );
         assert_eq!(
             parse_literal("(name, age) {return true}"),
             Literal::Closure(Closure {
                 params: vec![String::from("name"), String::from("age")],
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(true)
+                    Literal::Bool(Boolean {
+                        value: true,
+                        location: Default::default()
+                    })
                 )))],
                 location: Location::default(),
             })
@@ -109,11 +165,23 @@ mod tests {
     fn test_parse_vector() {
         assert_eq!(
             parse_literal("[1, 8, 7]"),
-            Literal::Vector(vec![
-                Expr::Literal(Literal::Int(1)),
-                Expr::Literal(Literal::Int(8)),
-                Expr::Literal(Literal::Int(7)),
-            ])
+            Literal::Vector(Vector {
+                value: vec![
+                    Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Default::default()
+                    })),
+                    Expr::Literal(Literal::Int(Int {
+                        value: 8,
+                        location: Default::default()
+                    })),
+                    Expr::Literal(Literal::Int(Int {
+                        value: 7,
+                        location: Default::default()
+                    })),
+                ],
+                location: Default::default()
+            })
         );
     }
 }
