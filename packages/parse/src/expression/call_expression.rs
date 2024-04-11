@@ -1,7 +1,10 @@
 use ast::{Call, Expr, Location};
 use pest::Parser;
 
-use crate::parser::{DashlangParser, Rule};
+use crate::{
+    parser::{DashlangParser, Rule},
+    utils::get_pair_location,
+};
 
 use super::parse_expression;
 
@@ -10,6 +13,7 @@ pub fn parse_call_expression(input: &str) -> Call {
         .expect("Could not parse call expression")
         .next()
         .expect("Could not parse call expression");
+    let (start, end) = get_pair_location(&ast);
     let mut ast_inner = ast.into_inner();
     let symbol = ast_inner
         .next()
@@ -28,7 +32,7 @@ pub fn parse_call_expression(input: &str) -> Call {
     Call {
         symbol,
         args,
-        location: Location::new(0, 0),
+        location: Location::new(start, end),
     }
 }
 
@@ -45,7 +49,7 @@ mod tests {
             Call {
                 symbol: String::from("println"),
                 args: vec![],
-                location: Location::new(0, 0)
+                location: Location::new(0, 9)
             }
         );
     }
@@ -59,7 +63,7 @@ mod tests {
                     value: 18,
                     location: Location::new(0, 2)
                 }))],
-                location: Location::default()
+                location: Location::new(0, 11)
             }
         );
         assert_eq!(
@@ -67,7 +71,7 @@ mod tests {
             Call {
                 symbol: String::from("println"),
                 args: vec![Expr::Symbol(String::from("name"))],
-                location: Location::default()
+                location: Location::new(0, 13)
             }
         );
         assert_eq!(
@@ -77,9 +81,9 @@ mod tests {
                 args: vec![Expr::Call(Call {
                     symbol: String::from("getName"),
                     args: vec![],
-                    location: Location::default()
+                    location: Location::new(0, 9)
                 })],
-                location: Location::default()
+                location: Location::new(0, 18)
             }
         );
         assert_eq!(
@@ -89,9 +93,9 @@ mod tests {
                 args: vec![Expr::Call(Call {
                     symbol: String::from("getName"),
                     args: vec![Expr::Symbol(String::from("id"))],
-                    location: Location::default()
+                    location: Location::new(0, 11)
                 })],
-                location: Location::default()
+                location: Location::new(0, 20)
             }
         );
     }

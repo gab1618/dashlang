@@ -160,7 +160,7 @@ mod tests {
                         location: Location::new(0, 1)
                     }))
                 ],
-                location: Location::default(),
+                location: Location::new(0, 6),
             })
         );
         assert_eq!(
@@ -180,14 +180,14 @@ mod tests {
                                 location: Location::new(0, 1)
                             }))
                         ],
-                        location: Location::default(),
+                        location: Location::new(0, 6),
                     }),
                     Expr::Literal(Literal::Int(Int {
                         value: 5,
                         location: Location::new(0, 1)
                     }))
                 ],
-                location: Location::default(),
+                location: Location::new(0, 6),
             })
         );
         assert_eq!(
@@ -204,7 +204,7 @@ mod tests {
                         location: Location::new(0, 8)
                     }))
                 ],
-                location: Location::default(),
+                location: Location::new(0, 14),
             })
         );
     }
