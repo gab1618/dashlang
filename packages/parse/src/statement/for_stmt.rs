@@ -74,7 +74,7 @@ mod tests {
                         operator: BinaryOperator::Add,
                         location: Location::new(0, 0),
                     }))),
-                    location: Location::new(0, 0),
+                    location: Location::new(0, 7),
                 })),
                 location: Location::default(),
             }
@@ -111,7 +111,7 @@ mod tests {
                         operator: BinaryOperator::Sub,
                         location: Location::default(),
                     }))),
-                    location: Location::new(0, 0),
+                    location: Location::new(0, 7),
                 })),
                 location: Location::default(),
             }

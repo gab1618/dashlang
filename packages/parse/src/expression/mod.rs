@@ -140,7 +140,7 @@ mod tests {
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 }))),
-                location: Location::default(),
+                location: Location::new(0, 6),
             })
         );
     }

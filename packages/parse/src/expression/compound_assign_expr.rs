@@ -1,7 +1,10 @@
 use ast::{AssignmentExpr, BinaryExpr, Expr, Location};
 use pest::Parser;
 
-use crate::parser::{DashlangParser, Rule};
+use crate::{
+    parser::{DashlangParser, Rule},
+    utils::get_pair_location,
+};
 
 use super::{binary_operator::parse_binary_operator, parse_expression};
 
@@ -10,6 +13,7 @@ pub fn parse_compound_assign_expr(input: &str) -> AssignmentExpr {
         .expect("Could not parse compound assignment expression")
         .next()
         .expect("Could not get compound assignment expression");
+    let (start, end) = get_pair_location(&ast);
     let mut ast_inner = ast.into_inner();
 
     let ast_symbol = ast_inner
@@ -30,7 +34,7 @@ pub fn parse_compound_assign_expr(input: &str) -> AssignmentExpr {
             operator: parse_binary_operator(ast_operator.as_str()),
             location: Location::default(),
         }))),
-        location: Location::default(),
+        location: Location::new(start, end),
     }
 }
 
@@ -52,9 +56,9 @@ mod tests {
                         location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Add,
-                    location: Location::default(),
+                    location: Location::new(0, 0),
                 }))),
-                location: Location::default(),
+                location: Location::new(0, 6),
             }
         );
         assert_eq!(
@@ -70,7 +74,7 @@ mod tests {
                     operator: BinaryOperator::Sub,
                     location: Location::default(),
                 }))),
-                location: Location::default(),
+                location: Location::new(0, 6),
             }
         );
     }
