@@ -1,7 +1,10 @@
 use ast::{Location, UnaryExpr, UnaryOperator};
 use pest::Parser;
 
-use crate::parser::{DashlangParser, Rule};
+use crate::{
+    parser::{DashlangParser, Rule},
+    utils::get_pair_location,
+};
 
 use super::parse_expression;
 
@@ -10,6 +13,7 @@ pub fn parse_unary_expression(input: &str) -> UnaryExpr {
         .expect("Could not parse unary expression")
         .next()
         .expect("Could not get unary expression");
+    let (start, end) = get_pair_location(&parsed);
     let mut parsed_inner = parsed.into_inner();
     let operator = parsed_inner
         .next()
@@ -23,7 +27,7 @@ pub fn parse_unary_expression(input: &str) -> UnaryExpr {
             any => panic!("Invalid unary operator: {any}"),
         },
         operand: (parse_expression(operand.as_str())),
-        location: Location::default(),
+        location: Location::new(start, end),
     }
 }
 
@@ -43,7 +47,7 @@ mod tests {
                     value: true,
                     location: Location::new(0, 4)
                 })),
-                location: Location::default(),
+                location: Location::new(0, 5),
             }
         );
     }
@@ -65,7 +69,7 @@ mod tests {
                     operator: BinaryOperator::And,
                     location: Location::default(),
                 })),
-                location: Location::default(),
+                location: Location::new(0, 16),
             }
         );
     }

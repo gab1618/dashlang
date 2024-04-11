@@ -121,7 +121,7 @@ mod tests {
                     operator: BinaryOperator::And,
                     location: Location::default(),
                 })),
-                location: Location::default(),
+                location: Location::new(0, 16),
             }))
         );
     }
