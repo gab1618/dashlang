@@ -1,4 +1,4 @@
-use ast::{AssignmentExpr, BinaryExpr, Expr, Location};
+use ast::{AssignmentExpr, BinaryExpr, Expr, Location, Symbol};
 use pest::Parser;
 
 use crate::{
@@ -29,7 +29,10 @@ pub fn parse_compound_assign_expr(input: &str) -> AssignmentExpr {
     AssignmentExpr {
         symbol: ast_symbol.as_str().to_owned(),
         value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-            left: Expr::Symbol(ast_symbol.as_str().to_owned()),
+            left: Expr::Symbol(Symbol {
+                value: ast_symbol.as_str().to_owned(),
+                location: Location::default(),
+            }),
             right: parsed_ast_operand,
             operator: parse_binary_operator(ast_operator.as_str()),
             location: Location::default(),
@@ -40,7 +43,7 @@ pub fn parse_compound_assign_expr(input: &str) -> AssignmentExpr {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Int, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Int, Literal, Symbol};
 
     use super::*;
     #[test]
@@ -50,7 +53,10 @@ mod tests {
             AssignmentExpr {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("n")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("n"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 1,
                         location: Location::new(0, 1)
@@ -66,7 +72,10 @@ mod tests {
             AssignmentExpr {
                 symbol: String::from("x"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("x")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("x"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 5,
                         location: Location::new(0, 1)

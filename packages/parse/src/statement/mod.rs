@@ -27,7 +27,7 @@ pub fn parse_statement(input: &str) -> Stmt {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, If, Int, Literal, Location, Stmt, While};
+    use ast::{BinaryExpr, BinaryOperator, Expr, If, Int, Literal, Location, Stmt, Symbol, While};
 
     use super::*;
     #[test]
@@ -46,7 +46,10 @@ mod tests {
             parse_statement("if count < 5 {}"),
             Stmt::If(If {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("count")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("count"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 5,
                         location: Location::new(0, 1)
@@ -66,7 +69,10 @@ mod tests {
             parse_statement("while count < 5 {}"),
             Stmt::While(While {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("count")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("count"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 5,
                         location: Location::new(0, 1)

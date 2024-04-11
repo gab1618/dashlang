@@ -1,4 +1,4 @@
-use ast::{AssignmentExpr, Closure, If, Location, Null, Str, While};
+use ast::{AssignmentExpr, Closure, If, Location, Null, Str, Symbol, While};
 use scope::HashScope;
 
 use super::*;
@@ -79,7 +79,10 @@ fn eval_primitive() {
         &ctx,
     )
     .unwrap();
-    let symbol = Expr::Symbol(String::from("name"));
+    let symbol = Expr::Symbol(Symbol {
+        value: String::from("name"),
+        location: Location::default(),
+    });
     let found_value = eval(symbol, &ctx);
     assert_eq!(
         found_value,
@@ -241,7 +244,10 @@ fn eval_division() {
 
     let op = Expr::BinaryExpr(Box::new(BinaryExpr {
         left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Symbol(String::from("age")),
+            Expr::Symbol(Symbol {
+                value: String::from("age"),
+                location: Location::default(),
+            }),
             Expr::Literal(Literal::Int(Int {
                 value: 2,
                 location: Default::default(),
@@ -513,9 +519,10 @@ fn test_eval_call() {
         "greet",
         Literal::Closure(ast::Closure {
             params: vec![String::from("name")],
-            body: vec![Instruction::Stmt(Stmt::Return(Expr::Symbol(String::from(
-                "name",
-            ))))],
+            body: vec![Instruction::Stmt(Stmt::Return(Expr::Symbol(Symbol {
+                value: String::from("name"),
+                location: Location::default(),
+            })))],
             location: Location::default(),
         }),
     );
@@ -544,7 +551,10 @@ fn test_if_else() {
         params: vec![String::from("age")],
         body: vec![Instruction::Stmt(Stmt::If(If {
             cond: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-                Expr::Symbol(String::from("age")),
+                Expr::Symbol(Symbol {
+                    value: String::from("age"),
+                    location: Location::default(),
+                }),
                 Expr::Literal(Literal::Int(Int {
                     value: 18,
                     location: Default::default(),
@@ -623,7 +633,10 @@ fn test_while_loop() {
     );
     let program: Program = vec![Instruction::Stmt(Stmt::While(While {
         cond: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Symbol(String::from("count")),
+            Expr::Symbol(Symbol {
+                value: String::from("count"),
+                location: Location::default(),
+            }),
             Expr::Literal(Literal::Int(Int {
                 value: 10,
                 location: Default::default(),
@@ -633,7 +646,10 @@ fn test_while_loop() {
         body: vec![Instruction::Expr(Expr::Assignment(AssignmentExpr {
             symbol: String::from("count"),
             value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr::new(
-                Expr::Symbol(String::from("count")),
+                Expr::Symbol(Symbol {
+                    value: String::from("count"),
+                    location: Location::default(),
+                }),
                 Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Default::default(),

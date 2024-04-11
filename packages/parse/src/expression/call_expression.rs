@@ -38,7 +38,7 @@ pub fn parse_call_expression(input: &str) -> Call {
 
 #[cfg(test)]
 mod tests {
-    use ast::{Expr, Int, Literal};
+    use ast::{Expr, Int, Literal, Symbol};
 
     use super::*;
 
@@ -70,7 +70,10 @@ mod tests {
             parse_call_expression("println(name)"),
             Call {
                 symbol: String::from("println"),
-                args: vec![Expr::Symbol(String::from("name"))],
+                args: vec![Expr::Symbol(Symbol {
+                    value: String::from("name"),
+                    location: Location::default()
+                })],
                 location: Location::new(0, 13)
             }
         );
@@ -92,7 +95,10 @@ mod tests {
                 symbol: String::from("println"),
                 args: vec![Expr::Call(Call {
                     symbol: String::from("getName"),
-                    args: vec![Expr::Symbol(String::from("id"))],
+                    args: vec![Expr::Symbol(Symbol {
+                        value: String::from("id"),
+                        location: Location::default()
+                    })],
                     location: Location::new(0, 11)
                 })],
                 location: Location::new(0, 20)

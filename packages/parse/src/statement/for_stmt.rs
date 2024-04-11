@@ -39,6 +39,7 @@ mod tests {
     use super::*;
     use ast::{
         AssignmentExpr, BinaryExpr, BinaryOperator, Expr, Instruction, Int, Literal, Location,
+        Symbol,
     };
     #[test]
     fn test_for_stmt() {
@@ -46,7 +47,10 @@ mod tests {
             parse_for_stmt("for n = 1; n < 10; n += 1 {}"),
             For {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("n")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("n"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 10,
                         location: Location::new(0, 2)
@@ -66,7 +70,10 @@ mod tests {
                 iteration: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                        left: Expr::Symbol(String::from("n")),
+                        left: Expr::Symbol(Symbol {
+                            value: String::from("n"),
+                            location: Location::default()
+                        }),
                         right: Expr::Literal(Literal::Int(Int {
                             value: 1,
                             location: Location::new(0, 1)
@@ -83,7 +90,10 @@ mod tests {
             parse_for_stmt("for n = 10; n > 0; n -= 1 {}"),
             For {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("n")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("n"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 0,
                         location: Location::new(0, 1)
@@ -103,7 +113,10 @@ mod tests {
                 iteration: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                        left: Expr::Symbol(String::from("n")),
+                        left: Expr::Symbol(Symbol {
+                            value: String::from("n"),
+                            location: Location::default()
+                        }),
                         right: Expr::Literal(Literal::Int(Int {
                             value: 1,
                             location: Location::new(0, 1)

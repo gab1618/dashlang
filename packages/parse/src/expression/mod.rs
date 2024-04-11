@@ -1,5 +1,5 @@
 use crate::{literal::parse_literal, DashlangParser, Rule};
-use ast::Expr;
+use ast::{Expr, Location, Symbol};
 use pest::Parser;
 
 use self::{
@@ -38,7 +38,10 @@ pub fn parse_expression(input: &str) -> Expr {
             let parsed = parse_call_expression(expression.as_str());
             Expr::Call(parsed)
         }
-        Rule::symbol => Expr::Symbol(expression.as_str().to_owned()),
+        Rule::symbol => Expr::Symbol(Symbol {
+            value: expression.as_str().to_owned(),
+            location: Location::default(),
+        }),
         Rule::literal => Expr::Literal(parse_literal(expression.as_str())),
         Rule::unary_expression => {
             Expr::UnaryExpr(Box::new(parse_unary_expression(expression.as_str())))
@@ -132,7 +135,10 @@ mod tests {
             Expr::Assignment(AssignmentExpr {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("n")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("n"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 1,
                         location: Location::new(0, 1)

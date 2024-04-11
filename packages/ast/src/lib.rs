@@ -73,12 +73,17 @@ pub struct Closure {
     pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Symbol {
+    pub value: String,
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
     BinaryExpr(Box<BinaryExpr>),
     UnaryExpr(Box<UnaryExpr>),
     Assignment(AssignmentExpr),
     Call(Call),
-    Symbol(String),
+    Symbol(Symbol),
     Literal(Literal),
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

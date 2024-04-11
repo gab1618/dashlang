@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use ast::{
     AssignmentExpr, BinaryExpr, BinaryOperator, Closure, Expr, Instruction, Int, Literal, Location,
-    Program, Stmt,
+    Program, Stmt, Symbol,
 };
 
 use crate::program::parse_program;
@@ -30,7 +30,10 @@ fn test_is_adult() {
                 params: vec![String::from("age")],
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::BinaryExpr(Box::new(
                     BinaryExpr {
-                        left: Expr::Symbol(String::from("age")),
+                        left: Expr::Symbol(Symbol {
+                            value: String::from("age"),
+                            location: Location::default()
+                        }),
                         right: Expr::Literal(Literal::Int(Int {
                             value: 18,
                             location: Location::new(0, 2)

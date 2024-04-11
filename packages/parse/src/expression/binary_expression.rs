@@ -1,6 +1,6 @@
 use super::{binary_operator::parse_binary_operator, parse_expression};
 use crate::{literal::parse_literal, DashlangParser, Rule};
-use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location};
+use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location, Symbol};
 use pest::Parser;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -31,7 +31,10 @@ pub fn parse_binary_expression(input: &str) -> BinaryExpr {
             }
             Rule::symbol => {
                 let parsed = element.as_str().to_owned();
-                flat_expression.push(BinaryExpressionToken::Expr(Expr::Symbol(parsed)));
+                flat_expression.push(BinaryExpressionToken::Expr(Expr::Symbol(Symbol {
+                    value: parsed,
+                    location: Location::default(),
+                })));
             }
             Rule::call_expression => {
                 let parsed = parse_expression(element.as_str());
@@ -406,7 +409,10 @@ mod tests {
                     location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Add,
-                right: Expr::Symbol(String::from("n")),
+                right: Expr::Symbol(Symbol {
+                    value: String::from("n"),
+                    location: Location::default()
+                }),
                 location: Location::default(),
             }
         );

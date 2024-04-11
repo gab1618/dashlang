@@ -77,7 +77,7 @@ fn parse_else_if_stmt(input: &str) -> If {
 #[cfg(test)]
 mod tests {
 
-    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Instruction, Int, Literal, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Instruction, Int, Literal, Stmt, Symbol};
 
     use super::*;
 
@@ -102,7 +102,10 @@ mod tests {
             parse_if_stmt("if count < 10 {}"),
             If {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("count")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("count"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 10,
                         location: Location::new(0, 2)
@@ -119,7 +122,10 @@ mod tests {
             parse_if_stmt("if count < 10 {return true}"),
             If {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("count")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("count"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 10,
                         location: Location::new(0, 2)

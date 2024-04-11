@@ -249,7 +249,7 @@ pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> RuntimeResult<Lit
             Ok(evaluated)
         }
         Expr::Call(call) => eval_call(call, ctx),
-        Expr::Symbol(symbol) => Ok(ctx.scope.get(&symbol)),
+        Expr::Symbol(symbol) => Ok(ctx.scope.get(&symbol.value)),
         Expr::UnaryExpr(op) => eval_unary_op(*op, ctx),
     }
 }

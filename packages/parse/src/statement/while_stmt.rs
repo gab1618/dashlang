@@ -39,7 +39,7 @@ pub fn parse_while_stmt(input: &str) -> While {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Boolean, Instruction, Int, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Instruction, Int, Stmt, Symbol};
 
     use super::*;
 
@@ -63,7 +63,10 @@ mod tests {
             parse_while_stmt("while count < 10 {}"),
             While {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("count")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("count"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 10,
                         location: Location::new(0, 2)
@@ -80,7 +83,10 @@ mod tests {
             parse_while_stmt("while count < 10 {return 1}"),
             While {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("count")),
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("count"),
+                        location: Location::default()
+                    }),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 10,
                         location: Location::new(0, 2)
