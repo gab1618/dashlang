@@ -10,6 +10,7 @@ mod literal;
 mod parser;
 mod program;
 mod statement;
+mod utils;
 
 use program::parse_program;
 

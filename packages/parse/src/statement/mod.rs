@@ -36,7 +36,7 @@ mod tests {
             parse_statement("return 5"),
             Stmt::Return(Expr::Literal(Literal::Int(Int {
                 value: 5,
-                location: Default::default()
+                location: Location::new(0, 1)
             })))
         );
     }
@@ -49,7 +49,7 @@ mod tests {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 5,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
@@ -69,7 +69,7 @@ mod tests {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 5,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),

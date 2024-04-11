@@ -153,11 +153,11 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 2,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Mul,
                 location: Location::default(),
@@ -168,11 +168,11 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 2,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
@@ -183,16 +183,16 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
                         value: 2,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 2,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Mul,
                     location: Location::default(),
@@ -206,24 +206,24 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Literal(Literal::Int(Int {
                             value: 2,
-                            location: Default::default()
+                            location: Location::new(0, 1)
                         })),
                         right: Expr::Literal(Literal::Int(Int {
                             value: 2,
-                            location: Default::default()
+                            location: Location::new(0, 1)
                         })),
                         operator: BinaryOperator::Mul,
-                        location: Location::default(),
+                        location: Default::default()
                     })),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 2,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Div,
                     location: Location::default(),
@@ -240,11 +240,11 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 2,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
@@ -255,11 +255,11 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 2,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Gt,
                 location: Location::default(),
@@ -270,11 +270,11 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 2,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 2,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Eq,
                 location: Location::default(),
@@ -285,11 +285,11 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
-                    location: Default::default()
+                    location: Location::new(0, 4)
                 })),
                 right: Expr::Literal(Literal::Bool(Boolean {
                     value: false,
-                    location: Default::default()
+                    location: Location::new(0, 5)
                 })),
                 operator: BinaryOperator::Or,
                 location: Location::default(),
@@ -300,11 +300,11 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
-                    location: Default::default()
+                    location: Location::new(0, 4)
                 })),
                 right: Expr::Literal(Literal::Bool(Boolean {
                     value: false,
-                    location: Default::default()
+                    location: Location::new(0, 5)
                 })),
                 operator: BinaryOperator::And,
                 location: Location::default(),
@@ -318,16 +318,16 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
                         value: 2,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 1,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
@@ -342,18 +342,18 @@ mod tests {
                 left: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
                         value: 1,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 2,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
@@ -366,11 +366,11 @@ mod tests {
                     left: Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Literal(Literal::Int(Int {
                             value: 1,
-                            location: Default::default()
+                            location: Location::new(0, 1)
                         })),
                         right: Expr::Literal(Literal::Int(Int {
                             value: 2,
-                            location: Default::default()
+                            location: Location::new(0, 1)
                         })),
                         operator: BinaryOperator::Add,
                         location: Location::default(),
@@ -378,11 +378,11 @@ mod tests {
                     right: Expr::BinaryExpr(Box::new(BinaryExpr {
                         left: Expr::Literal(Literal::Int(Int {
                             value: 1,
-                            location: Default::default()
+                            location: Location::new(0, 1)
                         })),
                         right: Expr::Literal(Literal::Int(Int {
                             value: 1,
-                            location: Default::default()
+                            location: Location::new(0, 1)
                         })),
                         operator: BinaryOperator::Add,
                         location: Location::default(),
@@ -392,7 +392,7 @@ mod tests {
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
@@ -403,7 +403,7 @@ mod tests {
             BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Add,
                 right: Expr::Symbol(String::from("n")),

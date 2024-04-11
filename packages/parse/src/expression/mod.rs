@@ -70,11 +70,11 @@ mod tests {
             Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 2,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
@@ -90,11 +90,11 @@ mod tests {
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
                         value: 5,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 1,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
@@ -112,11 +112,11 @@ mod tests {
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
-                        location: Default::default()
+                        location: Location::new(0, 4)
                     })),
                     right: Expr::Literal(Literal::Bool(Boolean {
                         value: false,
-                        location: Default::default()
+                        location: Location::new(0, 5)
                     })),
                     operator: BinaryOperator::And,
                     location: Location::default(),
@@ -135,7 +135,7 @@ mod tests {
                     left: Expr::Symbol(String::from("n")),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 1,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
@@ -153,11 +153,11 @@ mod tests {
                 args: vec![
                     Expr::Literal(Literal::Int(Int {
                         value: 4,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     Expr::Literal(Literal::Int(Int {
                         value: 1,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     }))
                 ],
                 location: Location::default(),
@@ -173,18 +173,18 @@ mod tests {
                         args: vec![
                             Expr::Literal(Literal::Int(Int {
                                 value: 4,
-                                location: Default::default()
+                                location: Location::new(0, 1)
                             })),
                             Expr::Literal(Literal::Int(Int {
                                 value: 1,
-                                location: Default::default()
+                                location: Location::new(0, 1)
                             }))
                         ],
                         location: Location::default(),
                     }),
                     Expr::Literal(Literal::Int(Int {
                         value: 5,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     }))
                 ],
                 location: Location::default(),
@@ -197,11 +197,11 @@ mod tests {
                 args: vec![
                     Expr::Literal(Literal::String(Str {
                         value: String::from("Hello, "),
-                        location: Default::default()
+                        location: Location::new(0, 9)
                     })),
                     Expr::Literal(Literal::String(Str {
                         value: String::from("World!"),
-                        location: Default::default()
+                        location: Location::new(0, 8)
                     }))
                 ],
                 location: Location::default(),

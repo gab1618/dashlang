@@ -4,12 +4,14 @@ use pest::Parser;
 use crate::body::parse_body;
 use crate::expression::parse_expression;
 use crate::parser::{DashlangParser, Rule};
+use crate::utils::get_pair_location;
 
 pub fn parse_literal(input: &str) -> Literal {
     let parsed = DashlangParser::parse(Rule::literal, input)
         .expect("Could not parse value")
         .next()
         .expect("Could not parse value");
+    let (start, end) = get_pair_location(&parsed);
     if parsed.as_rule() != Rule::literal {
         panic!("Expected rule to be value");
     }
@@ -22,7 +24,7 @@ pub fn parse_literal(input: &str) -> Literal {
                 .expect("Could not parse integer value");
             Literal::Int(Int {
                 value: parsed,
-                location: Default::default(),
+                location: Location::new(start, end),
             })
         }
         Rule::float => {
@@ -32,14 +34,14 @@ pub fn parse_literal(input: &str) -> Literal {
                 .expect("Could not parse float value");
             Literal::Float(Float {
                 value: parsed,
-                location: Default::default(),
+                location: Location::new(start, end),
             })
         }
         Rule::boolean => {
             let val = inner_value.as_str() == "true";
             Literal::Bool(Boolean {
                 value: val,
-                location: Default::default(),
+                location: Location::new(start, end),
             })
         }
         Rule::string => Literal::String(Str {
@@ -49,7 +51,7 @@ pub fn parse_literal(input: &str) -> Literal {
                 .expect("Could not parse string")
                 .as_str()
                 .to_owned(),
-            location: Default::default(),
+            location: Location::new(start, end),
         }),
         Rule::closure => {
             let mut inner_ast = inner_value.into_inner();
@@ -68,7 +70,7 @@ pub fn parse_literal(input: &str) -> Literal {
             Literal::Closure(Closure {
                 params,
                 body,
-                location: Location::default(),
+                location: Location::new(start, end),
             })
         }
         Rule::vector => {
@@ -77,7 +79,7 @@ pub fn parse_literal(input: &str) -> Literal {
                 value: inner_ast
                     .map(|element| parse_expression(element.as_str()))
                     .collect(),
-                location: Default::default(),
+                location: Location::new(start, end),
             })
         }
         _ => unreachable!(),
@@ -95,56 +97,56 @@ mod tests {
             parse_literal("10"),
             Literal::Int(Int {
                 value: 10,
-                location: Default::default()
+                location: Location::new(0, 2)
             })
         );
         assert_eq!(
             parse_literal("-10"),
             Literal::Int(Int {
                 value: -10,
-                location: Default::default()
+                location: Location::new(0, 3)
             })
         );
         assert_eq!(
             parse_literal("10.5"),
             Literal::Float(Float {
                 value: 10.5,
-                location: Default::default()
+                location: Location::new(0, 4)
             })
         );
         assert_eq!(
             parse_literal("-10.5"),
             Literal::Float(Float {
                 value: -10.5,
-                location: Default::default()
+                location: Location::new(0, 5)
             })
         );
         assert_eq!(
             parse_literal("true"),
             Literal::Bool(Boolean {
                 value: true,
-                location: Default::default()
+                location: Location::new(0, 4)
             })
         );
         assert_eq!(
             parse_literal("false"),
             Literal::Bool(Boolean {
                 value: false,
-                location: Default::default()
+                location: Location::new(0, 5)
             })
         );
         assert_eq!(
             parse_literal(r#""apple""#),
             Literal::String(Str {
                 value: String::from("apple"),
-                location: Default::default()
+                location: Location::new(0, 7)
             })
         );
         assert_eq!(
             parse_literal(r#""green apple""#),
             Literal::String(Str {
                 value: "green apple".to_owned(),
-                location: Default::default()
+                location: Location::new(0, 13)
             })
         );
         assert_eq!(
@@ -154,10 +156,10 @@ mod tests {
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Bool(Boolean {
                         value: true,
-                        location: Default::default()
+                        location: Location::new(0, 4)
                     })
                 )))],
-                location: Location::default(),
+                location: Location::new(0, 25)
             })
         );
     }
@@ -169,18 +171,18 @@ mod tests {
                 value: vec![
                     Expr::Literal(Literal::Int(Int {
                         value: 1,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     Expr::Literal(Literal::Int(Int {
                         value: 8,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     Expr::Literal(Literal::Int(Int {
                         value: 7,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                 ],
-                location: Default::default()
+                location: Location::new(0, 9)
             })
         );
     }

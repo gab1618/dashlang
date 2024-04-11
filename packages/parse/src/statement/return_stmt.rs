@@ -41,7 +41,7 @@ mod tests {
             parse_return_stmt("return 1"),
             Stmt::Return(Expr::Literal(Literal::Int(Int {
                 value: 1,
-                location: Default::default()
+                location: Location::new(0, 1)
             })))
         );
     }
@@ -52,11 +52,11 @@ mod tests {
             Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 1,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::default(),
@@ -67,16 +67,16 @@ mod tests {
             Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 2,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
                         value: 2,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 2,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),

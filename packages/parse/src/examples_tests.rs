@@ -33,13 +33,13 @@ fn test_is_adult() {
                         left: Expr::Symbol(String::from("age")),
                         right: Expr::Literal(Literal::Int(Int {
                             value: 18,
-                            location: Default::default()
+                            location: Location::new(0, 2)
                         })),
                         operator: BinaryOperator::Ge,
                         location: Location::default(),
                     }
                 ))))],
-                location: Location::default(),
+                location: Location::new(0, 24),
             }))),
             location: Location::default(),
         }))]

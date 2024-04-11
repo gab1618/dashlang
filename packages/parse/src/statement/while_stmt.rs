@@ -50,7 +50,7 @@ mod tests {
             While {
                 cond: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
-                    location: Default::default()
+                    location: Location::new(0, 4)
                 })),
                 body: vec![],
                 location: Location::default(),
@@ -66,7 +66,7 @@ mod tests {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 10,
-                        location: Default::default()
+                        location: Location::new(0, 2)
                     })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
@@ -83,7 +83,7 @@ mod tests {
                     left: Expr::Symbol(String::from("count")),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 10,
-                        location: Default::default()
+                        location: Location::new(0, 2)
                     })),
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
@@ -91,7 +91,7 @@ mod tests {
                 body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
                     Literal::Int(Int {
                         value: 1,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })
                 )))],
                 location: Location::default(),

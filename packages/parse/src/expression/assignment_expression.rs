@@ -35,7 +35,7 @@ mod tests {
                 symbol: String::from("age"),
                 value: Box::new(Expr::Literal(Literal::Int(Int {
                     value: 5,
-                    location: Default::default()
+                    location: Location::new(0, 1)
                 }))),
                 location: Location::default(),
             }
@@ -50,11 +50,11 @@ mod tests {
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
                         value: 5,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     right: Expr::Literal(Literal::Int(Int {
                         value: 1,
-                        location: Default::default()
+                        location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),

@@ -41,7 +41,7 @@ mod tests {
                 operator: ast::UnaryOperator::Not,
                 operand: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
-                    location: Default::default()
+                    location: Location::new(0, 4)
                 })),
                 location: Location::default(),
             }
@@ -56,11 +56,11 @@ mod tests {
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
-                        location: Default::default()
+                        location: Location::new(0, 4)
                     })),
                     right: Expr::Literal(Literal::Bool(Boolean {
                         value: false,
-                        location: Default::default()
+                        location: Location::new(0, 5)
                     })),
                     operator: BinaryOperator::And,
                     location: Location::default(),

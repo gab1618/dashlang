@@ -57,7 +57,7 @@ mod tests {
                 symbol: String::from("println"),
                 args: vec![Expr::Literal(Literal::Int(Int {
                     value: 18,
-                    location: Default::default()
+                    location: Location::new(0, 2)
                 }))],
                 location: Location::default()
             }
