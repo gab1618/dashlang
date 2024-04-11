@@ -61,7 +61,7 @@ mod tests {
                         value: 1,
                         location: Location::new(0, 1)
                     }))),
-                    location: Location::default(),
+                    location: Location::new(0, 5),
                 })),
                 iteration: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
@@ -72,9 +72,9 @@ mod tests {
                             location: Location::new(0, 1)
                         })),
                         operator: BinaryOperator::Add,
-                        location: Location::default(),
+                        location: Location::new(0, 0),
                     }))),
-                    location: Location::default(),
+                    location: Location::new(0, 0),
                 })),
                 location: Location::default(),
             }
@@ -98,7 +98,7 @@ mod tests {
                         value: 10,
                         location: Location::new(0, 2)
                     }))),
-                    location: Location::default(),
+                    location: Location::new(0, 6),
                 })),
                 iteration: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
@@ -111,7 +111,7 @@ mod tests {
                         operator: BinaryOperator::Sub,
                         location: Location::default(),
                     }))),
-                    location: Location::default(),
+                    location: Location::new(0, 0),
                 })),
                 location: Location::default(),
             }

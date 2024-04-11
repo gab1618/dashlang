@@ -41,7 +41,7 @@ fn test_is_adult() {
                 ))))],
                 location: Location::new(0, 24),
             }))),
-            location: Location::default(),
+            location: Location::new(0, 36),
         }))]
     );
 }

@@ -36,7 +36,7 @@ mod tests {
                         value: 5,
                         location: Location::new(0, 1)
                     }))),
-                    location: Location::default(),
+                    location: Location::new(0, 8),
                 })),
                 Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("count"),
@@ -44,7 +44,7 @@ mod tests {
                         value: 1,
                         location: Location::new(0, 1)
                     }))),
-                    location: Location::default(),
+                    location: Location::new(0, 9),
                 }))
             ]
         )

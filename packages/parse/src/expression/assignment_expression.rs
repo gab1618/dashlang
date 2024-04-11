@@ -1,6 +1,6 @@
 use pest::Parser;
 
-use crate::{expression::parse_expression, DashlangParser, Rule};
+use crate::{expression::parse_expression, utils::get_pair_location, DashlangParser, Rule};
 use ast::{AssignmentExpr, Location};
 
 pub fn parse_assignment_expression(input: &str) -> AssignmentExpr {
@@ -8,6 +8,7 @@ pub fn parse_assignment_expression(input: &str) -> AssignmentExpr {
         .expect("Could not parse assignment expression")
         .next()
         .expect("Could not parse assignment expression");
+    let (start, end) = get_pair_location(&ast);
     let mut ast_inner = ast.into_inner();
     let ast_symbol = ast_inner
         .next()
@@ -18,7 +19,7 @@ pub fn parse_assignment_expression(input: &str) -> AssignmentExpr {
     AssignmentExpr {
         symbol: ast_symbol.as_str().to_owned(),
         value: Box::new(parse_expression(ast_value.as_str())),
-        location: Location::default(),
+        location: Location::new(start, end),
     }
 }
 
@@ -37,7 +38,7 @@ mod tests {
                     value: 5,
                     location: Location::new(0, 1)
                 }))),
-                location: Location::default(),
+                location: Location::new(0, 7),
             }
         );
     }
@@ -59,7 +60,7 @@ mod tests {
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 }))),
-                location: Location::default(),
+                location: Location::new(0, 11),
             }
         );
     }
