@@ -1,4 +1,4 @@
-use ast::{AssignmentExpr, Closure, If, Location, Null, Str, Symbol, While};
+use ast::{AssignmentExpr, Closure, If, Location, Null, Return, Str, Symbol, While};
 use scope::HashScope;
 
 use super::*;
@@ -519,10 +519,13 @@ fn test_eval_call() {
         "greet",
         Literal::Closure(ast::Closure {
             params: vec![String::from("name")],
-            body: vec![Instruction::Stmt(Stmt::Return(Expr::Symbol(Symbol {
-                value: String::from("name"),
+            body: vec![Instruction::Stmt(Stmt::Return(Return {
+                value: Expr::Symbol(Symbol {
+                    value: String::from("name"),
+                    location: Location::default(),
+                }),
                 location: Location::default(),
-            })))],
+            }))],
             location: Location::default(),
         }),
     );
@@ -561,18 +564,20 @@ fn test_if_else() {
                 })),
                 BinaryOperator::Ge,
             ))),
-            body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                Literal::Bool(Boolean {
+            body: vec![Instruction::Stmt(Stmt::Return(Return {
+                value: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
                     location: Default::default(),
-                }),
-            )))],
-            else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                Literal::Bool(Boolean {
+                })),
+                location: Location::default(),
+            }))],
+            else_block: Some(vec![Instruction::Stmt(Stmt::Return(Return {
+                value: Expr::Literal(Literal::Bool(Boolean {
                     value: false,
                     location: Default::default(),
-                }),
-            )))]),
+                })),
+                location: Location::default(),
+            }))]),
             location: Location::default(),
         }))],
         location: Location::default(),

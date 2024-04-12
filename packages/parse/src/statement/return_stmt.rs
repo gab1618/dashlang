@@ -1,4 +1,4 @@
-use ast::{Expr, Stmt};
+use ast::{Expr, Location, Return, Stmt};
 use pest::Parser;
 
 use crate::{
@@ -27,63 +27,75 @@ pub fn parse_return_stmt(input: &str) -> Stmt {
         Rule::expression => parse_expression(return_stmt.as_str()),
         _ => unreachable!(),
     };
-    Stmt::Return(return_value)
+    Stmt::Return(Return {
+        value: return_value,
+        location: Location::default(),
+    })
 }
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, Int, Literal, Location};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Int, Literal, Location, Return};
 
     use super::*;
     #[test]
     fn test_return_value() {
         assert_eq!(
             parse_return_stmt("return 1"),
-            Stmt::Return(Expr::Literal(Literal::Int(Int {
-                value: 1,
-                location: Location::new(0, 1)
-            })))
+            Stmt::Return(Return {
+                value: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
+                })),
+                location: Location::default()
+            })
         );
     }
     #[test]
     fn test_return_expression() {
         assert_eq!(
             parse_return_stmt("return 1 + 1"),
-            Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
-                left: Expr::Literal(Literal::Int(Int {
-                    value: 1,
-                    location: Location::new(0, 1)
-                })),
-                right: Expr::Literal(Literal::Int(Int {
-                    value: 1,
-                    location: Location::new(0, 1)
-                })),
-                operator: BinaryOperator::Add,
-                location: Location::default(),
-            })))
-        );
-        assert_eq!(
-            parse_return_stmt("return 2 * (2 + 2)"),
-            Stmt::Return(Expr::BinaryExpr(Box::new(BinaryExpr {
-                left: Expr::Literal(Literal::Int(Int {
-                    value: 2,
-                    location: Location::new(0, 1)
-                })),
-                right: Expr::BinaryExpr(Box::new(BinaryExpr {
+            Stmt::Return(Return {
+                value: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
-                        value: 2,
+                        value: 1,
                         location: Location::new(0, 1)
                     })),
                     right: Expr::Literal(Literal::Int(Int {
-                        value: 2,
+                        value: 1,
                         location: Location::new(0, 1)
                     })),
                     operator: BinaryOperator::Add,
                     location: Location::default(),
                 })),
-                operator: BinaryOperator::Mul,
-                location: Location::default(),
-            })))
+                location: Location::default()
+            })
+        );
+        assert_eq!(
+            parse_return_stmt("return 2 * (2 + 2)"),
+            Stmt::Return(Return {
+                value: Expr::BinaryExpr(Box::new(BinaryExpr {
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Location::new(0, 1)
+                    })),
+                    right: Expr::BinaryExpr(Box::new(BinaryExpr {
+                        left: Expr::Literal(Literal::Int(Int {
+                            value: 2,
+                            location: Location::new(0, 1)
+                        })),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 2,
+                            location: Location::new(0, 1)
+                        })),
+                        operator: BinaryOperator::Add,
+                        location: Location::default(),
+                    })),
+                    operator: BinaryOperator::Mul,
+                    location: Location::default(),
+                })),
+                location: Location::default()
+            })
         );
     }
 }

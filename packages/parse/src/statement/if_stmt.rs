@@ -77,7 +77,9 @@ fn parse_else_if_stmt(input: &str) -> If {
 #[cfg(test)]
 mod tests {
 
-    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Instruction, Int, Literal, Stmt, Symbol};
+    use ast::{
+        BinaryExpr, BinaryOperator, Boolean, Expr, Instruction, Int, Literal, Return, Stmt, Symbol,
+    };
 
     use super::*;
 
@@ -133,12 +135,13 @@ mod tests {
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(Boolean {
+                body: vec![Instruction::Stmt(Stmt::Return(Return {
+                    value: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(0, 4)
-                    })
-                )))],
+                    })),
+                    location: Location::default()
+                }))],
                 else_block: None,
                 location: Location::default(),
             }
@@ -153,18 +156,20 @@ mod tests {
                     value: true,
                     location: Location::new(0, 4)
                 })),
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(Boolean {
+                body: vec![Instruction::Stmt(Stmt::Return(Return {
+                    value: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(0, 4)
-                    })
-                )))],
-                else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(Boolean {
+                    })),
+                    location: Location::default()
+                }))],
+                else_block: Some(vec![Instruction::Stmt(Stmt::Return(Return {
+                    value: Expr::Literal(Literal::Bool(Boolean {
                         value: false,
                         location: Location::new(0, 5)
-                    })
-                )))]),
+                    })),
+                    location: Location::default()
+                }))]),
                 location: Location::default(),
             }
         );
@@ -178,29 +183,32 @@ mod tests {
                     value: true,
                     location: Location::new(0, 4),
                 })),
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(Boolean {
+                body: vec![Instruction::Stmt(Stmt::Return(Return {
+                    value: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(0, 4)
-                    })
-                )))],
+                    })),
+                    location: Location::default()
+                }))],
                 else_block: Some(vec![Instruction::Stmt(Stmt::If(If {
                     cond: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(0, 4)
                     })),
-                    body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                        Literal::Bool(Boolean {
+                    body: vec![Instruction::Stmt(Stmt::Return(Return {
+                        value: Expr::Literal(Literal::Bool(Boolean {
                             value: true,
                             location: Location::new(0, 4)
-                        })
-                    )))],
-                    else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                        Literal::Bool(Boolean {
+                        })),
+                        location: Location::default()
+                    }))],
+                    else_block: Some(vec![Instruction::Stmt(Stmt::Return(Return {
+                        value: Expr::Literal(Literal::Bool(Boolean {
                             value: false,
                             location: Location::new(0, 5)
-                        })
-                    )))]),
+                        })),
+                        location: Location::default()
+                    }))]),
                     location: Location::default(),
                 }))]),
                 location: Location::default(),

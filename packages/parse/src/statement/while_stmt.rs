@@ -39,7 +39,7 @@ pub fn parse_while_stmt(input: &str) -> While {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Boolean, Instruction, Int, Stmt, Symbol};
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Instruction, Int, Return, Stmt, Symbol};
 
     use super::*;
 
@@ -94,12 +94,13 @@ mod tests {
                     operator: BinaryOperator::Lt,
                     location: Location::default(),
                 })),
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Int(Int {
+                body: vec![Instruction::Stmt(Stmt::Return(Return {
+                    value: Expr::Literal(Literal::Int(Int {
                         value: 1,
                         location: Location::new(0, 1)
-                    })
-                )))],
+                    })),
+                    location: Location::default()
+                }))],
                 location: Location::default(),
             }
         );

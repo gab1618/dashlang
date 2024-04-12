@@ -27,17 +27,22 @@ pub fn parse_statement(input: &str) -> Stmt {
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, If, Int, Literal, Location, Stmt, Symbol, While};
+    use ast::{
+        BinaryExpr, BinaryOperator, Expr, If, Int, Literal, Location, Return, Stmt, Symbol, While,
+    };
 
     use super::*;
     #[test]
     fn test_parse_ret_stmt() {
         assert_eq!(
             parse_statement("return 5"),
-            Stmt::Return(Expr::Literal(Literal::Int(Int {
-                value: 5,
-                location: Location::new(0, 1)
-            })))
+            Stmt::Return(Return {
+                value: Expr::Literal(Literal::Int(Int {
+                    value: 5,
+                    location: Location::new(0, 1)
+                })),
+                location: Location::default()
+            })
         );
     }
     #[test]

@@ -124,7 +124,7 @@ pub fn eval_program<T: Scope + Clone>(
         match instruction {
             Instruction::Stmt(stmt) => match stmt {
                 Stmt::Return(val) => {
-                    return eval(val, ctx);
+                    return eval(val.value, ctx);
                 }
                 Stmt::If(if_stmt) => {
                     if is_truthy(if_stmt.cond, ctx)? {

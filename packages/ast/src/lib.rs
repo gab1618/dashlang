@@ -153,8 +153,14 @@ pub struct For {
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Return {
+    pub value: Expr,
+    pub location: Location,
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Stmt {
-    Return(Expr),
+    Return(Return),
     If(If),
     While(While),
     For(Box<For>),

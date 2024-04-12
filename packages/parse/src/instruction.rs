@@ -25,7 +25,7 @@ pub fn parse_instruction(input: &str) -> Instruction {
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Expr, Int, Literal, Location, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Expr, Int, Literal, Location, Return, Stmt};
 
     use super::*;
     #[test]
@@ -50,10 +50,13 @@ mod tests {
     fn test_parse_stmt() {
         assert_eq!(
             parse_instruction("return 1"),
-            Instruction::Stmt(Stmt::Return(Expr::Literal(Literal::Int(Int {
-                value: 1,
-                location: Location::new(0, 1)
-            }))))
+            Instruction::Stmt(Stmt::Return(Return {
+                value: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
+                })),
+                location: Location::default()
+            }))
         );
     }
 }

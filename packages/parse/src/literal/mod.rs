@@ -88,7 +88,7 @@ pub fn parse_literal(input: &str) -> Literal {
 
 #[cfg(test)]
 mod tests {
-    use ast::{Closure, Expr, Instruction, Stmt};
+    use ast::{Closure, Expr, Instruction, Return, Stmt};
 
     use super::*;
     #[test]
@@ -153,12 +153,13 @@ mod tests {
             parse_literal("(name, age) {return true}"),
             Literal::Closure(Closure {
                 params: vec![String::from("name"), String::from("age")],
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Bool(Boolean {
+                body: vec![Instruction::Stmt(Stmt::Return(Return {
+                    value: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(0, 4)
-                    })
-                )))],
+                    })),
+                    location: Location::default()
+                }))],
                 location: Location::new(0, 25)
             })
         );
