@@ -1,10 +1,13 @@
+use std::path::Path;
+
 use ast::{Literal, Location, Void};
 
 use crate::{errors::RuntimeResult, eval, scope::Scope, Context};
 
-fn stdlib_literal_display<T: Scope + Clone>(
+fn stdlib_literal_display<T: Scope + Clone, P: AsRef<Path> + Clone>(
     value: Literal,
-    ctx: &Context<T>,
+    ctx: &Context<T, P>,
+    source_path: P,
 ) -> RuntimeResult<String> {
     match value {
         Literal::Closure(_) => Ok("Closure".to_string()),
@@ -20,7 +23,13 @@ fn stdlib_literal_display<T: Scope + Clone>(
             let display_args: RuntimeResult<Vec<String>> = val
                 .value
                 .into_iter()
-                .map(|item| stdlib_literal_display(eval(item.clone(), ctx)?, ctx))
+                .map(|item| {
+                    stdlib_literal_display(
+                        eval(item.clone(), ctx, source_path.clone())?,
+                        ctx,
+                        source_path.clone(),
+                    )
+                })
                 .collect();
             match display_args {
                 Ok(args) => Ok(format!("[{}]", args.join(", "))),
@@ -32,11 +41,12 @@ fn stdlib_literal_display<T: Scope + Clone>(
     }
 }
 
-pub fn stdlib_println<T: Scope + Clone>(
+pub fn stdlib_println<T: Scope + Clone, P: AsRef<Path> + Clone>(
     value: Literal,
-    ctx: &Context<T>,
+    ctx: &Context<T, P>,
+    source_path: P,
 ) -> RuntimeResult<Literal> {
-    println!("{}", stdlib_literal_display(value, ctx)?);
+    println!("{}", stdlib_literal_display(value, ctx, source_path)?);
     Ok(Literal::Void(Void {
         location: Location::default(),
     }))
