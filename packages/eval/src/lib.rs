@@ -273,8 +273,7 @@ pub fn eval<T: Scope + Clone, P: AsRef<Path> + Clone>(
         Expr::UnaryExpr(op) => eval_unary_op(*op, ctx, source_path),
     }
 }
-type ExtensionImplementation<S, P: AsRef<Path>> =
-    dyn Fn(&Context<S, P>, P) -> RuntimeResult<Literal>;
+type ExtensionImplementation<S, P> = dyn Fn(&Context<S, P>, P) -> RuntimeResult<Literal>;
 #[derive(Clone)]
 pub struct Extension<S: Scope, P: AsRef<Path> + Clone> {
     pub params: Vec<String>,
