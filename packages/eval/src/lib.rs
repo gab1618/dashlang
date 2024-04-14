@@ -23,7 +23,7 @@ macro_rules! define_aritmetic_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float{value: left.value $operator (right.value as f64), location: Default::default()})),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: (left.value as f64) $operator right.value, location: Default::default()})),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(RuntimeError::new("Unsuported operation", $op.location, $source_path)),
+                (_, _) => Err(RuntimeError::new("Unsuported operation").location($op.location, $source_path)),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -46,7 +46,7 @@ macro_rules! define_boolean_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator (right.value as f64), location: Default::default()})),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: (left.value as f64) $operator right.value, location: Default::default()})),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(RuntimeError::new("Unsuported operation", $op.location, $source_path)),
+                (_, _) => Err(RuntimeError::new("Unsuported operation").location($op.location, $source_path)),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -192,16 +192,13 @@ fn eval_call<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
         match found_extension.params.len().cmp(&call.args.len()) {
             Ordering::Less | Ordering::Greater => {
-                return Err(RuntimeError::new(
-                    &format!(
-                        "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
-                        call.symbol,
-                        found_extension.params.len(),
-                        call.args.len()
-                    ),
-                    call.location,
-                    source_path,
+                return Err(RuntimeError::new(&format!(
+                    "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
+                    call.symbol,
+                    found_extension.params.len(),
+                    call.args.len()
                 ))
+                .location(call.location, source_path))
             }
             Ordering::Equal => {
                 let local_context = ctx.clone();
@@ -227,16 +224,13 @@ fn eval_call<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     if let Literal::Closure(closure) = ctx.scope.get(&call.symbol) {
         match closure.params.len().cmp(&call.args.len()) {
             Ordering::Less | Ordering::Greater => {
-                return Err(RuntimeError::new(
-                    &format!(
-                        "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
-                        call.symbol,
-                        closure.params.len(),
-                        call.args.len()
-                    ),
-                    call.location,
-                    source_path,
+                return Err(RuntimeError::new(&format!(
+                    "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
+                    call.symbol,
+                    closure.params.len(),
+                    call.args.len()
                 ))
+                .location(call.location, source_path))
             }
             Ordering::Equal => {
                 let local_context = ctx.clone();
@@ -258,11 +252,10 @@ fn eval_call<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
             }
         }
     }
-    Err(RuntimeError::new(
-        &format!("Cannot call '{}': not callable", call.symbol),
-        call.location,
-        source_path,
-    ))
+    Err(
+        RuntimeError::new(&format!("Cannot call '{}': not callable", call.symbol))
+            .location(call.location, source_path),
+    )
 }
 
 pub fn eval<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(

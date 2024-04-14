@@ -18,10 +18,9 @@ pub fn stdlib_len<P: AsRef<Path> + Debug>(
             value: val.value.len() as i64,
             location: Default::default(),
         })),
-        _ => Err(RuntimeError::new(
-            "Could not get length: unsuported operation",
-            call.location,
-            source_path,
-        )),
+        _ => Err(
+            RuntimeError::new("Could not get length: unsuported operation")
+                .location(call.location, source_path),
+        ),
     }
 }

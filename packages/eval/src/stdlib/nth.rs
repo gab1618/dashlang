@@ -20,21 +20,13 @@ pub fn stdlib_nth<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
                     source_path,
                 );
             }
-            return Err(RuntimeError::new(
-                "Index out of bound",
-                call.location,
-                source_path,
-            ));
+            return Err(
+                RuntimeError::new("Index out of bound").location(call.location, source_path)
+            );
         }
-        return Err(RuntimeError::new(
-            "Expected vector to be indexed",
-            call.location,
-            source_path,
-        ));
+        return Err(
+            RuntimeError::new("Expected vector to be indexed").location(call.location, source_path)
+        );
     }
-    Err(RuntimeError::new(
-        "Expected integer to index vector",
-        call.location,
-        source_path,
-    ))
+    Err(RuntimeError::new("Expected integer to index vector").location(call.location, source_path))
 }

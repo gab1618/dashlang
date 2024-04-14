@@ -14,10 +14,8 @@ pub fn stdlib_input<P: AsRef<Path> + Debug>(
             value: input,
             location: Location::default(),
         })),
-        Err(_) => Err(RuntimeError::new(
-            "Could not get input",
-            call.location,
-            source_path,
-        )),
+        Err(_) => {
+            Err(RuntimeError::new("Could not get input").location(call.location, source_path))
+        }
     }
 }

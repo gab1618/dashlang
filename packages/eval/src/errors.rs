@@ -15,26 +15,29 @@ pub struct ErrorLocation<P: AsRef<Path>> {
 #[derive(Debug, PartialEq, Eq)]
 pub struct RuntimeError<P: AsRef<Path> + Debug> {
     message: String,
-    location: ErrorLocation<P>,
+    location: Option<ErrorLocation<P>>,
 }
 impl<P: AsRef<Path> + Debug> RuntimeError<P> {
-    pub fn new(message: &str, location: Location, source_path: P) -> Self {
+    pub fn new(message: &str) -> Self {
         Self {
             message: message.to_owned(),
-            location: ErrorLocation {
-                location,
-                source_path,
-            },
+            location: None,
         }
+    }
+    pub fn location(mut self, location: Location, source_path: P) -> Self {
+        self.location = Some(ErrorLocation {
+            location,
+            source_path,
+        });
+        self
     }
 }
 impl<P: AsRef<Path> + Debug> Display for RuntimeError<P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} at from {} to {}",
-            self.message, self.location.location.start, self.location.location.end
-        )
+        match &self.location {
+            None => write!(f, "{}", self.message),
+            Some(loc) => write!(f, "{} at {:#?}", self.message, loc.source_path),
+        }
     }
 }
 impl<P: AsRef<Path> + Debug> Error for RuntimeError<P> {}

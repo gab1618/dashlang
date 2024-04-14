@@ -17,20 +17,14 @@ pub fn stdlib_push<P: AsRef<Path> + Debug>(
                 val.value.push_str(&str_push.value);
                 Ok(Literal::String(val))
             }
-            _ => Err(RuntimeError::new(
-                "Unsuported operation",
-                call.location,
-                source_path,
-            )),
+            _ => {
+                Err(RuntimeError::new("Unsuported operation").location(call.location, source_path))
+            }
         },
         Literal::Vector(mut vector) => {
             vector.value.push(Expr::Literal(item));
             Ok(Literal::Vector(vector))
         }
-        _ => Err(RuntimeError::new(
-            "Unsuported operation",
-            call.location,
-            source_path,
-        )),
+        _ => Err(RuntimeError::new("Unsuported operation").location(call.location, source_path)),
     }
 }
