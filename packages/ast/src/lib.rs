@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Location {
     pub start: usize,
     pub end: usize,
@@ -172,3 +172,25 @@ pub enum Instruction {
     Expr(Expr),
 }
 pub type Program = Vec<Instruction>;
+
+impl Expr {
+    pub fn get_location(&self) -> Location {
+        match self {
+            Expr::BinaryExpr(val) => val.location,
+            Expr::UnaryExpr(val) => val.location,
+            Expr::Assignment(val) => val.location,
+            Expr::Call(val) => val.location,
+            Expr::Symbol(val) => val.location,
+            Expr::Literal(val) => match val {
+                Literal::Closure(lit) => lit.location,
+                Literal::Int(lit) => lit.location,
+                Literal::Float(lit) => lit.location,
+                Literal::String(lit) => lit.location,
+                Literal::Bool(lit) => lit.location,
+                Literal::Vector(lit) => lit.location,
+                Literal::Null(lit) => lit.location,
+                Literal::Void(lit) => lit.location,
+            },
+        }
+    }
+}

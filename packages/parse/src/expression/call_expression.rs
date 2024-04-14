@@ -8,7 +8,7 @@ use crate::{
 
 use super::parse_expression;
 
-pub fn parse_call_expression(input: &str) -> Call {
+pub fn parse_call_expression(input: &str, base_location: usize) -> Call {
     let ast = DashlangParser::parse(Rule::call_expression, input)
         .expect("Could not parse call expression")
         .next()
@@ -26,13 +26,14 @@ pub fn parse_call_expression(input: &str) -> Call {
                 .into_inner()
                 .next()
                 .expect("Could not get call arg content");
-            parse_expression(inner_arg.as_str())
+            let (arg_start, _) = get_pair_location(&inner_arg);
+            parse_expression(inner_arg.as_str(), arg_start + base_location)
         })
         .collect();
     Call {
         symbol,
         args,
-        location: Location::new(start, end),
+        location: Location::new(start + base_location, end + base_location),
     }
 }
 
@@ -45,7 +46,7 @@ mod tests {
     #[test]
     fn test_parse_call() {
         assert_eq!(
-            parse_call_expression("println()"),
+            parse_call_expression("println()", 0),
             Call {
                 symbol: String::from("println"),
                 args: vec![],
@@ -56,50 +57,50 @@ mod tests {
     #[test]
     fn test_parse_call_with_args() {
         assert_eq!(
-            parse_call_expression("println(18)"),
+            parse_call_expression("println(18)", 0),
             Call {
                 symbol: String::from("println"),
                 args: vec![Expr::Literal(Literal::Int(Int {
                     value: 18,
-                    location: Location::new(0, 2)
+                    location: Location::new(8, 10)
                 }))],
                 location: Location::new(0, 11)
             }
         );
         assert_eq!(
-            parse_call_expression("println(name)"),
+            parse_call_expression("println(name)", 0),
             Call {
                 symbol: String::from("println"),
                 args: vec![Expr::Symbol(Symbol {
                     value: String::from("name"),
-                    location: Location::default()
+                    location: Location::new(8, 12)
                 })],
                 location: Location::new(0, 13)
             }
         );
         assert_eq!(
-            parse_call_expression("println(getName())"),
+            parse_call_expression("println(getName())", 0),
             Call {
                 symbol: String::from("println"),
                 args: vec![Expr::Call(Call {
                     symbol: String::from("getName"),
                     args: vec![],
-                    location: Location::new(0, 9)
+                    location: Location::new(8, 17)
                 })],
                 location: Location::new(0, 18)
             }
         );
         assert_eq!(
-            parse_call_expression("println(getName(id))"),
+            parse_call_expression("println(getName(id))", 0),
             Call {
                 symbol: String::from("println"),
                 args: vec![Expr::Call(Call {
                     symbol: String::from("getName"),
                     args: vec![Expr::Symbol(Symbol {
                         value: String::from("id"),
-                        location: Location::default()
+                        location: Location::new(16, 18)
                     })],
-                    location: Location::new(0, 11)
+                    location: Location::new(8, 19)
                 })],
                 location: Location::new(0, 20)
             }

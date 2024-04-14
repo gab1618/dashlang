@@ -4,6 +4,7 @@ use pest::Parser;
 use crate::{
     instruction::parse_instruction,
     parser::{DashlangParser, Rule},
+    utils::get_pair_location,
 };
 
 pub fn parse_program(input: &str) -> Program {
@@ -13,7 +14,8 @@ pub fn parse_program(input: &str) -> Program {
         .next()
         .expect("Could not parse program");
     for instruction in ast.into_inner() {
-        program.push(parse_instruction(instruction.as_str()));
+        let (start, _end) = get_pair_location(&instruction);
+        program.push(parse_instruction(instruction.as_str(), start));
     }
     program
 }
@@ -34,7 +36,7 @@ mod tests {
                     symbol: String::from("age"),
                     value: Box::new(Expr::Literal(Literal::Int(Int {
                         value: 5,
-                        location: Location::new(0, 1)
+                        location: Location::new(6, 7)
                     }))),
                     location: Location::new(0, 8),
                 })),
@@ -42,9 +44,9 @@ mod tests {
                     symbol: String::from("count"),
                     value: Box::new(Expr::Literal(Literal::Int(Int {
                         value: 1,
-                        location: Location::new(0, 1)
+                        location: Location::new(16, 17)
                     }))),
-                    location: Location::new(0, 9),
+                    location: Location::new(8, 17),
                 }))
             ]
         )

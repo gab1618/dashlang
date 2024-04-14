@@ -7,8 +7,8 @@ mod tests;
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use ast::{
-    BinaryExpr, BinaryOperator, Boolean, Call, Expr, Float, Instruction, Int, Literal, Location,
-    Program, Stmt, UnaryExpr, Void,
+    BinaryExpr, BinaryOperator, Boolean, Call, Expr, Float, Instruction, Int, Literal, Program,
+    Stmt, UnaryExpr, Void,
 };
 use errors::RuntimeResult;
 use scope::Scope;
@@ -88,31 +88,20 @@ fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, ctx: &Context<T>) -> Runtime
         BinaryOperator::Le => define_boolean_operation!(<=, op, ctx),
         BinaryOperator::And => Ok(Literal::Bool(Boolean {
             value: is_truthy(op.left, ctx)? && is_truthy(op.right, ctx)?,
-            location: Default::default(),
+            location: op.location,
         })),
         BinaryOperator::Or => Ok(Literal::Bool(Boolean {
             value: is_truthy(op.left, ctx)? || is_truthy(op.right, ctx)?,
-            location: Default::default(),
+            location: op.location,
         })),
     }
 }
 fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> RuntimeResult<Literal> {
     match op.operator {
-        ast::UnaryOperator::Not => match op.operand {
-            Expr::Literal(literal) => Ok(Literal::Bool(Boolean {
-                value: !is_truthy(Expr::Literal(literal), ctx)?,
-                location: Default::default(),
-            })),
-            expr => {
-                let literal_from_expr = eval(expr, ctx)?;
-                let new_unary_op = UnaryExpr {
-                    operator: ast::UnaryOperator::Not,
-                    operand: Expr::Literal(literal_from_expr),
-                    location: Location::default(),
-                };
-                eval_unary_op(new_unary_op, ctx)
-            }
-        },
+        ast::UnaryOperator::Not => Ok(Literal::Bool(Boolean {
+            value: !is_truthy(op.operand, ctx)?,
+            location: op.location,
+        })),
     }
 }
 

@@ -8,7 +8,7 @@ use crate::{
 
 use super::parse_expression;
 
-pub fn parse_unary_expression(input: &str) -> UnaryExpr {
+pub fn parse_unary_expression(input: &str, base_location: usize) -> UnaryExpr {
     let parsed = DashlangParser::parse(Rule::unary_expression, input)
         .expect("Could not parse unary expression")
         .next()
@@ -21,12 +21,13 @@ pub fn parse_unary_expression(input: &str) -> UnaryExpr {
     let operand = parsed_inner
         .next()
         .expect("Could not get unary expression operand");
+    let (operand_start, _) = get_pair_location(&operand);
     UnaryExpr {
         operator: match operator.as_str() {
             "!" => UnaryOperator::Not,
             any => panic!("Invalid unary operator: {any}"),
         },
-        operand: (parse_expression(operand.as_str())),
+        operand: (parse_expression(operand.as_str(), operand_start + base_location)),
         location: Location::new(start, end),
     }
 }
@@ -40,12 +41,12 @@ mod tests {
     #[test]
     fn test_not_true() {
         assert_eq!(
-            parse_unary_expression("!true"),
+            parse_unary_expression("!true", 0),
             UnaryExpr {
                 operator: ast::UnaryOperator::Not,
                 operand: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
-                    location: Location::new(0, 4)
+                    location: Location::new(1, 5)
                 })),
                 location: Location::new(0, 5),
             }
@@ -54,20 +55,20 @@ mod tests {
     #[test]
     fn test_sub() {
         assert_eq!(
-            parse_unary_expression("!(true && false)"),
+            parse_unary_expression("!(true && false)", 0),
             UnaryExpr {
                 operator: UnaryOperator::Not,
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
-                        location: Location::new(0, 4)
+                        location: Location::new(2, 6)
                     })),
                     right: Expr::Literal(Literal::Bool(Boolean {
                         value: false,
-                        location: Location::new(0, 5)
+                        location: Location::new(10, 15)
                     })),
                     operator: BinaryOperator::And,
-                    location: Location::default(),
+                    location: Location::new(2, 15),
                 })),
                 location: Location::new(0, 16),
             }
