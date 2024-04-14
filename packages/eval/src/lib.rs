@@ -4,13 +4,13 @@ pub mod stdlib;
 #[cfg(test)]
 mod tests;
 
-use std::{cmp::Ordering, collections::HashMap, path::Path, rc::Rc};
+use std::{cmp::Ordering, collections::HashMap, fmt::Debug, path::Path, rc::Rc};
 
 use ast::{
     BinaryExpr, BinaryOperator, Boolean, Call, Expr, Float, Instruction, Int, Literal, Program,
     Stmt, UnaryExpr, Void,
 };
-use errors::RuntimeResult;
+
 use scope::Scope;
 
 use crate::errors::RuntimeError;
@@ -23,7 +23,7 @@ macro_rules! define_aritmetic_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float{value: left.value $operator (right.value as f64), location: Default::default()})),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: (left.value as f64) $operator right.value, location: Default::default()})),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(RuntimeError::new("Unsuported operation").location($op.location)),
+                (_, _) => Err(RuntimeError::new("Unsuported operation", $op.location, $source_path)),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -46,7 +46,7 @@ macro_rules! define_boolean_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator (right.value as f64), location: Default::default()})),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: (left.value as f64) $operator right.value, location: Default::default()})),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(RuntimeError::new("Unsuported operation").location($op.location)),
+                (_, _) => Err(RuntimeError::new("Unsuported operation", $op.location, $source_path)),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -61,11 +61,11 @@ macro_rules! define_boolean_operation {
     };
 }
 
-fn is_truthy<T: Scope + Clone, P: AsRef<Path> + Clone>(
+fn is_truthy<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     expr: Expr,
     scope: &Context<T, P>,
     source_path: P,
-) -> RuntimeResult<bool> {
+) -> Result<bool, RuntimeError<P>> {
     match expr {
         Expr::Literal(value) => match value {
             Literal::Closure(_) => Ok(true),
@@ -85,11 +85,11 @@ fn is_truthy<T: Scope + Clone, P: AsRef<Path> + Clone>(
     }
 }
 
-fn eval_binary_op<T: Scope + Clone, P: AsRef<Path> + Clone>(
+fn eval_binary_op<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     op: BinaryExpr,
     ctx: &Context<T, P>,
     source_path: P,
-) -> RuntimeResult<Literal> {
+) -> Result<Literal, RuntimeError<P>> {
     match op.operator {
         BinaryOperator::Add => define_aritmetic_operation!(+, op, ctx, source_path.clone()),
         BinaryOperator::Sub => define_aritmetic_operation!(-, op, ctx, source_path.clone()),
@@ -112,11 +112,11 @@ fn eval_binary_op<T: Scope + Clone, P: AsRef<Path> + Clone>(
         })),
     }
 }
-fn eval_unary_op<T: Scope + Clone, P: AsRef<Path> + Clone>(
+fn eval_unary_op<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     op: UnaryExpr,
     ctx: &Context<T, P>,
     source_path: P,
-) -> RuntimeResult<Literal> {
+) -> Result<Literal, RuntimeError<P>> {
     match op.operator {
         ast::UnaryOperator::Not => Ok(Literal::Bool(Boolean {
             value: !is_truthy(op.operand, ctx, source_path)?,
@@ -125,11 +125,11 @@ fn eval_unary_op<T: Scope + Clone, P: AsRef<Path> + Clone>(
     }
 }
 
-pub fn eval_program<T: Scope + Clone, P: AsRef<Path> + Clone>(
+pub fn eval_program<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     program: Program,
     ctx: &Context<T, P>,
     source_path: P,
-) -> RuntimeResult<Literal> {
+) -> Result<Literal, RuntimeError<P>> {
     for instruction in program {
         match instruction {
             Instruction::Stmt(stmt) => match stmt {
@@ -184,24 +184,29 @@ pub fn eval_program<T: Scope + Clone, P: AsRef<Path> + Clone>(
     }))
 }
 
-fn eval_call<T: Scope + Clone, P: AsRef<Path> + Clone>(
+fn eval_call<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     call: Call,
     ctx: &Context<T, P>,
     source_path: P,
-) -> RuntimeResult<Literal> {
+) -> Result<Literal, RuntimeError<P>> {
     if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
         match found_extension.params.len().cmp(&call.args.len()) {
             Ordering::Less | Ordering::Greater => {
-                return Err(RuntimeError::new(&format!(
-                    "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
-                    call.symbol,
-                    found_extension.params.len(),
-                    call.args.len()
-                )))
+                return Err(RuntimeError::new(
+                    &format!(
+                        "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
+                        call.symbol,
+                        found_extension.params.len(),
+                        call.args.len()
+                    ),
+                    call.location,
+                    source_path,
+                ))
             }
             Ordering::Equal => {
                 let local_context = ctx.clone();
-                let args: RuntimeResult<Vec<Literal>> = call
+                let args: Result<Vec<Literal>, RuntimeError<P>> = call
+                    .clone()
                     .args
                     .into_iter()
                     .map(|expr| eval(expr, &local_context, source_path.clone()))
@@ -215,23 +220,27 @@ fn eval_call<T: Scope + Clone, P: AsRef<Path> + Clone>(
                     }
                     Err(args_err) => return Err(args_err),
                 }
-                return (found_extension.implementation)(&local_context, source_path.clone());
+                return (found_extension.implementation)(&local_context, source_path.clone(), call);
             }
         }
     }
     if let Literal::Closure(closure) = ctx.scope.get(&call.symbol) {
         match closure.params.len().cmp(&call.args.len()) {
             Ordering::Less | Ordering::Greater => {
-                return Err(RuntimeError::new(&format!(
-                    "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
-                    call.symbol,
-                    closure.params.len(),
-                    call.args.len()
-                )))
+                return Err(RuntimeError::new(
+                    &format!(
+                        "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
+                        call.symbol,
+                        closure.params.len(),
+                        call.args.len()
+                    ),
+                    call.location,
+                    source_path,
+                ))
             }
             Ordering::Equal => {
                 let local_context = ctx.clone();
-                let args: RuntimeResult<Vec<Literal>> = call
+                let args: Result<Vec<Literal>, RuntimeError<P>> = call
                     .args
                     .into_iter()
                     .map(|expr| eval(expr, &local_context, source_path.clone()))
@@ -249,17 +258,18 @@ fn eval_call<T: Scope + Clone, P: AsRef<Path> + Clone>(
             }
         }
     }
-    Err(RuntimeError::new(&format!(
-        "Cannot call '{}': not callable",
-        call.symbol
-    )))
+    Err(RuntimeError::new(
+        &format!("Cannot call '{}': not callable", call.symbol),
+        call.location,
+        source_path,
+    ))
 }
 
-pub fn eval<T: Scope + Clone, P: AsRef<Path> + Clone>(
+pub fn eval<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     expr: Expr,
     ctx: &Context<T, P>,
     source_path: P,
-) -> RuntimeResult<Literal> {
+) -> Result<Literal, RuntimeError<P>> {
     match expr {
         Expr::Literal(val) => Ok(val),
         Expr::BinaryExpr(op) => eval_binary_op(*op, ctx, source_path),
@@ -273,20 +283,21 @@ pub fn eval<T: Scope + Clone, P: AsRef<Path> + Clone>(
         Expr::UnaryExpr(op) => eval_unary_op(*op, ctx, source_path),
     }
 }
-type ExtensionImplementation<S, P> = dyn Fn(&Context<S, P>, P) -> RuntimeResult<Literal>;
+type ExtensionImplementation<S, P> =
+    dyn Fn(&Context<S, P>, P, Call) -> Result<Literal, RuntimeError<P>>;
 #[derive(Clone)]
-pub struct Extension<S: Scope, P: AsRef<Path> + Clone> {
+pub struct Extension<S: Scope, P: AsRef<Path> + Clone + Debug> {
     pub params: Vec<String>,
     pub implementation: Rc<ExtensionImplementation<S, P>>,
 }
-pub trait Plugin<T: Scope, P: AsRef<Path> + Clone> {
+pub trait Plugin<T: Scope, P: AsRef<Path> + Clone + Debug> {
     fn get_extensions(&self) -> Vec<(String, Extension<T, P>)>;
 }
-pub struct Context<T: Scope, P: AsRef<Path> + Clone> {
+pub struct Context<T: Scope, P: AsRef<Path> + Clone + Debug> {
     scope: T,
     extensions: HashMap<String, Extension<T, P>>,
 }
-impl<T: Scope + Clone, P: AsRef<Path> + Clone> Context<T, P> {
+impl<T: Scope + Clone, P: AsRef<Path> + Clone + Debug> Context<T, P> {
     pub fn new(s: T) -> Self {
         Self {
             scope: s,
@@ -308,7 +319,7 @@ impl<T: Scope + Clone, P: AsRef<Path> + Clone> Context<T, P> {
     }
 }
 
-impl<T: Scope + Clone, P: AsRef<Path> + Clone> Clone for Context<T, P> {
+impl<T: Scope + Clone, P: AsRef<Path> + Clone + Debug> Clone for Context<T, P> {
     fn clone(&self) -> Self {
         Self {
             scope: self.scope.clone(),

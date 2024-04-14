@@ -1,16 +1,23 @@
-use std::io;
+use std::{fmt::Debug, io, path::Path};
 
-use ast::{Literal, Location};
+use ast::{Call, Literal, Location};
 
-use crate::errors::{RuntimeError, RuntimeResult};
+use crate::errors::RuntimeError;
 
-pub fn stdlib_input() -> RuntimeResult<Literal> {
+pub fn stdlib_input<P: AsRef<Path> + Debug>(
+    source_path: P,
+    call: Call,
+) -> Result<Literal, RuntimeError<P>> {
     let mut input = String::new();
     match io::stdin().read_line(&mut input) {
         Ok(_) => Ok(Literal::String(ast::Str {
             value: input,
             location: Location::default(),
         })),
-        Err(_) => Err(RuntimeError::new("Could not get input")),
+        Err(_) => Err(RuntimeError::new(
+            "Could not get input",
+            call.location,
+            source_path,
+        )),
     }
 }
