@@ -23,7 +23,7 @@ macro_rules! define_aritmetic_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float{value: left.value $operator (right.value as f64), location: Default::default()})),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: (left.value as f64) $operator right.value, location: Default::default()})),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(RuntimeError::new("Unsuported operation")),
+                (_, _) => Err(RuntimeError::new("Unsuported operation").location($op.location)),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -45,7 +45,7 @@ macro_rules! define_boolean_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator (right.value as f64), location: Default::default()})),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: (left.value as f64) $operator right.value, location: Default::default()})),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(RuntimeError::new("Unsuported operation")),
+                (_, _) => Err(RuntimeError::new("Unsuported operation").location($op.location)),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(

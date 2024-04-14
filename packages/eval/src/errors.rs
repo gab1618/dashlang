@@ -1,30 +1,11 @@
-use std::{error::Error, fmt::Display, path::PathBuf};
+use std::{error::Error, fmt::Display};
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct ErrorLocation {
-    line: usize,
-    col: usize,
-    filepath: PathBuf,
-}
-impl Display for ErrorLocation {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}", self.filepath.display(), self.line, self.col)
-    }
-}
-impl ErrorLocation {
-    pub fn new(filepath: PathBuf, line: usize, col: usize) -> Self {
-        Self {
-            filepath,
-            line,
-            col,
-        }
-    }
-}
+use ast::Location;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct RuntimeError {
     message: String,
-    location: Option<ErrorLocation>,
+    location: Option<Location>,
 }
 impl RuntimeError {
     pub fn new(message: &str) -> Self {
@@ -33,7 +14,7 @@ impl RuntimeError {
             location: None,
         }
     }
-    pub fn location(mut self, location: ErrorLocation) -> Self {
+    pub fn location(mut self, location: Location) -> Self {
         self.location = Some(location);
         self
     }

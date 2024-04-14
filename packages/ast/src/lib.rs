@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy, Eq)]
 pub struct Location {
     pub start: usize,
     pub end: usize,
@@ -49,6 +49,9 @@ impl BinaryExpr {
             location: Location::new(0, 0),
         }
     }
+    pub fn get_location(&self) -> Location {
+        self.location
+    }
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum UnaryOperator {
@@ -85,6 +88,18 @@ pub enum Expr {
     Call(Call),
     Symbol(Symbol),
     Literal(Literal),
+}
+impl Expr {
+    pub fn get_location(&self) -> Location {
+        match self {
+            Expr::BinaryExpr(val) => val.location,
+            Expr::UnaryExpr(val) => val.location,
+            Expr::Assignment(val) => val.location,
+            Expr::Call(val) => val.location,
+            Expr::Symbol(val) => val.location,
+            Expr::Literal(val) => val.get_location(),
+        }
+    }
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Int {
@@ -130,6 +145,20 @@ pub enum Literal {
     Null(Null),
     Void(Void),
 }
+impl Literal {
+    pub fn get_location(&self) -> Location {
+        match self {
+            Literal::Closure(val) => val.location,
+            Literal::Int(val) => val.location,
+            Literal::Float(val) => val.location,
+            Literal::String(val) => val.location,
+            Literal::Bool(val) => val.location,
+            Literal::Vector(val) => val.location,
+            Literal::Null(val) => val.location,
+            Literal::Void(val) => val.location,
+        }
+    }
+}
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct If {
     pub cond: Expr,
@@ -172,25 +201,3 @@ pub enum Instruction {
     Expr(Expr),
 }
 pub type Program = Vec<Instruction>;
-
-impl Expr {
-    pub fn get_location(&self) -> Location {
-        match self {
-            Expr::BinaryExpr(val) => val.location,
-            Expr::UnaryExpr(val) => val.location,
-            Expr::Assignment(val) => val.location,
-            Expr::Call(val) => val.location,
-            Expr::Symbol(val) => val.location,
-            Expr::Literal(val) => match val {
-                Literal::Closure(lit) => lit.location,
-                Literal::Int(lit) => lit.location,
-                Literal::Float(lit) => lit.location,
-                Literal::String(lit) => lit.location,
-                Literal::Bool(lit) => lit.location,
-                Literal::Vector(lit) => lit.location,
-                Literal::Null(lit) => lit.location,
-                Literal::Void(lit) => lit.location,
-            },
-        }
-    }
-}
