@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 parse = {workspace = true}
 eval = {workspace = true}
+miette = { version = "7.2.0", features = ["fancy"] }
+thiserror = "1.0.58"

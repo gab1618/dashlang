@@ -1,14 +1,11 @@
-use std::{fmt::Debug, path::Path};
-
 use ast::{Literal, Location, Void};
 
 use crate::{errors::RuntimeError, eval, scope::Scope, Context};
 
-fn stdlib_literal_display<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
+fn stdlib_literal_display<T: Scope + Clone>(
     value: Literal,
-    ctx: &Context<T, P>,
-    source_path: P,
-) -> Result<String, RuntimeError<P>> {
+    ctx: &Context<T>,
+) -> Result<String, RuntimeError> {
     match value {
         Literal::Closure(_) => Ok("Closure".to_string()),
         Literal::Int(val) => Ok(format!("{}", val.value)),
@@ -20,16 +17,10 @@ fn stdlib_literal_display<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
             "False".to_string()
         }),
         Literal::Vector(val) => {
-            let display_args: Result<Vec<String>, RuntimeError<P>> = val
+            let display_args: Result<Vec<String>, RuntimeError> = val
                 .value
                 .into_iter()
-                .map(|item| {
-                    stdlib_literal_display(
-                        eval(item.clone(), ctx, source_path.clone())?,
-                        ctx,
-                        source_path.clone(),
-                    )
-                })
+                .map(|item| stdlib_literal_display(eval(item.clone(), ctx)?, ctx))
                 .collect();
             match display_args {
                 Ok(args) => Ok(format!("[{}]", args.join(", "))),
@@ -41,12 +32,11 @@ fn stdlib_literal_display<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
     }
 }
 
-pub fn stdlib_println<T: Scope + Clone, P: AsRef<Path> + Clone + Debug>(
+pub fn stdlib_println<T: Scope + Clone>(
     value: Literal,
-    ctx: &Context<T, P>,
-    source_path: P,
-) -> Result<Literal, RuntimeError<P>> {
-    println!("{}", stdlib_literal_display(value, ctx, source_path)?);
+    ctx: &Context<T>,
+) -> Result<Literal, RuntimeError> {
+    println!("{}", stdlib_literal_display(value, ctx)?);
     Ok(Literal::Void(Void {
         location: Location::default(),
     }))

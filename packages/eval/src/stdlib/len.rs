@@ -1,14 +1,8 @@
-use std::{fmt::Debug, path::Path};
-
 use ast::{Call, Int, Literal, Location};
 
-use crate::errors::RuntimeError;
+use crate::errors::{RuntimeError, RuntimeErrorKind};
 
-pub fn stdlib_len<P: AsRef<Path> + Debug>(
-    item: Literal,
-    source_path: P,
-    call: Call,
-) -> Result<Literal, RuntimeError<P>> {
+pub fn stdlib_len(item: Literal, call: Call) -> Result<Literal, RuntimeError> {
     match item {
         Literal::String(val) => Ok(Literal::Int(ast::Int {
             value: val.value.len() as i64,
@@ -18,9 +12,10 @@ pub fn stdlib_len<P: AsRef<Path> + Debug>(
             value: val.value.len() as i64,
             location: Default::default(),
         })),
-        _ => Err(
-            RuntimeError::new("Could not get length: unsuported operation")
-                .location(call.location, source_path),
-        ),
+        _ => Err(RuntimeError::new(
+            "Could not get length: unsuported operation",
+            RuntimeErrorKind::Default,
+        )
+        .location(call.location)),
     }
 }

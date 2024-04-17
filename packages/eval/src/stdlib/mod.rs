@@ -4,7 +4,7 @@ mod nth;
 mod println;
 mod push;
 
-use std::{fmt::Debug, path::Path, rc::Rc};
+use std::rc::Rc;
 
 use input::stdlib_input;
 use len::stdlib_len;
@@ -15,16 +15,16 @@ use push::stdlib_push;
 use crate::{scope::Scope, Extension, Plugin};
 
 pub struct Stdlib {}
-impl<T: Scope + Clone, P: AsRef<Path> + Clone + Debug> Plugin<T, P> for Stdlib {
-    fn get_extensions(&self) -> Vec<(String, crate::Extension<T, P>)> {
+impl<T: Scope + Clone> Plugin<T> for Stdlib {
+    fn get_extensions(&self) -> Vec<(String, crate::Extension<T>)> {
         vec![
             (
                 String::from("println"),
                 Extension {
                     params: vec![String::from("expr")],
-                    implementation: Rc::new(|ctx, source_path, _call| {
+                    implementation: Rc::new(|ctx, _call| {
                         let expr = ctx.scope.get("expr");
-                        stdlib_println(expr, ctx, source_path)
+                        stdlib_println(expr, ctx)
                     }),
                 },
             ),
@@ -32,10 +32,10 @@ impl<T: Scope + Clone, P: AsRef<Path> + Clone + Debug> Plugin<T, P> for Stdlib {
                 String::from("nth"),
                 Extension {
                     params: vec![String::from("value"), String::from("index")],
-                    implementation: Rc::new(|ctx, souce_path, call| {
+                    implementation: Rc::new(|ctx, call| {
                         let value = ctx.scope.get("value");
                         let index = ctx.scope.get("index");
-                        stdlib_nth(value, index, ctx, souce_path, call)
+                        stdlib_nth(value, index, ctx, call)
                     }),
                 },
             ),
@@ -43,9 +43,9 @@ impl<T: Scope + Clone, P: AsRef<Path> + Clone + Debug> Plugin<T, P> for Stdlib {
                 String::from("len"),
                 Extension {
                     params: vec![String::from("item")],
-                    implementation: Rc::new(|ctx, source_path, call| {
+                    implementation: Rc::new(|ctx, call| {
                         let item = ctx.scope.get("item");
-                        stdlib_len(item, source_path, call)
+                        stdlib_len(item, call)
                     }),
                 },
             ),
@@ -53,10 +53,10 @@ impl<T: Scope + Clone, P: AsRef<Path> + Clone + Debug> Plugin<T, P> for Stdlib {
                 String::from("push"),
                 Extension {
                     params: vec![String::from("item"), String::from("base")],
-                    implementation: Rc::new(|ctx, source_path, call| {
+                    implementation: Rc::new(|ctx, call| {
                         let item = ctx.scope.get("item");
                         let base = ctx.scope.get("base");
-                        stdlib_push(item, base, source_path, call)
+                        stdlib_push(item, base, call)
                     }),
                 },
             ),
@@ -64,9 +64,7 @@ impl<T: Scope + Clone, P: AsRef<Path> + Clone + Debug> Plugin<T, P> for Stdlib {
                 String::from("input"),
                 Extension {
                     params: vec![],
-                    implementation: Rc::new(|_ctx, source_path, call| {
-                        stdlib_input(source_path, call)
-                    }),
+                    implementation: Rc::new(|_ctx, call| stdlib_input(call)),
                 },
             ),
         ]

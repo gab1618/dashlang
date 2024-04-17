@@ -13,7 +13,6 @@ fn eval_primitive() {
             location: Default::default(),
         })),
         &ctx,
-        "",
     );
     assert_eq!(
         result,
@@ -29,7 +28,6 @@ fn eval_primitive() {
             location: Default::default(),
         })),
         &ctx,
-        "",
     );
     assert_eq!(
         result,
@@ -45,7 +43,6 @@ fn eval_primitive() {
             location: Default::default(),
         })),
         &ctx,
-        "",
     );
     assert_eq!(
         result,
@@ -61,7 +58,6 @@ fn eval_primitive() {
             location: Default::default(),
         })),
         &ctx,
-        "",
     );
     assert_eq!(
         result,
@@ -81,14 +77,13 @@ fn eval_primitive() {
             location: Location::default(),
         }),
         &ctx,
-        "",
     )
     .unwrap();
     let symbol = Expr::Symbol(Symbol {
         value: String::from("name"),
         location: Location::default(),
     });
-    let found_value = eval(symbol, &ctx, "");
+    let found_value = eval(symbol, &ctx);
     assert_eq!(
         found_value,
         Ok(Literal::Int(Int {
@@ -127,7 +122,7 @@ fn eval_add_operation() {
         operator: BinaryOperator::Add,
         location: Location::default(),
     }));
-    let result = eval(op, &ctx, "");
+    let result = eval(op, &ctx);
     assert_eq!(
         result,
         Ok(Literal::Float(Float {
@@ -153,7 +148,7 @@ fn try_operate_string() {
         })),
         BinaryOperator::Add,
     )));
-    eval(op, &ctx, "").unwrap();
+    eval(op, &ctx).unwrap();
 }
 #[test]
 fn eval_sub_operation() {
@@ -185,7 +180,7 @@ fn eval_sub_operation() {
         operator: BinaryOperator::Add,
         location: Location::default(),
     }));
-    let result = eval(op, &ctx, "");
+    let result = eval(op, &ctx);
     assert_eq!(
         result,
         Ok(Literal::Float(Float {
@@ -225,7 +220,7 @@ fn eval_multiplication() {
         operator: BinaryOperator::Add,
         location: Location::default(),
     }));
-    let result = eval(op, &ctx, "");
+    let result = eval(op, &ctx);
     assert_eq!(
         result,
         Ok(Literal::Float(Float {
@@ -273,7 +268,7 @@ fn eval_division() {
         operator: BinaryOperator::Add,
         location: Location::default(),
     }));
-    let result = eval(op, &ctx, "");
+    let result = eval(op, &ctx);
     assert_eq!(
         result,
         Ok(Literal::Float(Float {
@@ -298,7 +293,7 @@ fn eval_gt() {
         })),
         BinaryOperator::Gt,
     )));
-    let result = eval(op, &ctx, "");
+    let result = eval(op, &ctx);
     assert_eq!(
         result,
         Ok(Literal::Bool(Boolean {
@@ -318,7 +313,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(false)
     );
@@ -329,7 +323,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(false)
     );
@@ -340,7 +333,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(true)
     );
@@ -351,7 +343,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(true)
     );
@@ -362,7 +353,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(false)
     );
@@ -373,7 +363,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(false)
     );
@@ -384,7 +373,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(true)
     );
@@ -395,7 +383,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(true)
     );
@@ -406,7 +393,6 @@ fn truthy_or_falsy() {
                 location: Default::default()
             })),
             &ctx,
-            ""
         ),
         Ok(false)
     );
@@ -424,7 +410,6 @@ fn truthy_or_falsy() {
                 BinaryOperator::Add
             ))),
             &ctx,
-            ""
         ),
         Ok(true)
     );
@@ -441,8 +426,7 @@ fn truthy_or_falsy() {
                 })),
                 BinaryOperator::Sub
             ))),
-            &ctx,
-            ""
+            &ctx
         ),
         Ok(false)
     );
@@ -463,7 +447,7 @@ fn logical_operations() {
         BinaryOperator::Or,
     )));
     assert_eq!(
-        eval(op, &ctx, ""),
+        eval(op, &ctx),
         Ok(Literal::Bool(Boolean {
             value: true,
             location: Default::default()
@@ -482,7 +466,7 @@ fn logical_operations() {
         BinaryOperator::And,
     )));
     assert_eq!(
-        eval(op, &ctx, ""),
+        eval(op, &ctx),
         Ok(Literal::Bool(Boolean {
             value: false,
             location: Default::default()
@@ -501,7 +485,7 @@ fn logical_operations() {
         BinaryOperator::And,
     )));
     assert_eq!(
-        eval(op, &ctx, ""),
+        eval(op, &ctx),
         Ok(Literal::Bool(Boolean {
             value: true,
             location: Default::default()
@@ -520,7 +504,7 @@ fn logical_operations() {
         BinaryOperator::Or,
     )));
     assert_eq!(
-        eval(op, &ctx, ""),
+        eval(op, &ctx),
         Ok(Literal::Bool(Boolean {
             value: false,
             location: Default::default()
@@ -553,7 +537,7 @@ fn test_eval_call() {
         }))],
         location: Location::default(),
     });
-    let result = eval(call, &ctx, "");
+    let result = eval(call, &ctx);
     assert_eq!(
         result,
         Ok(Literal::String(Str {
@@ -615,7 +599,7 @@ fn test_if_else() {
         }))],
         location: Location::default(),
     });
-    let result = eval(call, &ctx, "");
+    let result = eval(call, &ctx);
     assert_eq!(
         result,
         Ok(Literal::Bool(Boolean {
@@ -632,7 +616,7 @@ fn test_if_else() {
         }))],
         location: Location::default(),
     });
-    let result = eval(call, &ctx, "");
+    let result = eval(call, &ctx);
     assert_eq!(
         result,
         Ok(Literal::Bool(Boolean {
@@ -685,7 +669,7 @@ fn test_while_loop() {
     // while count < 10 {
     //  count = count + 1;
     // }
-    eval_program(program, &ctx, "").unwrap();
+    eval_program(program, &ctx).unwrap();
     let final_count = ctx.scope.get("count");
     assert_eq!(
         final_count,
@@ -710,7 +694,6 @@ fn test_unary_op() {
                 location: Location::default(),
             })),
             &ctx,
-            ""
         ),
         Ok(Literal::Bool(Boolean {
             value: false,
@@ -728,7 +711,6 @@ fn test_unary_op() {
                 location: Location::default(),
             })),
             &ctx,
-            ""
         ),
         Ok(Literal::Bool(Boolean {
             value: true,
