@@ -1,5 +1,5 @@
 use clap::{Arg, ArgAction, Command};
-use run_file::{run_file, RunfileResult};
+use run_file::{error::RunfileResult, run_file};
 
 fn main() -> RunfileResult {
     let cli = Command::new("cli")
