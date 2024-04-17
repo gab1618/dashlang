@@ -1,4 +1,3 @@
-pub mod errors;
 pub mod scope;
 pub mod stdlib;
 #[cfg(test)]
@@ -11,10 +10,8 @@ use ast::{
     Stmt, UnaryExpr, Void,
 };
 
-use errors::RuntimeErrorKind;
+use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 use scope::Scope;
-
-use crate::errors::RuntimeError;
 
 macro_rules! define_aritmetic_operation {
     ($operator:tt, $op:expr, $scope:expr) => {
@@ -24,7 +21,7 @@ macro_rules! define_aritmetic_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float{value: left.value $operator (right.value as f64), location: Default::default()})),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: (left.value as f64) $operator right.value, location: Default::default()})),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(RuntimeError::new("Invalid operation", RuntimeErrorKind::InvalidOperation).location($op.location)),
+                (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -46,7 +43,7 @@ macro_rules! define_boolean_operation {
                 (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator (right.value as f64), location: Default::default()})),
                 (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: (left.value as f64) $operator right.value, location: Default::default()})),
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(RuntimeError::new("Invalid operation", RuntimeErrorKind::InvalidOperation).location($op.location)),
+                (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
             },
             (left, right) => eval_binary_op(
                 BinaryExpr::new(
@@ -60,7 +57,7 @@ macro_rules! define_boolean_operation {
     };
 }
 
-fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> Result<bool, RuntimeError> {
+fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> DashlangResult<bool> {
     match expr {
         Expr::Literal(value) => match value {
             Literal::Closure(_) => Ok(true),
@@ -76,10 +73,7 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> Result<bool, R
     }
 }
 
-fn eval_binary_op<T: Scope + Clone>(
-    op: BinaryExpr,
-    ctx: &Context<T>,
-) -> Result<Literal, RuntimeError> {
+fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, ctx: &Context<T>) -> DashlangResult<Literal> {
     match op.operator {
         BinaryOperator::Add => define_aritmetic_operation!(+, op, ctx),
         BinaryOperator::Sub => define_aritmetic_operation!(-, op, ctx),
@@ -100,10 +94,7 @@ fn eval_binary_op<T: Scope + Clone>(
         })),
     }
 }
-fn eval_unary_op<T: Scope + Clone>(
-    op: UnaryExpr,
-    ctx: &Context<T>,
-) -> Result<Literal, RuntimeError> {
+fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> DashlangResult<Literal> {
     match op.operator {
         ast::UnaryOperator::Not => Ok(Literal::Bool(Boolean {
             value: !is_truthy(op.operand, ctx)?,
@@ -115,7 +106,7 @@ fn eval_unary_op<T: Scope + Clone>(
 pub fn eval_program<T: Scope + Clone>(
     program: Program,
     ctx: &Context<T>,
-) -> Result<Literal, RuntimeError> {
+) -> DashlangResult<Literal> {
     for instruction in program {
         match instruction {
             Instruction::Stmt(stmt) => match stmt {
@@ -168,24 +159,24 @@ pub fn eval_program<T: Scope + Clone>(
     }))
 }
 
-fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> Result<Literal, RuntimeError> {
+fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<Literal> {
     if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
         match found_extension.params.len().cmp(&call.args.len()) {
             Ordering::Less | Ordering::Greater => {
-                return Err(RuntimeError::new(
+                return Err(DashlangError::new(
                     &format!(
                         "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
                         call.symbol,
                         found_extension.params.len(),
                         call.args.len()
                     ),
-                    RuntimeErrorKind::WrongArgs,
+                    ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
                 )
                 .location(call.location))
             }
             Ordering::Equal => {
                 let local_context = ctx.clone();
-                let args: Result<Vec<Literal>, RuntimeError> = call
+                let args: Result<Vec<Literal>, DashlangError> = call
                     .clone()
                     .args
                     .into_iter()
@@ -207,7 +198,7 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> Result<Literal, 
     if let Literal::Closure(closure) = ctx.scope.get(&call.symbol) {
         match closure.params.len().cmp(&call.args.len()) {
             Ordering::Less | Ordering::Greater => {
-                return Err(RuntimeError::new(
+                return Err(DashlangError::new(
                     &format!(
                     "Could not evaluate '{}'. Expected {} argument{s}, but {} {s1} given instead",
                     call.symbol,
@@ -216,13 +207,13 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> Result<Literal, 
                     s = if closure.params.len() > 1 as usize {"s"} else {""},
                     s1 = if call.args.len() > 1 {"were"} else {"was"}
                 ),
-                    RuntimeErrorKind::WrongArgs,
+                    ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
                 )
                 .location(call.location))
             }
             Ordering::Equal => {
                 let local_context = ctx.clone();
-                let args: Result<Vec<Literal>, RuntimeError> = call
+                let args: Result<Vec<Literal>, DashlangError> = call
                     .args
                     .into_iter()
                     .map(|expr| eval(expr, &local_context))
@@ -240,14 +231,14 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> Result<Literal, 
             }
         }
     }
-    Err(RuntimeError::new(
+    Err(DashlangError::new(
         &format!("Cannot call '{}': not callable", call.symbol),
-        RuntimeErrorKind::NonCallable,
+        ErrorKind::Runtime(RuntimeErrorKind::NonCallable),
     )
     .location(call.location))
 }
 
-pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> Result<Literal, RuntimeError> {
+pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> DashlangResult<Literal> {
     match expr {
         Expr::Literal(val) => Ok(val),
         Expr::BinaryExpr(op) => eval_binary_op(*op, ctx),
@@ -261,7 +252,7 @@ pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> Result<Literal, R
         Expr::UnaryExpr(op) => eval_unary_op(*op, ctx),
     }
 }
-type ExtensionImplementation<S> = dyn Fn(&Context<S>, Call) -> Result<Literal, RuntimeError>;
+type ExtensionImplementation<S> = dyn Fn(&Context<S>, Call) -> DashlangResult<Literal>;
 #[derive(Clone)]
 pub struct Extension<S: Scope> {
     pub params: Vec<String>,
@@ -284,7 +275,7 @@ impl<T: Scope + Clone> Context<T> {
     pub fn use_extension(&mut self, extension: Extension<T>, name: String) {
         self.extensions.insert(name, extension);
     }
-    pub fn run_program(&self, program: Program) -> Result<Literal, RuntimeError> {
+    pub fn run_program(&self, program: Program) -> DashlangResult<Literal> {
         eval_program(program, self)
     }
     pub fn use_plugin(&mut self, plug: &dyn Plugin<T>) {

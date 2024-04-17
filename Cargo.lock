@@ -205,10 +205,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "errors"
+version = "0.1.0"
+dependencies = [
+ "ast",
+]
+
+[[package]]
 name = "eval"
 version = "0.1.0"
 dependencies = [
  "ast",
+ "errors",
 ]
 
 [[package]]
@@ -388,6 +396,7 @@ dependencies = [
 name = "run_file"
 version = "0.1.0"
 dependencies = [
+ "errors",
  "eval",
  "miette",
  "parse",

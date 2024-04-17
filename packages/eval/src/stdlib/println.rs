@@ -1,11 +1,12 @@
 use ast::{Literal, Location, Void};
+use errors::DashlangError;
 
-use crate::{errors::RuntimeError, eval, scope::Scope, Context};
+use crate::{eval, scope::Scope, Context};
 
 fn stdlib_literal_display<T: Scope + Clone>(
     value: Literal,
     ctx: &Context<T>,
-) -> Result<String, RuntimeError> {
+) -> Result<String, DashlangError> {
     match value {
         Literal::Closure(_) => Ok("Closure".to_string()),
         Literal::Int(val) => Ok(format!("{}", val.value)),
@@ -17,7 +18,7 @@ fn stdlib_literal_display<T: Scope + Clone>(
             "False".to_string()
         }),
         Literal::Vector(val) => {
-            let display_args: Result<Vec<String>, RuntimeError> = val
+            let display_args: Result<Vec<String>, DashlangError> = val
                 .value
                 .into_iter()
                 .map(|item| stdlib_literal_display(eval(item.clone(), ctx)?, ctx))
@@ -35,7 +36,7 @@ fn stdlib_literal_display<T: Scope + Clone>(
 pub fn stdlib_println<T: Scope + Clone>(
     value: Literal,
     ctx: &Context<T>,
-) -> Result<Literal, RuntimeError> {
+) -> Result<Literal, DashlangError> {
     println!("{}", stdlib_literal_display(value, ctx)?);
     Ok(Literal::Void(Void {
         location: Location::default(),

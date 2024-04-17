@@ -4,12 +4,8 @@ use parse::parse;
 use std::fs::read_to_string;
 
 use error::{RunfileError, RunfileResult};
-use eval::{
-    errors::{RuntimeError, RuntimeErrorKind},
-    scope::HashScope,
-    stdlib::Stdlib,
-    Context,
-};
+use errors::{DashlangError, ErrorKind, RuntimeErrorKind};
+use eval::{scope::HashScope, stdlib::Stdlib, Context};
 use miette::NamedSource;
 
 pub fn run_file(file_path: &str) -> RunfileResult {
@@ -20,10 +16,10 @@ pub fn run_file(file_path: &str) -> RunfileResult {
     match parse(&file_content) {
         Err(err) => Err(RunfileError {
             src: NamedSource::new(file_path, file_content),
-            err: RuntimeError {
+            err: DashlangError {
                 message: err.message,
                 location: None,
-                kind: RuntimeErrorKind::Default,
+                kind: ErrorKind::Runtime(RuntimeErrorKind::Default),
             },
         }
         .into()),

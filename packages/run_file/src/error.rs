@@ -1,13 +1,13 @@
 use std::fmt::{Debug, Display};
 
-use eval::errors::{RuntimeError, RuntimeErrorKind};
+use errors::{DashlangError, ErrorKind, RuntimeErrorKind};
 use miette::{Diagnostic, LabeledSpan, NamedSource, Result};
 
 use thiserror::Error;
 #[derive(Error, Debug)]
 pub struct RunfileError {
     pub src: NamedSource<String>,
-    pub err: RuntimeError,
+    pub err: DashlangError,
 }
 
 impl Display for RunfileError {
@@ -19,18 +19,26 @@ impl Display for RunfileError {
 impl Diagnostic for RunfileError {
     fn help<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
         match self.err.kind {
-            RuntimeErrorKind::Default => None,
-            RuntimeErrorKind::NonCallable => {
-                Some(Box::new("Check if this value really exists".to_owned()))
+            ErrorKind::Runtime(runtime_err) => {
+                match runtime_err {
+                    RuntimeErrorKind::Default => None,
+                    RuntimeErrorKind::NonCallable => {
+                        Some(Box::new("Check if this value really exists".to_owned()))
+                    }
+                    RuntimeErrorKind::InvalidOperation => {
+                        Some (
+                            Box::new(
+                                "Try changing the values in the operation. Remember sometimes the order of the operands change the result".to_owned()
+                            )
+                        )
+                    }
+                    RuntimeErrorKind::WrongArgs => Some(Box::new("Try fixing the number os arguments passed to this call".to_owned())),
+                }
             }
-            RuntimeErrorKind::InvalidOperation => {
-                Some (
-                    Box::new(
-                        "Try changing the values in the operation. Remember sometimes the order of the operands change the result".to_owned()
-                    )
-                )
+            ErrorKind::Parsing(_parsing_err) => {
+                Some(Box::new("Could not parse".to_owned()))
+
             }
-            RuntimeErrorKind::WrongArgs => Some(Box::new("Try fixing the number os arguments passed to this call".to_owned())),
 
         }
     }
@@ -46,10 +54,13 @@ impl Diagnostic for RunfileError {
                 [LabeledSpan::at(
                     loc.start..loc.end,
                     match self.err.kind {
-                        RuntimeErrorKind::Default => "The error is here",
-                        RuntimeErrorKind::NonCallable => "Non existent callable here",
-                        RuntimeErrorKind::InvalidOperation => "Invalid operation here",
-                        RuntimeErrorKind::WrongArgs => "Wrong number os arguments provided",
+                        ErrorKind::Runtime(runtime_err) => match runtime_err {
+                            RuntimeErrorKind::Default => "The error is here",
+                            RuntimeErrorKind::NonCallable => "Non-callable value here",
+                            RuntimeErrorKind::InvalidOperation => "Invalid operation here",
+                            RuntimeErrorKind::WrongArgs => "Wrong args passed here",
+                        },
+                        ErrorKind::Parsing(_parsing_err) => "Could not parse",
                     },
                 )]
                 .into_iter(),

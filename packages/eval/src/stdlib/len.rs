@@ -1,8 +1,7 @@
 use ast::{Call, Int, Literal, Location};
+use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 
-use crate::errors::{RuntimeError, RuntimeErrorKind};
-
-pub fn stdlib_len(item: Literal, call: Call) -> Result<Literal, RuntimeError> {
+pub fn stdlib_len(item: Literal, call: Call) -> DashlangResult<Literal> {
     match item {
         Literal::String(val) => Ok(Literal::Int(ast::Int {
             value: val.value.len() as i64,
@@ -12,9 +11,9 @@ pub fn stdlib_len(item: Literal, call: Call) -> Result<Literal, RuntimeError> {
             value: val.value.len() as i64,
             location: Default::default(),
         })),
-        _ => Err(RuntimeError::new(
+        _ => Err(DashlangError::new(
             "Could not get length: unsuported operation",
-            RuntimeErrorKind::Default,
+            ErrorKind::Runtime(RuntimeErrorKind::Default),
         )
         .location(call.location)),
     }

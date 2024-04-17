@@ -10,7 +10,8 @@ members = [
   "packages/eval",
   "packages/parse",
   "packages/run_file",
-  "packages/cli"
+  "packages/cli",
+  "packages/errors",
 ]
 
 [workspace.dependencies]
@@ -18,5 +19,6 @@ ast = {path = "packages/ast"}
 eval = {path = "packages/eval"}
 parse = {path = "packages/parse"}
 run_file = {path = "packages/run_file"}
+errors = {path = "packages/errors"}
 
 [dependencies]
