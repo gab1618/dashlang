@@ -2,13 +2,17 @@ use ast::{AssignmentExpr, BinaryExpr, Expr, Location, Symbol};
 use pest::Parser;
 
 use crate::{
+    errors::ParsingResult,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
 use super::{binary_operator::parse_binary_operator, parse_expression};
 
-pub fn parse_compound_assign_expr(input: &str, base_location: usize) -> AssignmentExpr {
+pub fn parse_compound_assign_expr(
+    input: &str,
+    base_location: usize,
+) -> ParsingResult<AssignmentExpr> {
     let ast = DashlangParser::parse(Rule::compound_assignment_expr, input)
         .expect("Could not parse compound assignment expression")
         .next()
@@ -28,8 +32,8 @@ pub fn parse_compound_assign_expr(input: &str, base_location: usize) -> Assignme
         .expect("Could not get operand operator from compound assignment");
     let (start_ast_operand, _) = get_pair_location(&ast_operand);
     let parsed_ast_operand =
-        parse_expression(ast_operand.as_str(), start_ast_operand + base_location);
-    AssignmentExpr {
+        parse_expression(ast_operand.as_str(), start_ast_operand + base_location)?;
+    Ok(AssignmentExpr {
         symbol: ast_symbol.as_str().to_owned(),
         value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
             left: Expr::Symbol(Symbol {
@@ -41,7 +45,7 @@ pub fn parse_compound_assign_expr(input: &str, base_location: usize) -> Assignme
             location: Location::new(start + base_location, end + base_location),
         }))),
         location: Location::new(start + base_location, end + base_location),
-    }
+    })
 }
 
 #[cfg(test)]
@@ -53,7 +57,7 @@ mod tests {
     fn test_compound_assignment() {
         assert_eq!(
             parse_compound_assign_expr("n += 1", 0),
-            AssignmentExpr {
+            Ok(AssignmentExpr {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(Symbol {
@@ -68,11 +72,11 @@ mod tests {
                     location: Location::new(0, 6),
                 }))),
                 location: Location::new(0, 6),
-            }
+            })
         );
         assert_eq!(
             parse_compound_assign_expr("x -= 5", 0),
-            AssignmentExpr {
+            Ok(AssignmentExpr {
                 symbol: String::from("x"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(Symbol {
@@ -87,7 +91,7 @@ mod tests {
                     location: Location::new(0, 6),
                 }))),
                 location: Location::new(0, 6),
-            }
+            })
         );
     }
 }

@@ -2,12 +2,13 @@ use ast::Program;
 use pest::Parser;
 
 use crate::{
+    errors::ParsingResult,
     instruction::parse_instruction,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_program(input: &str) -> Program {
+pub fn parse_program(input: &str) -> ParsingResult<Program> {
     let mut program: Program = vec![];
     let ast = DashlangParser::parse(Rule::program, input)
         .expect("Could not parse program")
@@ -15,9 +16,9 @@ pub fn parse_program(input: &str) -> Program {
         .expect("Could not parse program");
     for instruction in ast.into_inner() {
         let (start, _end) = get_pair_location(&instruction);
-        program.push(parse_instruction(instruction.as_str(), start));
+        program.push(parse_instruction(instruction.as_str(), start)?);
     }
-    program
+    Ok(program)
 }
 
 #[cfg(test)]
@@ -31,7 +32,7 @@ mod tests {
     fn test_parse_program() {
         assert_eq!(
             parse_program("age = 5 count = 1"),
-            vec![
+            Ok(vec![
                 Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("age"),
                     value: Box::new(Expr::Literal(Literal::Int(Int {
@@ -48,7 +49,7 @@ mod tests {
                     }))),
                     location: Location::new(8, 17),
                 }))
-            ]
+            ])
         )
     }
 }

@@ -1,9 +1,15 @@
 use pest::Parser;
 
-use crate::{expression::parse_expression, utils::get_pair_location, DashlangParser, Rule};
+use crate::{
+    errors::ParsingResult, expression::parse_expression, utils::get_pair_location, DashlangParser,
+    Rule,
+};
 use ast::{AssignmentExpr, Location};
 
-pub fn parse_assignment_expression(input: &str, base_location: usize) -> AssignmentExpr {
+pub fn parse_assignment_expression(
+    input: &str,
+    base_location: usize,
+) -> ParsingResult<AssignmentExpr> {
     let ast = DashlangParser::parse(Rule::assignment_expression, input)
         .expect("Could not parse assignment expression")
         .next()
@@ -17,14 +23,14 @@ pub fn parse_assignment_expression(input: &str, base_location: usize) -> Assignm
         .next()
         .expect("Could not get assignment expression value");
     let (start_value, _) = get_pair_location(&ast_value);
-    AssignmentExpr {
+    Ok(AssignmentExpr {
         symbol: ast_symbol.as_str().to_owned(),
         value: Box::new(parse_expression(
             ast_value.as_str(),
             start_value + base_location,
-        )),
+        )?),
         location: Location::new(start + base_location, end + base_location),
-    }
+    })
 }
 
 #[cfg(test)]
@@ -36,21 +42,21 @@ mod tests {
     fn test_parse_value_assignment() {
         assert_eq!(
             parse_assignment_expression("age = 5", 0),
-            AssignmentExpr {
+            Ok(AssignmentExpr {
                 symbol: String::from("age"),
                 value: Box::new(Expr::Literal(Literal::Int(Int {
                     value: 5,
                     location: Location::new(6, 7)
                 }))),
                 location: Location::new(0, 7),
-            }
+            })
         );
     }
     #[test]
     fn test_parse_expr_assignment() {
         assert_eq!(
             parse_assignment_expression("age = 5 + 1", 0),
-            AssignmentExpr {
+            Ok(AssignmentExpr {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
@@ -65,7 +71,7 @@ mod tests {
                     location: Location::new(6, 11),
                 }))),
                 location: Location::new(0, 11),
-            }
+            })
         );
     }
 }

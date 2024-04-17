@@ -1,4 +1,6 @@
-use crate::{literal::parse_literal, utils::get_pair_location, DashlangParser, Rule};
+use crate::{
+    errors::ParsingResult, literal::parse_literal, utils::get_pair_location, DashlangParser, Rule,
+};
 use ast::{Expr, Location, Symbol};
 use pest::Parser;
 
@@ -15,7 +17,7 @@ mod call_expression;
 mod compound_assign_expr;
 mod unary_expression;
 
-pub fn parse_expression(input: &str, base_location: usize) -> Expr {
+pub fn parse_expression(input: &str, base_location: usize) -> ParsingResult<Expr> {
     let ast = DashlangParser::parse(Rule::expression, input)
         .expect("Could not parse expression")
         .next()
@@ -25,30 +27,30 @@ pub fn parse_expression(input: &str, base_location: usize) -> Expr {
     let expression = inner_ast.next().expect("Could not get expression type");
     let mut parsed = match expression.as_rule() {
         Rule::binary_expression => {
-            let parsed = parse_binary_expression(expression.as_str(), start + base_location);
+            let parsed = parse_binary_expression(expression.as_str(), start + base_location)?;
             Expr::BinaryExpr(Box::new(parsed))
         }
         Rule::assignment_expression => {
-            let parsed = parse_assignment_expression(expression.as_str(), start + base_location);
+            let parsed = parse_assignment_expression(expression.as_str(), start + base_location)?;
             Expr::Assignment(parsed)
         }
         Rule::compound_assignment_expr => Expr::Assignment(parse_compound_assign_expr(
             expression.as_str(),
             start + base_location,
-        )),
+        )?),
         Rule::call_expression => {
-            let parsed = parse_call_expression(expression.as_str(), start + base_location);
+            let parsed = parse_call_expression(expression.as_str(), start + base_location)?;
             Expr::Call(parsed)
         }
         Rule::symbol => Expr::Symbol(Symbol {
             value: expression.as_str().to_owned(),
             location: Location::new(start + base_location, end + base_location),
         }),
-        Rule::literal => Expr::Literal(parse_literal(expression.as_str(), start + base_location)),
+        Rule::literal => Expr::Literal(parse_literal(expression.as_str(), start + base_location)?),
         Rule::unary_expression => Expr::UnaryExpr(Box::new(parse_unary_expression(
             expression.as_str(),
             start + base_location,
-        ))),
+        )?)),
         any => unreachable!("{:#?}", any),
     };
     for piping in inner_ast {
@@ -58,11 +60,11 @@ pub fn parse_expression(input: &str, base_location: usize) -> Expr {
             .expect("Could not get call from piping");
         let (start_call, _end) = get_pair_location(&inner_call);
         let mut parsed_inner_call =
-            parse_call_expression(inner_call.as_str(), start_call + base_location);
+            parse_call_expression(inner_call.as_str(), start_call + base_location)?;
         parsed_inner_call.args.insert(0, parsed);
         parsed = Expr::Call(parsed_inner_call);
     }
-    parsed
+    Ok(parsed)
 }
 #[cfg(test)]
 mod tests {
@@ -75,7 +77,7 @@ mod tests {
     fn test_parse_expression() {
         assert_eq!(
             parse_expression("1 + 2", 0),
-            Expr::BinaryExpr(Box::new(BinaryExpr {
+            Ok(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(0, 1)
@@ -86,14 +88,14 @@ mod tests {
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::new(0, 5),
-            }))
+            })))
         );
     }
     #[test]
     fn test_assignment_expression() {
         assert_eq!(
             parse_expression("age = 5 + 1", 0),
-            Expr::Assignment(AssignmentExpr {
+            Ok(Expr::Assignment(AssignmentExpr {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
@@ -108,14 +110,14 @@ mod tests {
                     location: Location::new(6, 11),
                 }))),
                 location: Location::new(0, 11),
-            })
+            }))
         );
     }
     #[test]
     fn test_unary_expression() {
         assert_eq!(
             parse_expression("!(true && false)", 0),
-            Expr::UnaryExpr(Box::new(UnaryExpr {
+            Ok(Expr::UnaryExpr(Box::new(UnaryExpr {
                 operator: ast::UnaryOperator::Not,
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Bool(Boolean {
@@ -130,14 +132,14 @@ mod tests {
                     location: Location::new(2, 15),
                 })),
                 location: Location::new(0, 16),
-            }))
+            })))
         );
     }
     #[test]
     fn test_compound_assign_expr() {
         assert_eq!(
             parse_expression("n += 1", 0),
-            Expr::Assignment(AssignmentExpr {
+            Ok(Expr::Assignment(AssignmentExpr {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(Symbol {
@@ -152,14 +154,14 @@ mod tests {
                     location: Location::new(0, 6),
                 }))),
                 location: Location::new(0, 6),
-            })
+            }))
         );
     }
     #[test]
     fn test_piping() {
         assert_eq!(
             parse_expression("4 |> add(1)", 0),
-            Expr::Call(Call {
+            Ok(Expr::Call(Call {
                 symbol: String::from("add"),
                 args: vec![
                     Expr::Literal(Literal::Int(Int {
@@ -172,7 +174,7 @@ mod tests {
                     }))
                 ],
                 location: Location::new(5, 11),
-            })
+            }))
         );
     }
 }

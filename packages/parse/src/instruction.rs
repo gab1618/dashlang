@@ -2,13 +2,14 @@ use ast::Instruction;
 use pest::Parser;
 
 use crate::{
+    errors::ParsingResult,
     expression::parse_expression,
     parser::{DashlangParser, Rule},
     statement::parse_statement,
     utils::get_pair_location,
 };
 
-pub fn parse_instruction(input: &str, base_location: usize) -> Instruction {
+pub fn parse_instruction(input: &str, base_location: usize) -> ParsingResult<Instruction> {
     let ast = DashlangParser::parse(Rule::instruction, input)
         .expect("Could not parse instruction")
         .next()
@@ -19,14 +20,14 @@ pub fn parse_instruction(input: &str, base_location: usize) -> Instruction {
         .next()
         .expect("Could not get instruction type");
     match instruction_type.as_rule() {
-        Rule::statement => Instruction::Stmt(parse_statement(
+        Rule::statement => Ok(Instruction::Stmt(parse_statement(
             instruction_type.as_str(),
             start + base_location,
-        )),
-        Rule::expression => Instruction::Expr(parse_expression(
+        )?)),
+        Rule::expression => Ok(Instruction::Expr(parse_expression(
             instruction_type.as_str(),
             start + base_location,
-        )),
+        )?)),
         _ => unreachable!(),
     }
 }
@@ -40,7 +41,7 @@ mod tests {
     fn test_parse_expr() {
         assert_eq!(
             parse_instruction("1 + 1", 0),
-            Instruction::Expr(Expr::BinaryExpr(Box::new(BinaryExpr {
+            Ok(Instruction::Expr(Expr::BinaryExpr(Box::new(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(0, 1)
@@ -51,20 +52,20 @@ mod tests {
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::new(0, 5),
-            })))
+            }))))
         );
     }
     #[test]
     fn test_parse_stmt() {
         assert_eq!(
             parse_instruction("return 1", 0),
-            Instruction::Stmt(Stmt::Return(Return {
+            Ok(Instruction::Stmt(Stmt::Return(Return {
                 value: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(7, 8)
                 })),
                 location: Location::new(0, 8)
-            }))
+            })))
         );
     }
 }

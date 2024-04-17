@@ -3,12 +3,13 @@ use pest::Parser;
 
 use crate::{
     body::parse_body,
+    errors::ParsingResult,
     expression::parse_expression,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_if_stmt(input: &str, base_location: usize) -> If {
+pub fn parse_if_stmt(input: &str, base_location: usize) -> ParsingResult<If> {
     let ast = DashlangParser::parse(Rule::if_stmt, input)
         .expect("Could not parse if statement")
         .next()
@@ -17,34 +18,36 @@ pub fn parse_if_stmt(input: &str, base_location: usize) -> If {
     let mut inner_ast = ast.into_inner();
     let ast_cond = inner_ast.next().expect("Could not get condition");
     let (cond_start, _) = get_pair_location(&ast_cond);
-    let parsed_cond = parse_expression(ast_cond.as_str(), cond_start + base_location);
+    let parsed_cond = parse_expression(ast_cond.as_str(), cond_start + base_location)?;
 
     let ast_body = inner_ast.next().expect("Could not get scope");
     let (body_start, _) = get_pair_location(&ast_body);
-    let parsed_body = parse_body(ast_body.as_str(), body_start + base_location);
+    let parsed_body = parse_body(ast_body.as_str(), body_start + base_location)?;
 
     let ast_else = match inner_ast.next() {
         Some(pair) => {
             let (else_start, _) = get_pair_location(&pair);
             match pair.as_rule() {
-                Rule::else_stmt => Some(parse_else_stmt(pair.as_str(), else_start + base_location)),
+                Rule::else_stmt => {
+                    Some(parse_else_stmt(pair.as_str(), else_start + base_location)?)
+                }
                 Rule::else_if_stmt => Some(vec![Instruction::Stmt(Stmt::If(parse_else_if_stmt(
                     pair.as_str(),
                     else_start + base_location,
-                )))]),
+                )?))]),
                 _ => unreachable!(),
             }
         }
         None => None,
     };
-    If {
+    Ok(If {
         cond: parsed_cond,
         body: parsed_body,
         else_block: ast_else,
         location: Location::new(start + base_location, end + base_location),
-    }
+    })
 }
-fn parse_else_stmt(input: &str, base_location: usize) -> Program {
+fn parse_else_stmt(input: &str, base_location: usize) -> ParsingResult<Program> {
     let ast = DashlangParser::parse(Rule::else_stmt, input)
         .expect("Could not parse else statement")
         .next()
@@ -53,7 +56,7 @@ fn parse_else_stmt(input: &str, base_location: usize) -> Program {
     let (body_start, _) = get_pair_location(&ast_body);
     parse_body(ast_body.as_str(), body_start + base_location)
 }
-fn parse_else_if_stmt(input: &str, base_location: usize) -> If {
+fn parse_else_if_stmt(input: &str, base_location: usize) -> ParsingResult<If> {
     let ast = DashlangParser::parse(Rule::else_if_stmt, input)
         .expect("Could not parse else if statement")
         .next()
@@ -65,13 +68,13 @@ fn parse_else_if_stmt(input: &str, base_location: usize) -> If {
         .next()
         .expect("Could not get else if statement condition");
     let (cond_start, _end) = get_pair_location(&ast_cond);
-    let cond_expr = parse_expression(ast_cond.as_str(), cond_start + base_location);
+    let cond_expr = parse_expression(ast_cond.as_str(), cond_start + base_location)?;
 
     let ast_body = inner_ast
         .next()
         .expect("Could not get else if statement body");
     let (body_start, _end) = get_pair_location(&ast_body);
-    let else_if_body = parse_body(ast_body.as_str(), body_start + base_location);
+    let else_if_body = parse_body(ast_body.as_str(), body_start + base_location)?;
 
     let else_element: Option<Vec<Instruction>> = match inner_ast.next() {
         Some(element) => {
@@ -80,22 +83,22 @@ fn parse_else_if_stmt(input: &str, base_location: usize) -> If {
                 Rule::else_stmt => Some(parse_else_stmt(
                     element.as_str(),
                     element_start + base_location,
-                )),
+                )?),
                 Rule::else_if_stmt => Some(vec![Instruction::Stmt(Stmt::If(parse_else_if_stmt(
                     element.as_str(),
                     element_start + base_location,
-                )))]),
+                )?))]),
                 _ => unreachable!(),
             }
         }
         None => None,
     };
-    If {
+    Ok(If {
         cond: cond_expr,
         body: else_if_body,
         else_block: else_element,
         location: Location::new(start + base_location, end + base_location),
-    }
+    })
 }
 #[cfg(test)]
 mod tests {
@@ -110,7 +113,7 @@ mod tests {
     fn test_if_with_values() {
         assert_eq!(
             parse_if_stmt("if true {}", 0),
-            If {
+            Ok(If {
                 cond: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
                     location: Location::new(3, 7)
@@ -118,14 +121,14 @@ mod tests {
                 body: vec![],
                 else_block: None,
                 location: Location::new(0, 10),
-            }
+            })
         );
     }
     #[test]
     fn test_if_with_symbols() {
         assert_eq!(
             parse_if_stmt("if count < 10 {}", 0),
-            If {
+            Ok(If {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(Symbol {
                         value: String::from("count"),
@@ -141,14 +144,14 @@ mod tests {
                 body: vec![],
                 else_block: None,
                 location: Location::new(0, 16),
-            }
+            })
         );
     }
     #[test]
     fn test_else() {
         assert_eq!(
             parse_if_stmt("if true {return true} else {return false}", 0),
-            If {
+            Ok(If {
                 cond: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
                     location: Location::new(3, 7)
@@ -168,7 +171,7 @@ mod tests {
                     location: Location::new(28, 40)
                 }))]),
                 location: Location::new(0, 41),
-            }
+            })
         );
     }
     #[test]
@@ -178,7 +181,7 @@ mod tests {
                 "if true {return true} else if true {return true} else {return false}",
                 0
             ),
-            If {
+            Ok(If {
                 cond: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
                     location: Location::new(3, 7),
@@ -212,7 +215,7 @@ mod tests {
                     location: Location::new(22, 68),
                 }))]),
                 location: Location::new(0, 68),
-            }
+            })
         );
     }
 }

@@ -1,5 +1,7 @@
 use super::{binary_operator::parse_binary_operator, parse_expression};
-use crate::{literal::parse_literal, utils::get_pair_location, DashlangParser, Rule};
+use crate::{
+    errors::ParsingResult, literal::parse_literal, utils::get_pair_location, DashlangParser, Rule,
+};
 use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location, Symbol};
 use pest::Parser;
 
@@ -9,7 +11,7 @@ enum BinaryExpressionToken {
     Expr(Expr),
     Operator(BinaryOperator),
 }
-pub fn parse_binary_expression(input: &str, base_location: usize) -> BinaryExpr {
+pub fn parse_binary_expression(input: &str, base_location: usize) -> ParsingResult<BinaryExpr> {
     let ast = DashlangParser::parse(Rule::binary_expression, input)
         .expect("Could not parse binary expression")
         .next()
@@ -26,10 +28,10 @@ pub fn parse_binary_expression(input: &str, base_location: usize) -> BinaryExpr 
                 flat_expression.push(BinaryExpressionToken::Literal(parse_literal(
                     element.as_str(),
                     element_start + base_location,
-                )));
+                )?));
             }
             Rule::expression => {
-                let parsed = parse_expression(element.as_str(), element_start);
+                let parsed = parse_expression(element.as_str(), element_start)?;
                 flat_expression.push(BinaryExpressionToken::Expr(parsed));
             }
             Rule::symbol => {
@@ -43,7 +45,7 @@ pub fn parse_binary_expression(input: &str, base_location: usize) -> BinaryExpr 
                 })));
             }
             Rule::call_expression => {
-                let parsed = parse_expression(element.as_str(), element_start + base_location);
+                let parsed = parse_expression(element.as_str(), element_start + base_location)?;
                 flat_expression.push(BinaryExpressionToken::Expr(parsed));
             }
             _ => unreachable!(),
@@ -51,7 +53,7 @@ pub fn parse_binary_expression(input: &str, base_location: usize) -> BinaryExpr 
     }
     let mut base_binary_op = flat_binary_expression_to_ast(&mut flat_expression);
     base_binary_op.location = Location::new(start + base_location, end + base_location);
-    base_binary_op
+    Ok(base_binary_op)
 }
 fn flat_binary_expression_to_ast(flat_expression: &mut Vec<BinaryExpressionToken>) -> BinaryExpr {
     while flat_expression.len() > 1 {
@@ -163,7 +165,7 @@ mod tests {
     fn test_parse_binary_op() {
         assert_eq!(
             parse_binary_expression("1 * 2", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(0, 1)
@@ -174,11 +176,11 @@ mod tests {
                 })),
                 operator: BinaryOperator::Mul,
                 location: Location::new(0, 5),
-            }
+            })
         );
         assert_eq!(
             parse_binary_expression("1 + 2", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(0, 1)
@@ -189,11 +191,11 @@ mod tests {
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::new(0, 5),
-            }
+            })
         );
         assert_eq!(
             parse_binary_expression("1 + 2 * 2", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(0, 1)
@@ -212,14 +214,14 @@ mod tests {
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::new(0, 9),
-            }
+            })
         );
     }
     #[test]
     fn test_parse_binary_expr() {
         assert_eq!(
             parse_binary_expression("1 + 2", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(0, 1)
@@ -230,11 +232,11 @@ mod tests {
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::new(0, 5),
-            }
+            })
         );
         assert_eq!(
             parse_binary_expression("2 > 1", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 2,
                     location: Location::new(0, 1)
@@ -245,11 +247,11 @@ mod tests {
                 })),
                 operator: BinaryOperator::Gt,
                 location: Location::new(0, 5),
-            }
+            })
         );
         assert_eq!(
             parse_binary_expression("2 == 2", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 2,
                     location: Location::new(0, 1)
@@ -260,11 +262,11 @@ mod tests {
                 })),
                 operator: BinaryOperator::Eq,
                 location: Location::new(0, 6),
-            }
+            })
         );
         assert_eq!(
             parse_binary_expression("true || false", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
                     location: Location::new(0, 4)
@@ -275,11 +277,11 @@ mod tests {
                 })),
                 operator: BinaryOperator::Or,
                 location: Location::new(0, 13),
-            }
+            })
         );
         assert_eq!(
             parse_binary_expression("true && false", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
                     location: Location::new(0, 4)
@@ -290,14 +292,14 @@ mod tests {
                 })),
                 operator: BinaryOperator::And,
                 location: Location::new(0, 13),
-            }
+            })
         );
     }
     #[test]
     fn test_parse_sub_expressions() {
         assert_eq!(
             parse_binary_expression("1 + (2 + 1)", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(0, 1)
@@ -316,11 +318,11 @@ mod tests {
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::new(0, 11),
-            },
+            }),
         );
         assert_eq!(
             parse_binary_expression("(1 + 2) + 1", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Literal(Literal::Int(Int {
                         value: 1,
@@ -339,11 +341,11 @@ mod tests {
                 })),
                 operator: BinaryOperator::Add,
                 location: Location::new(0, 11),
-            }
+            })
         );
         assert_eq!(
             parse_binary_expression("1 + n", 0),
-            BinaryExpr {
+            Ok(BinaryExpr {
                 left: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(0, 1)
@@ -354,7 +356,7 @@ mod tests {
                     location: Location::new(4, 5)
                 }),
                 location: Location::new(0, 5),
-            }
+            })
         );
     }
 }

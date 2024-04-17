@@ -3,12 +3,13 @@ use pest::Parser;
 
 use crate::{
     body::parse_body,
+    errors::ParsingResult,
     expression::parse_expression,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_while_stmt(input: &str, base_location: usize) -> While {
+pub fn parse_while_stmt(input: &str, base_location: usize) -> ParsingResult<While> {
     let ast = DashlangParser::parse(Rule::while_stmt, input)
         .expect("Could not parse while loop")
         .next()
@@ -19,17 +20,17 @@ pub fn parse_while_stmt(input: &str, base_location: usize) -> While {
         .next()
         .expect("Could not get while statement condition");
     let (cond_start, _) = get_pair_location(&ast_cond);
-    let parsed_cond = parse_expression(ast_cond.as_str(), cond_start + base_location);
+    let parsed_cond = parse_expression(ast_cond.as_str(), cond_start + base_location)?;
     let ast_body = inner_ast
         .next()
         .expect("Could not get while statement body");
     let (body_start, _) = get_pair_location(&ast_body);
-    let parsed_body = parse_body(ast_body.as_str(), body_start + base_location);
-    While {
+    let parsed_body = parse_body(ast_body.as_str(), body_start + base_location)?;
+    Ok(While {
         cond: parsed_cond,
         body: parsed_body,
         location: Location::new(start + base_location, end + base_location),
-    }
+    })
 }
 #[cfg(test)]
 mod tests {
@@ -41,21 +42,21 @@ mod tests {
     fn test_while_with_values() {
         assert_eq!(
             parse_while_stmt("while true {}", 0),
-            While {
+            Ok(While {
                 cond: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
                     location: Location::new(6, 10)
                 })),
                 body: vec![],
                 location: Location::new(0, 13),
-            }
+            })
         );
     }
     #[test]
     fn test_parse_while() {
         assert_eq!(
             parse_while_stmt("while count < 10 {}", 0),
-            While {
+            Ok(While {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
                     left: Expr::Symbol(Symbol {
                         value: String::from("count"),
@@ -70,7 +71,7 @@ mod tests {
                 })),
                 body: vec![],
                 location: Location::new(0, 19),
-            }
+            })
         );
     }
 }

@@ -3,13 +3,14 @@ use pest::Parser;
 
 use crate::{
     body::parse_body,
+    errors::ParsingResult,
     expression::parse_expression,
     instruction::parse_instruction,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_for_stmt(input: &str, base_location: usize) -> For {
+pub fn parse_for_stmt(input: &str, base_location: usize) -> ParsingResult<For> {
     let ast = DashlangParser::parse(Rule::for_stmt, input)
         .expect("Could not parse for statement")
         .next()
@@ -31,16 +32,16 @@ pub fn parse_for_stmt(input: &str, base_location: usize) -> For {
     let for_body = inner_ast.next().expect("Could not get for statement body");
     let (body_start, _) = get_pair_location(&for_body);
 
-    For {
-        cond: parse_expression(cond_expr.as_str(), cond_start + base_location),
-        body: parse_body(for_body.as_str(), body_start + base_location),
-        init: parse_instruction(init_instruction.as_str(), init_start + base_location),
+    Ok(For {
+        cond: parse_expression(cond_expr.as_str(), cond_start + base_location)?,
+        body: parse_body(for_body.as_str(), body_start + base_location)?,
+        init: parse_instruction(init_instruction.as_str(), init_start + base_location)?,
         iteration: parse_instruction(
             iteration_instruction.as_str(),
             iteration_start + base_location,
-        ),
+        )?,
         location: Location::new(start, end),
-    }
+    })
 }
 
 #[cfg(test)]
@@ -54,7 +55,7 @@ mod tests {
     fn test_for_stmt() {
         assert_eq!(
             parse_for_stmt("for n = 1; n < 10; n += 1 {}", 0),
-            For {
+            Ok(For {
                 init: Instruction::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("n"),
                     value: Box::new(Expr::Literal(Literal::Int(Int {
@@ -93,7 +94,7 @@ mod tests {
                     location: Location::new(19, 26),
                 })),
                 location: Location::new(0, 28),
-            }
+            })
         );
     }
 }
