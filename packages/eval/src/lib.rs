@@ -23,7 +23,7 @@ macro_rules! define_aritmetic_operation {
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: left.value $operator right.value, location: Default::default()})),
                 (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
             },
-            (left, right) => eval_binary_op(
+            (left, right) => eval_binary_expr(
                 BinaryExpr::new(
                     Expr::Literal(eval(left, $scope)?),
                     Expr::Literal(eval(right, $scope)?),
@@ -45,7 +45,7 @@ macro_rules! define_boolean_operation {
                 (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
                 (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
             },
-            (left, right) => eval_binary_op(
+            (left, right) => eval_binary_expr(
                 BinaryExpr::new(
                     Expr::Literal(eval(left, $scope)?),
                     Expr::Literal(eval(right, $scope)?),
@@ -73,7 +73,7 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> DashlangResult
     }
 }
 
-fn eval_binary_op<T: Scope + Clone>(op: BinaryExpr, ctx: &Context<T>) -> DashlangResult<Literal> {
+fn eval_binary_expr<T: Scope + Clone>(op: BinaryExpr, ctx: &Context<T>) -> DashlangResult<Literal> {
     match op.operator {
         BinaryOperator::Add => define_aritmetic_operation!(+, op, ctx),
         BinaryOperator::Sub => define_aritmetic_operation!(-, op, ctx),
@@ -226,7 +226,7 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<L
 pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> DashlangResult<Literal> {
     match expr {
         Expr::Literal(val) => Ok(val),
-        Expr::BinaryExpr(op) => eval_binary_op(*op, ctx),
+        Expr::BinaryExpr(op) => eval_binary_expr(*op, ctx),
         Expr::Assignment(assign) => {
             let evaluated = eval(*assign.value, ctx)?;
             ctx.scope.set(&assign.symbol, evaluated.clone());
