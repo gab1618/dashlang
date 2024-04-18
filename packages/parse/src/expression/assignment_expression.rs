@@ -1,15 +1,13 @@
+use errors::DashlangResult;
 use pest::Parser;
 
-use crate::{
-    errors::ParsingResult, expression::parse_expression, utils::get_pair_location, DashlangParser,
-    Rule,
-};
+use crate::{expression::parse_expression, utils::get_pair_location, DashlangParser, Rule};
 use ast::{AssignmentExpr, Location};
 
 pub fn parse_assignment_expression(
     input: &str,
     base_location: usize,
-) -> ParsingResult<AssignmentExpr> {
+) -> DashlangResult<AssignmentExpr> {
     let ast = DashlangParser::parse(Rule::assignment_expression, input)
         .expect("Could not parse assignment expression")
         .next()

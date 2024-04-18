@@ -1,8 +1,7 @@
 use super::{binary_operator::parse_binary_operator, parse_expression};
-use crate::{
-    errors::ParsingResult, literal::parse_literal, utils::get_pair_location, DashlangParser, Rule,
-};
+use crate::{literal::parse_literal, utils::get_pair_location, DashlangParser, Rule};
 use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location, Symbol};
+use errors::DashlangResult;
 use pest::Parser;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,7 +10,7 @@ enum BinaryExpressionToken {
     Expr(Expr),
     Operator(BinaryOperator),
 }
-pub fn parse_binary_expression(input: &str, base_location: usize) -> ParsingResult<BinaryExpr> {
+pub fn parse_binary_expression(input: &str, base_location: usize) -> DashlangResult<BinaryExpr> {
     let ast = DashlangParser::parse(Rule::binary_expression, input)
         .expect("Could not parse binary expression")
         .next()
@@ -22,7 +21,7 @@ pub fn parse_binary_expression(input: &str, base_location: usize) -> ParsingResu
         let (element_start, element_end) = get_pair_location(&element);
         match element.as_rule() {
             Rule::binary_operator => flat_expression.push(BinaryExpressionToken::Operator(
-                parse_binary_operator(element.as_str()),
+                parse_binary_operator(element.as_str())?,
             )),
             Rule::literal => {
                 flat_expression.push(BinaryExpressionToken::Literal(parse_literal(

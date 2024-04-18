@@ -1,6 +1,7 @@
-use crate::{
-    errors::ParsingResult, literal::parse_literal, utils::get_pair_location, DashlangParser, Rule,
-};
+use crate::{literal::parse_literal, utils::get_pair_location, DashlangParser, Rule};
+
+use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
+
 use ast::{Expr, Location, Symbol};
 use pest::Parser;
 
@@ -17,9 +18,16 @@ mod call_expression;
 mod compound_assign_expr;
 mod unary_expression;
 
-pub fn parse_expression(input: &str, base_location: usize) -> ParsingResult<Expr> {
+pub fn parse_expression(input: &str, base_location: usize) -> DashlangResult<Expr> {
     let ast = DashlangParser::parse(Rule::expression, input)
-        .expect("Could not parse expression")
+        .map_err(|err| DashlangError {
+            location: match err.location {
+                pest::error::InputLocation::Pos(_) => None,
+                pest::error::InputLocation::Span((start, end)) => Some(Location { start, end }),
+            },
+            message: "Could not parse  expression".to_owned(),
+            kind: ErrorKind::Parsing(ParsingErrorKind::Default),
+        })?
         .next()
         .expect("Could not parse expression");
     let (start, end) = get_pair_location(&ast);

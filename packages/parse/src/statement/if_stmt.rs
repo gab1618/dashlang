@@ -1,15 +1,15 @@
 use ast::{If, Instruction, Location, Program, Stmt};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
     body::parse_body,
-    errors::ParsingResult,
     expression::parse_expression,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_if_stmt(input: &str, base_location: usize) -> ParsingResult<If> {
+pub fn parse_if_stmt(input: &str, base_location: usize) -> DashlangResult<If> {
     let ast = DashlangParser::parse(Rule::if_stmt, input)
         .expect("Could not parse if statement")
         .next()
@@ -47,7 +47,7 @@ pub fn parse_if_stmt(input: &str, base_location: usize) -> ParsingResult<If> {
         location: Location::new(start + base_location, end + base_location),
     })
 }
-fn parse_else_stmt(input: &str, base_location: usize) -> ParsingResult<Program> {
+fn parse_else_stmt(input: &str, base_location: usize) -> DashlangResult<Program> {
     let ast = DashlangParser::parse(Rule::else_stmt, input)
         .expect("Could not parse else statement")
         .next()
@@ -56,7 +56,7 @@ fn parse_else_stmt(input: &str, base_location: usize) -> ParsingResult<Program> 
     let (body_start, _) = get_pair_location(&ast_body);
     parse_body(ast_body.as_str(), body_start + base_location)
 }
-fn parse_else_if_stmt(input: &str, base_location: usize) -> ParsingResult<If> {
+fn parse_else_if_stmt(input: &str, base_location: usize) -> DashlangResult<If> {
     let ast = DashlangParser::parse(Rule::else_if_stmt, input)
         .expect("Could not parse else if statement")
         .next()

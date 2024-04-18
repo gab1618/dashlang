@@ -1,13 +1,13 @@
 use ast::{Boolean, Closure, Expr, Float, Int, Literal, Location, Str, Vector};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::body::parse_body;
-use crate::errors::ParsingResult;
 use crate::expression::parse_expression;
 use crate::parser::{DashlangParser, Rule};
 use crate::utils::get_pair_location;
 
-pub fn parse_literal(input: &str, base_location: usize) -> ParsingResult<Literal> {
+pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Literal> {
     let parsed = DashlangParser::parse(Rule::literal, input)
         .expect("Could not parse value")
         .next()
@@ -73,7 +73,7 @@ pub fn parse_literal(input: &str, base_location: usize) -> ParsingResult<Literal
         }
         Rule::vector => {
             let inner_ast = inner_value.into_inner();
-            let parsed_elements: ParsingResult<Vec<Expr>> = inner_ast
+            let parsed_elements: DashlangResult<Vec<Expr>> = inner_ast
                 .map(|element| {
                     let (element_start, _) = get_pair_location(&element);
                     parse_expression(element.as_str(), element_start + base_location)

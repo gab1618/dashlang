@@ -3,10 +3,10 @@ mod if_stmt;
 mod return_stmt;
 mod while_stmt;
 use ast::Stmt;
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
-    errors::ParsingResult,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
@@ -15,7 +15,7 @@ use return_stmt::parse_return_stmt;
 
 use self::{for_stmt::parse_for_stmt, if_stmt::parse_if_stmt, while_stmt::parse_while_stmt};
 
-pub fn parse_statement(input: &str, base_location: usize) -> ParsingResult<Stmt> {
+pub fn parse_statement(input: &str, base_location: usize) -> DashlangResult<Stmt> {
     let ast = DashlangParser::parse(Rule::statement, input)
         .expect("Could not parse statement")
         .next()

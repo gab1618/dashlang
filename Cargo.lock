@@ -325,6 +325,7 @@ name = "parse"
 version = "0.1.0"
 dependencies = [
  "ast",
+ "errors",
  "pest",
  "pest_derive",
 ]

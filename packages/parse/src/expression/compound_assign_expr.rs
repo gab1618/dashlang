@@ -1,8 +1,8 @@
 use ast::{AssignmentExpr, BinaryExpr, Expr, Location, Symbol};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
-    errors::ParsingResult,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
@@ -12,7 +12,7 @@ use super::{binary_operator::parse_binary_operator, parse_expression};
 pub fn parse_compound_assign_expr(
     input: &str,
     base_location: usize,
-) -> ParsingResult<AssignmentExpr> {
+) -> DashlangResult<AssignmentExpr> {
     let ast = DashlangParser::parse(Rule::compound_assignment_expr, input)
         .expect("Could not parse compound assignment expression")
         .next()
@@ -41,7 +41,7 @@ pub fn parse_compound_assign_expr(
                 location: Location::new(symbol_start + base_location, symbol_end + base_location),
             }),
             right: parsed_ast_operand,
-            operator: parse_binary_operator(ast_operator.as_str()),
+            operator: parse_binary_operator(ast_operator.as_str())?,
             location: Location::new(start + base_location, end + base_location),
         }))),
         location: Location::new(start + base_location, end + base_location),

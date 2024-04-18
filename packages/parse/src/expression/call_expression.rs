@@ -1,15 +1,15 @@
 use ast::{Call, Expr, Location};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
-    errors::ParsingResult,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
 use super::parse_expression;
 
-pub fn parse_call_expression(input: &str, base_location: usize) -> ParsingResult<Call> {
+pub fn parse_call_expression(input: &str, base_location: usize) -> DashlangResult<Call> {
     let ast = DashlangParser::parse(Rule::call_expression, input)
         .expect("Could not parse call expression")
         .next()
@@ -21,7 +21,7 @@ pub fn parse_call_expression(input: &str, base_location: usize) -> ParsingResult
         .expect("Could not get call symbol")
         .as_str()
         .to_owned();
-    let args: ParsingResult<Vec<Expr>> = ast_inner
+    let args: DashlangResult<Vec<Expr>> = ast_inner
         .map(|element| {
             let inner_arg = element
                 .into_inner()

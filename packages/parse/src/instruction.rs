@@ -1,15 +1,15 @@
 use ast::Instruction;
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
-    errors::ParsingResult,
     expression::parse_expression,
     parser::{DashlangParser, Rule},
     statement::parse_statement,
     utils::get_pair_location,
 };
 
-pub fn parse_instruction(input: &str, base_location: usize) -> ParsingResult<Instruction> {
+pub fn parse_instruction(input: &str, base_location: usize) -> DashlangResult<Instruction> {
     let ast = DashlangParser::parse(Rule::instruction, input)
         .expect("Could not parse instruction")
         .next()

@@ -1,15 +1,15 @@
 use ast::{Location, While};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
     body::parse_body,
-    errors::ParsingResult,
     expression::parse_expression,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_while_stmt(input: &str, base_location: usize) -> ParsingResult<While> {
+pub fn parse_while_stmt(input: &str, base_location: usize) -> DashlangResult<While> {
     let ast = DashlangParser::parse(Rule::while_stmt, input)
         .expect("Could not parse while loop")
         .next()

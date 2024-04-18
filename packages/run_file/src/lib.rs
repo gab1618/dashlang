@@ -4,7 +4,6 @@ use parse::parse;
 use std::fs::read_to_string;
 
 use error::{RunfileError, RunfileResult};
-use errors::{DashlangError, ErrorKind, RuntimeErrorKind};
 use eval::{scope::HashScope, stdlib::Stdlib, Context};
 use miette::NamedSource;
 
@@ -16,11 +15,7 @@ pub fn run_file(file_path: &str) -> RunfileResult {
     match parse(&file_content) {
         Err(err) => Err(RunfileError {
             src: NamedSource::new(file_path, file_content),
-            err: DashlangError {
-                message: err.message,
-                location: None,
-                kind: ErrorKind::Runtime(RuntimeErrorKind::Default),
-            },
+            err,
         }
         .into()),
         Ok(program) => match ctx.run_program(program) {

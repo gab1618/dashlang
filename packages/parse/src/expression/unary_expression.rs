@@ -1,15 +1,15 @@
 use ast::{Location, UnaryExpr, UnaryOperator};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
-    errors::ParsingResult,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
 use super::parse_expression;
 
-pub fn parse_unary_expression(input: &str, base_location: usize) -> ParsingResult<UnaryExpr> {
+pub fn parse_unary_expression(input: &str, base_location: usize) -> DashlangResult<UnaryExpr> {
     let parsed = DashlangParser::parse(Rule::unary_expression, input)
         .expect("Could not parse unary expression")
         .next()

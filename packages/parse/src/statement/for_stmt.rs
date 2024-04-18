@@ -1,16 +1,16 @@
 use ast::{For, Location};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
     body::parse_body,
-    errors::ParsingResult,
     expression::parse_expression,
     instruction::parse_instruction,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_for_stmt(input: &str, base_location: usize) -> ParsingResult<For> {
+pub fn parse_for_stmt(input: &str, base_location: usize) -> DashlangResult<For> {
     let ast = DashlangParser::parse(Rule::for_stmt, input)
         .expect("Could not parse for statement")
         .next()

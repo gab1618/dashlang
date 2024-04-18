@@ -1,14 +1,14 @@
 use ast::Program;
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
-    errors::ParsingResult,
     instruction::parse_instruction,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_program(input: &str) -> ParsingResult<Program> {
+pub fn parse_program(input: &str) -> DashlangResult<Program> {
     let mut program: Program = vec![];
     let ast = DashlangParser::parse(Rule::program, input)
         .expect("Could not parse program")

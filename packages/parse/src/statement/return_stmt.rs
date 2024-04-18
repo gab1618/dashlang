@@ -1,15 +1,15 @@
 use ast::{Expr, Location, Return, Stmt};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
-    errors::ParsingResult,
     expression::parse_expression,
     literal::parse_literal,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
 
-pub fn parse_return_stmt(input: &str, base_location: usize) -> ParsingResult<Stmt> {
+pub fn parse_return_stmt(input: &str, base_location: usize) -> DashlangResult<Stmt> {
     let ast = DashlangParser::parse(Rule::return_stmt, input)
         .expect("Could not parse return statement")
         .next()

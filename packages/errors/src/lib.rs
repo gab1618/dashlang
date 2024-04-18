@@ -10,7 +10,9 @@ pub enum RuntimeErrorKind {
     WrongArgs,
 }
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
-pub enum ParsingErrorKind {}
+pub enum ParsingErrorKind {
+    Default,
+}
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum ErrorKind {
