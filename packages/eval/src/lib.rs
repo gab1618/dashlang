@@ -176,21 +176,6 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<L
             }
             Ordering::Equal => {
                 let local_context = ctx.clone();
-                let args: Result<Vec<Literal>, DashlangError> = call
-                    .clone()
-                    .args
-                    .into_iter()
-                    .map(|expr| eval(expr, &local_context))
-                    .collect();
-                match args {
-                    Ok(ok_args) => {
-                        for (symbol, val) in found_extension.params.iter().zip(ok_args) {
-                            // Inject all arguments into local scope
-                            local_context.scope.set(symbol, val);
-                        }
-                    }
-                    Err(args_err) => return Err(args_err),
-                }
                 return (found_extension.implementation)(&local_context, call);
             }
         }

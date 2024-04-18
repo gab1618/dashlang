@@ -1,4 +1,4 @@
-use ast::{Literal, Location, Void};
+use ast::{Call, Literal, Location, Void};
 use errors::DashlangError;
 
 use crate::{eval, scope::Scope, Context};
@@ -34,9 +34,11 @@ fn stdlib_literal_display<T: Scope + Clone>(
 }
 
 pub fn stdlib_println<T: Scope + Clone>(
-    value: Literal,
+    call: Call,
     ctx: &Context<T>,
 ) -> Result<Literal, DashlangError> {
+    let mut iter_args = call.args.into_iter();
+    let value = eval(iter_args.next().unwrap(), ctx)?;
     println!("{}", stdlib_literal_display(value, ctx)?);
     Ok(Literal::Void(Void {
         location: Location::default(),

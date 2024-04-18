@@ -1,7 +1,11 @@
 use ast::{Call, Int, Literal, Location};
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 
-pub fn stdlib_len(item: Literal, call: Call) -> DashlangResult<Literal> {
+use crate::{eval, scope::Scope, Context};
+
+pub fn stdlib_len<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> DashlangResult<Literal> {
+    let mut iter_args = call.args.into_iter();
+    let item = eval(iter_args.next().unwrap(), ctx)?;
     match item {
         Literal::String(val) => Ok(Literal::Int(ast::Int {
             value: val.value.len() as i64,

@@ -22,49 +22,35 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                 String::from("println"),
                 Extension {
                     params: vec![String::from("expr")],
-                    implementation: Rc::new(|ctx, _call| {
-                        let expr = ctx.scope.get("expr");
-                        stdlib_println(expr, ctx)
-                    }),
+                    implementation: Rc::new(|ctx, call| stdlib_println(call, ctx)),
                 },
             ),
             (
                 String::from("nth"),
                 Extension {
                     params: vec![String::from("value"), String::from("index")],
-                    implementation: Rc::new(|ctx, call| {
-                        let value = ctx.scope.get("value");
-                        let index = ctx.scope.get("index");
-                        stdlib_nth(value, index, ctx, call)
-                    }),
+                    implementation: Rc::new(|ctx, call| stdlib_nth(ctx, call)),
                 },
             ),
             (
                 String::from("len"),
                 Extension {
                     params: vec![String::from("item")],
-                    implementation: Rc::new(|ctx, call| {
-                        let item = ctx.scope.get("item");
-                        stdlib_len(item, call)
-                    }),
+                    implementation: Rc::new(|ctx, call| stdlib_len(ctx, call)),
                 },
             ),
             (
                 String::from("push"),
                 Extension {
                     params: vec![String::from("item"), String::from("base")],
-                    implementation: Rc::new(|ctx, call| {
-                        let item = ctx.scope.get("item");
-                        let base = ctx.scope.get("base");
-                        stdlib_push(item, base, call)
-                    }),
+                    implementation: Rc::new(|ctx, call| stdlib_push(ctx, call)),
                 },
             ),
             (
                 String::from("input"),
                 Extension {
                     params: vec![],
-                    implementation: Rc::new(|_ctx, call| stdlib_input(call)),
+                    implementation: Rc::new(|ctx, call| stdlib_input(ctx, call)),
                 },
             ),
         ]
