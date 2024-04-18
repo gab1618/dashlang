@@ -1,3 +1,5 @@
+![dashlang](https://github.com/GabrielBrandao1618/dashlang/assets/62272513/378f8105-2016-44e1-a573-0e7da9699680)
+
 # Dashlang
 
 A interpreted language focused on simplicity and consistency
@@ -12,7 +14,7 @@ Integer | 1
 Float | 1.0
 String | "Foo"
 Boolean | true
-Null | Null
+Null | null
 Closure | `(n) {return n + 1}`
 
 ## Syntax
