@@ -3,8 +3,8 @@ use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
-    instruction::parse_instruction,
     parser::{DashlangParser, Rule},
+    statement::parse_statement,
     utils::get_pair_location,
 };
 
@@ -14,9 +14,9 @@ pub fn parse_program(input: &str) -> DashlangResult<Program> {
         .expect("Could not parse program")
         .next()
         .expect("Could not parse program");
-    for instruction in ast.into_inner() {
-        let (start, _end) = get_pair_location(&instruction);
-        program.push(parse_instruction(instruction.as_str(), start)?);
+    for stmt in ast.into_inner() {
+        let (start, _end) = get_pair_location(&stmt);
+        program.push(parse_statement(stmt.as_str(), start)?);
     }
     Ok(program)
 }
@@ -24,7 +24,7 @@ pub fn parse_program(input: &str) -> DashlangResult<Program> {
 #[cfg(test)]
 mod tests {
 
-    use ast::{AssignmentExpr, Expr, Instruction, Int, Literal, Location};
+    use ast::{AssignmentExpr, Expr, Int, Literal, Location, Stmt};
 
     use super::*;
 
@@ -33,7 +33,7 @@ mod tests {
         assert_eq!(
             parse_program("age = 5 count = 1"),
             Ok(vec![
-                Instruction::Expr(Expr::Assignment(AssignmentExpr {
+                Stmt::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("age"),
                     value: Box::new(Expr::Literal(Literal::Int(Int {
                         value: 5,
@@ -41,7 +41,7 @@ mod tests {
                     }))),
                     location: Location::new(0, 8),
                 })),
-                Instruction::Expr(Expr::Assignment(AssignmentExpr {
+                Stmt::Expr(Expr::Assignment(AssignmentExpr {
                     symbol: String::from("count"),
                     value: Box::new(Expr::Literal(Literal::Int(Int {
                         value: 1,

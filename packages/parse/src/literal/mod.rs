@@ -90,7 +90,7 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
 
 #[cfg(test)]
 mod tests {
-    use ast::{Closure, Expr, Instruction, Return, Stmt};
+    use ast::{Closure, Expr, Return, Stmt};
 
     use super::*;
     #[test]
@@ -155,13 +155,13 @@ mod tests {
             parse_literal("(name, age) {return true}", 0),
             Ok(Literal::Closure(Closure {
                 params: vec![String::from("name"), String::from("age")],
-                body: vec![Instruction::Stmt(Stmt::Return(Return {
+                body: vec![Stmt::Return(Return {
                     value: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(20, 24)
                     })),
                     location: Location::new(13, 24)
-                }))],
+                })],
                 location: Location::new(0, 25)
             }))
         );

@@ -24,14 +24,13 @@ else_stmt               =  { "else" ~ body }
 else_if_stmt            =  { "else" ~ "if" ~ expression ~ body ~ (else_stmt | else_if_stmt)? }
 if_stmt                 =  { "if" ~ expression ~ body ~ (else_stmt | else_if_stmt)? }
 while_stmt              =  { "while" ~ expression ~ body }
-for_stmt                =  { "for" ~ instruction ~ ";" ~ expression ~ ";" ~ instruction ~ body }
-statement               =  { return_stmt | if_stmt | while_stmt | for_stmt }
-instruction             =  { statement | expression }
+for_stmt                =  { "for" ~ statement ~ ";" ~ expression ~ ";" ~ statement ~ body }
+statement               =  { return_stmt | if_stmt | while_stmt | for_stmt | expression }
 closure_param           =  { symbol }
 closure_params          =  { (closure_param ~ ("," ~ closure_param)*)? }
 closure                 =  { "(" ~ closure_params ~ ")" ~ body }
 literal                 =  { string | float | int | boolean | vector | closure }
 
-program = { instruction* }
+program = { statement* }
 
 WHITESPACE = _{ " " | "\n" }
