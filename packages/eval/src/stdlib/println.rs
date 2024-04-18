@@ -1,4 +1,4 @@
-use ast::{Call, Literal, Location, Void};
+use ast::{Call, Literal, Void};
 use errors::DashlangError;
 
 use crate::{eval, scope::Scope, Context};

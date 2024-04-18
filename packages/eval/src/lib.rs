@@ -189,7 +189,7 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<L
                     call.symbol,
                     closure.params.len(),
                     call.args.len(),
-                    s = if closure.params.len() > 1 as usize {"s"} else {""},
+                    s = if closure.params.len() > 1_usize {"s"} else {""},
                     s1 = if call.args.len() > 1 {"were"} else {"was"}
                 ),
                     ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),

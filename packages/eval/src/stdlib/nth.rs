@@ -24,9 +24,9 @@ pub fn stdlib_nth<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> DashlangRes
         )
         .location(call.location));
     }
-    return Err(DashlangError::new(
+    Err(DashlangError::new(
         "Index out of bound",
         ErrorKind::Runtime(RuntimeErrorKind::Default),
     )
-    .location(call.location));
+    .location(call.location))
 }
