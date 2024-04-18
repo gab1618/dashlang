@@ -1,8 +1,10 @@
 name: Build and Upload CLI package
 
 on:
-  release:
-    types: [created]
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build-and-upload:
