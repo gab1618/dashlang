@@ -41,6 +41,6 @@ pub fn stdlib_println<T: Scope + Clone>(
     let value = eval(iter_args.next().unwrap(), ctx)?;
     println!("{}", stdlib_literal_display(value, ctx)?);
     Ok(Literal::Void(Void {
-        location: Location::default(),
+        location: call.location,
     }))
 }

@@ -1,4 +1,4 @@
-use ast::{Call, Int, Literal, Location};
+use ast::{Call, Int, Literal};
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 
 use crate::{eval, scope::Scope, Context};
@@ -9,11 +9,11 @@ pub fn stdlib_len<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> DashlangRes
     match item {
         Literal::String(val) => Ok(Literal::Int(ast::Int {
             value: val.value.len() as i64,
-            location: Location::default(),
+            location: call.location,
         })),
         Literal::Vector(val) => Ok(Literal::Int(Int {
             value: val.value.len() as i64,
-            location: Default::default(),
+            location: call.location,
         })),
         _ => Err(DashlangError::new(
             "Could not get length: unsuported operation",

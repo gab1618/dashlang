@@ -1,6 +1,6 @@
 use std::io;
 
-use ast::{Call, Literal, Location};
+use ast::{Call, Literal};
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 
 use crate::{scope::Scope, Context};
@@ -10,7 +10,7 @@ pub fn stdlib_input<T: Scope>(_ctx: &Context<T>, call: Call) -> DashlangResult<L
     match io::stdin().read_line(&mut input) {
         Ok(_) => Ok(Literal::String(ast::Str {
             value: input,
-            location: Location::default(),
+            location: call.location,
         })),
         Err(_) => Err(DashlangError::new(
             "Could not get input",
