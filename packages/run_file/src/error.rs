@@ -35,10 +35,7 @@ impl Diagnostic for RunfileError {
                     RuntimeErrorKind::WrongArgs => Some(Box::new("Try fixing the number os arguments passed to this call".to_owned())),
                 }
             }
-            ErrorKind::Parsing(_parsing_err) => {
-                Some(Box::new("Could not parse".to_owned()))
-
-            }
+            ErrorKind::Parsing(_) => None 
 
         }
     }
@@ -60,7 +57,9 @@ impl Diagnostic for RunfileError {
                             RuntimeErrorKind::InvalidOperation => "Invalid operation here",
                             RuntimeErrorKind::WrongArgs => "Wrong args passed here",
                         },
-                        ErrorKind::Parsing(_parsing_err) => "Could not parse",
+                        ErrorKind::Parsing(parsing_err) => match parsing_err {
+                            errors::ParsingErrorKind::Default => "Invalid syntax here",
+                        },
                     },
                 )]
                 .into_iter(),

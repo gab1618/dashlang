@@ -32,5 +32,6 @@ closure                 =  { "(" ~ closure_params ~ ")" ~ body }
 literal                 =  { string | float | int | boolean | vector | closure }
 
 program = { statement* }
+file    = { SOI ~ program ~ EOI }
 
 WHITESPACE = _{ " " | "\n" }

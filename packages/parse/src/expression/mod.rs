@@ -25,7 +25,7 @@ pub fn parse_expression(input: &str, base_location: usize) -> DashlangResult<Exp
                 pest::error::InputLocation::Pos(_) => None,
                 pest::error::InputLocation::Span((start, end)) => Some(Location { start, end }),
             },
-            message: "Could not parse  expression".to_owned(),
+            message: "Could not parse expression".to_owned(),
             kind: ErrorKind::Parsing(ParsingErrorKind::Default),
         })?
         .next()
