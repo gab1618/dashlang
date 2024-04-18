@@ -84,14 +84,28 @@ fn eval_binary_expr<T: Scope + Clone>(op: BinaryExpr, ctx: &Context<T>) -> Dashl
         BinaryOperator::Ge => define_boolean_operation!(>=, op, ctx),
         BinaryOperator::Lt => define_boolean_operation!(<, op, ctx),
         BinaryOperator::Le => define_boolean_operation!(<=, op, ctx),
-        BinaryOperator::And => Ok(Literal::Bool(Boolean {
-            value: is_truthy(op.left, ctx)? && is_truthy(op.right, ctx)?,
-            location: op.location,
-        })),
-        BinaryOperator::Or => Ok(Literal::Bool(Boolean {
-            value: is_truthy(op.left, ctx)? || is_truthy(op.right, ctx)?,
-            location: op.location,
-        })),
+        BinaryOperator::And => {
+            let left_evaluated = is_truthy(op.left, ctx)?;
+            Ok(Literal::Bool(Boolean {
+                value: if !left_evaluated {
+                    false
+                } else {
+                    is_truthy(op.right, ctx)?
+                },
+                location: op.location,
+            }))
+        }
+        BinaryOperator::Or => {
+            let left_evaluated = is_truthy(op.left, ctx)?;
+            Ok(Literal::Bool(Boolean {
+                value: if left_evaluated {
+                    true
+                } else {
+                    is_truthy(op.right, ctx)?
+                },
+                location: op.location,
+            }))
+        }
     }
 }
 fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> DashlangResult<Literal> {
