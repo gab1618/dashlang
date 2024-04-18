@@ -6,8 +6,8 @@ mod tests;
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use ast::{
-    BinaryExpr, BinaryOperator, Boolean, Call, Expr, Float, Instruction, Int, Literal, Program,
-    Stmt, UnaryExpr, Void,
+    BinaryExpr, BinaryOperator, Boolean, Call, Expr, Float, Int, Literal, Program, Stmt, UnaryExpr,
+    Void,
 };
 
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
@@ -121,49 +121,47 @@ pub fn eval_program<T: Scope + Clone>(
     program: Program,
     ctx: &Context<T>,
 ) -> DashlangResult<Literal> {
-    for instruction in program {
-        match instruction {
-            Instruction::Stmt(stmt) => match stmt {
-                Stmt::Return(val) => {
-                    return eval(val.value, ctx);
-                }
-                Stmt::If(if_stmt) => {
-                    if is_truthy(if_stmt.cond, ctx)? {
-                        let block_result = eval_program(if_stmt.body, ctx)?;
-                        match block_result {
-                            Literal::Void(_) => (),
-                            val => return Ok(val),
-                        }
-                    } else if let Some(else_block) = if_stmt.else_block {
-                        let block_result = eval_program(else_block, ctx)?;
-                        match block_result {
-                            Literal::Null(_) => (),
-                            val => return Ok(val),
-                        }
+    for stmt in program {
+        match stmt {
+            Stmt::Return(val) => {
+                return eval(val.value, ctx);
+            }
+            Stmt::If(if_stmt) => {
+                if is_truthy(if_stmt.cond, ctx)? {
+                    let block_result = eval_program(if_stmt.body, ctx)?;
+                    match block_result {
+                        Literal::Void(_) => (),
+                        val => return Ok(val),
+                    }
+                } else if let Some(else_block) = if_stmt.else_block {
+                    let block_result = eval_program(else_block, ctx)?;
+                    match block_result {
+                        Literal::Null(_) => (),
+                        val => return Ok(val),
                     }
                 }
-                Stmt::While(while_stmt) => {
-                    while is_truthy(while_stmt.clone().cond, ctx)? {
-                        let block_result = eval_program(while_stmt.clone().body, ctx)?;
-                        match block_result {
-                            Literal::Void(_) => (),
-                            val => return Ok(val),
-                        }
+            }
+            Stmt::While(while_stmt) => {
+                while is_truthy(while_stmt.clone().cond, ctx)? {
+                    let block_result = eval_program(while_stmt.clone().body, ctx)?;
+                    match block_result {
+                        Literal::Void(_) => (),
+                        val => return Ok(val),
                     }
                 }
-                Stmt::For(for_stmt) => {
-                    eval_program(vec![for_stmt.clone().init], ctx)?;
-                    while is_truthy(for_stmt.clone().cond, ctx)? {
-                        let block_result = eval_program(for_stmt.clone().body, ctx)?;
-                        match block_result {
-                            Literal::Void(_) => (),
-                            val => return Ok(val),
-                        }
-                        eval_program(vec![for_stmt.clone().iteration], ctx)?;
+            }
+            Stmt::For(for_stmt) => {
+                eval_program(vec![for_stmt.clone().init], ctx)?;
+                while is_truthy(for_stmt.clone().cond, ctx)? {
+                    let block_result = eval_program(for_stmt.clone().body, ctx)?;
+                    match block_result {
+                        Literal::Void(_) => (),
+                        val => return Ok(val),
                     }
+                    eval_program(vec![for_stmt.clone().iteration], ctx)?;
                 }
-            },
-            Instruction::Expr(expr) => {
+            }
+            Stmt::Expr(expr) => {
                 eval(expr, ctx)?;
             }
         }

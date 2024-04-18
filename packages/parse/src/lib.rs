@@ -4,7 +4,6 @@ use parser::{DashlangParser, Rule};
 
 mod body;
 mod expression;
-mod instruction;
 mod literal;
 mod parser;
 mod program;

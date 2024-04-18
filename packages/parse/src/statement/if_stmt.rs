@@ -1,4 +1,4 @@
-use ast::{If, Instruction, Location, Program, Stmt};
+use ast::{If, Location, Program, Stmt};
 use errors::DashlangResult;
 use pest::Parser;
 
@@ -31,10 +31,10 @@ pub fn parse_if_stmt(input: &str, base_location: usize) -> DashlangResult<If> {
                 Rule::else_stmt => {
                     Some(parse_else_stmt(pair.as_str(), else_start + base_location)?)
                 }
-                Rule::else_if_stmt => Some(vec![Instruction::Stmt(Stmt::If(parse_else_if_stmt(
+                Rule::else_if_stmt => Some(vec![Stmt::If(parse_else_if_stmt(
                     pair.as_str(),
                     else_start + base_location,
-                )?))]),
+                )?)]),
                 _ => unreachable!(),
             }
         }
@@ -76,7 +76,7 @@ fn parse_else_if_stmt(input: &str, base_location: usize) -> DashlangResult<If> {
     let (body_start, _end) = get_pair_location(&ast_body);
     let else_if_body = parse_body(ast_body.as_str(), body_start + base_location)?;
 
-    let else_element: Option<Vec<Instruction>> = match inner_ast.next() {
+    let else_element: Option<Vec<Stmt>> = match inner_ast.next() {
         Some(element) => {
             let (element_start, _) = get_pair_location(&element);
             match element.as_rule() {
@@ -84,10 +84,10 @@ fn parse_else_if_stmt(input: &str, base_location: usize) -> DashlangResult<If> {
                     element.as_str(),
                     element_start + base_location,
                 )?),
-                Rule::else_if_stmt => Some(vec![Instruction::Stmt(Stmt::If(parse_else_if_stmt(
+                Rule::else_if_stmt => Some(vec![Stmt::If(parse_else_if_stmt(
                     element.as_str(),
                     element_start + base_location,
-                )?))]),
+                )?)]),
                 _ => unreachable!(),
             }
         }
@@ -103,9 +103,7 @@ fn parse_else_if_stmt(input: &str, base_location: usize) -> DashlangResult<If> {
 #[cfg(test)]
 mod tests {
 
-    use ast::{
-        BinaryExpr, BinaryOperator, Boolean, Expr, Instruction, Int, Literal, Return, Stmt, Symbol,
-    };
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Int, Literal, Return, Stmt, Symbol};
 
     use super::*;
 
@@ -156,20 +154,20 @@ mod tests {
                     value: true,
                     location: Location::new(3, 7)
                 })),
-                body: vec![Instruction::Stmt(Stmt::Return(Return {
+                body: vec![Stmt::Return(Return {
                     value: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(16, 20)
                     })),
                     location: Location::new(9, 20)
-                }))],
-                else_block: Some(vec![Instruction::Stmt(Stmt::Return(Return {
+                })],
+                else_block: Some(vec![Stmt::Return(Return {
                     value: Expr::Literal(Literal::Bool(Boolean {
                         value: false,
                         location: Location::new(35, 40)
                     })),
                     location: Location::new(28, 40)
-                }))]),
+                })]),
                 location: Location::new(0, 41),
             })
         );
@@ -186,34 +184,34 @@ mod tests {
                     value: true,
                     location: Location::new(3, 7),
                 })),
-                body: vec![Instruction::Stmt(Stmt::Return(Return {
+                body: vec![Stmt::Return(Return {
                     value: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(16, 20)
                     })),
                     location: Location::new(9, 20)
-                }))],
-                else_block: Some(vec![Instruction::Stmt(Stmt::If(If {
+                })],
+                else_block: Some(vec![Stmt::If(If {
                     cond: Expr::Literal(Literal::Bool(Boolean {
                         value: true,
                         location: Location::new(30, 34)
                     })),
-                    body: vec![Instruction::Stmt(Stmt::Return(Return {
+                    body: vec![Stmt::Return(Return {
                         value: Expr::Literal(Literal::Bool(Boolean {
                             value: true,
                             location: Location::new(43, 47)
                         })),
                         location: Location::new(36, 47)
-                    }))],
-                    else_block: Some(vec![Instruction::Stmt(Stmt::Return(Return {
+                    })],
+                    else_block: Some(vec![Stmt::Return(Return {
                         value: Expr::Literal(Literal::Bool(Boolean {
                             value: false,
                             location: Location::new(62, 67)
                         })),
                         location: Location::new(55, 67)
-                    }))]),
+                    })]),
                     location: Location::new(22, 68),
-                }))]),
+                })]),
                 location: Location::new(0, 68),
             })
         );

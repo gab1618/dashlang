@@ -519,13 +519,13 @@ fn test_eval_call() {
         "greet",
         Literal::Closure(ast::Closure {
             params: vec![String::from("name")],
-            body: vec![Instruction::Stmt(Stmt::Return(Return {
+            body: vec![Stmt::Return(Return {
                 value: Expr::Symbol(Symbol {
                     value: String::from("name"),
                     location: Location::default(),
                 }),
                 location: Location::default(),
-            }))],
+            })],
             location: Location::default(),
         }),
     );
@@ -552,7 +552,7 @@ fn test_if_else() {
     let ctx = Context::new(scope);
     let is_adult_fn = Closure {
         params: vec![String::from("age")],
-        body: vec![Instruction::Stmt(Stmt::If(If {
+        body: vec![Stmt::If(If {
             cond: Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Symbol(Symbol {
                     value: String::from("age"),
@@ -564,22 +564,22 @@ fn test_if_else() {
                 })),
                 BinaryOperator::Ge,
             ))),
-            body: vec![Instruction::Stmt(Stmt::Return(Return {
+            body: vec![Stmt::Return(Return {
                 value: Expr::Literal(Literal::Bool(Boolean {
                     value: true,
                     location: Default::default(),
                 })),
                 location: Location::default(),
-            }))],
-            else_block: Some(vec![Instruction::Stmt(Stmt::Return(Return {
+            })],
+            else_block: Some(vec![Stmt::Return(Return {
                 value: Expr::Literal(Literal::Bool(Boolean {
                     value: false,
                     location: Default::default(),
                 })),
                 location: Location::default(),
-            }))]),
+            })]),
             location: Location::default(),
-        }))],
+        })],
         location: Location::default(),
     };
     // Rust equivalent to this function:
@@ -636,7 +636,7 @@ fn test_while_loop() {
             location: Default::default(),
         }),
     );
-    let program: Program = vec![Instruction::Stmt(Stmt::While(While {
+    let program: Program = vec![Stmt::While(While {
         cond: Expr::BinaryExpr(Box::new(BinaryExpr::new(
             Expr::Symbol(Symbol {
                 value: String::from("count"),
@@ -648,7 +648,7 @@ fn test_while_loop() {
             })),
             BinaryOperator::Lt,
         ))),
-        body: vec![Instruction::Expr(Expr::Assignment(AssignmentExpr {
+        body: vec![Stmt::Expr(Expr::Assignment(AssignmentExpr {
             symbol: String::from("count"),
             value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr::new(
                 Expr::Symbol(Symbol {
@@ -664,7 +664,7 @@ fn test_while_loop() {
             location: Location::default(),
         }))],
         location: Location::default(),
-    }))];
+    })];
     // Rust equivalent
     // while count < 10 {
     //  count = count + 1;

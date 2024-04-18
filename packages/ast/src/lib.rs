@@ -176,8 +176,8 @@ pub struct While {
 pub struct For {
     pub cond: Expr,
     pub body: Program,
-    pub init: Instruction,
-    pub iteration: Instruction,
+    pub init: Stmt,
+    pub iteration: Stmt,
     pub location: Location,
 }
 
@@ -193,11 +193,7 @@ pub enum Stmt {
     If(If),
     While(While),
     For(Box<For>),
-}
-
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub enum Instruction {
-    Stmt(Stmt),
     Expr(Expr),
 }
-pub type Program = Vec<Instruction>;
+
+pub type Program = Vec<Stmt>;

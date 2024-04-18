@@ -2,11 +2,13 @@ mod for_stmt;
 mod if_stmt;
 mod return_stmt;
 mod while_stmt;
+
 use ast::Stmt;
 use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
+    expression::parse_expression,
     parser::{DashlangParser, Rule},
     utils::get_pair_location,
 };
@@ -38,6 +40,10 @@ pub fn parse_statement(input: &str, base_location: usize) -> DashlangResult<Stmt
             ast_statement.as_str(),
             statement_start + base_location,
         )?)),
+        Rule::expression => Stmt::Expr(parse_expression(
+            ast_statement.as_str(),
+            statement_start + base_location,
+        )?),
         _ => unreachable!(),
     })
 }
