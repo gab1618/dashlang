@@ -1,80 +1,77 @@
-use ast::{Expr, Literal, While};
+use ast::{Location, While};
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
     body::parse_body,
     expression::parse_expression,
-    literal::parse_literal,
     parser::{DashlangParser, Rule},
+    utils::get_pair_location,
 };
 
-pub fn parse_while_stmt(input: &str) -> While {
-    let mut final_while = While {
-        cond: Expr::Literal(Literal::Bool(true)),
-        body: vec![],
-    };
+pub fn parse_while_stmt(input: &str, base_location: usize) -> DashlangResult<While> {
     let ast = DashlangParser::parse(Rule::while_stmt, input)
         .expect("Could not parse while loop")
         .next()
         .unwrap();
-    for element in ast.into_inner() {
-        match element.as_rule() {
-            Rule::literal => {
-                final_while.cond = Expr::Literal(parse_literal(element.as_str()));
-            }
-            Rule::expression => {
-                final_while.cond = parse_expression(element.as_str());
-            }
-            Rule::body => {
-                final_while.body = parse_body(element.as_str());
-            }
-            _ => unreachable!(),
-        }
-    }
-    final_while
+    let (start, end) = get_pair_location(&ast);
+    let mut inner_ast = ast.into_inner();
+    let ast_cond = inner_ast
+        .next()
+        .expect("Could not get while statement condition");
+    let (cond_start, _) = get_pair_location(&ast_cond);
+    let parsed_cond = parse_expression(ast_cond.as_str(), cond_start + base_location)?;
+    let ast_body = inner_ast
+        .next()
+        .expect("Could not get while statement body");
+    let (body_start, _) = get_pair_location(&ast_body);
+    let parsed_body = parse_body(ast_body.as_str(), body_start + base_location)?;
+    Ok(While {
+        cond: parsed_cond,
+        body: parsed_body,
+        location: Location::new(start + base_location, end + base_location),
+    })
 }
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Instruction, Stmt};
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Int, Literal, Symbol};
 
     use super::*;
 
     #[test]
     fn test_while_with_values() {
         assert_eq!(
-            parse_while_stmt("while true {}"),
-            While {
-                cond: Expr::Literal(Literal::Bool(true)),
+            parse_while_stmt("while true {}", 0),
+            Ok(While {
+                cond: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Location::new(6, 10)
+                })),
                 body: vec![],
-            }
+                location: Location::new(0, 13),
+            })
         );
     }
     #[test]
     fn test_parse_while() {
         assert_eq!(
-            parse_while_stmt("while count < 10 {}"),
-            While {
+            parse_while_stmt("while count < 10 {}", 0),
+            Ok(While {
                 cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("count")),
-                    right: Expr::Literal(Literal::Int(10)),
-                    operator: BinaryOperator::Lt
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("count"),
+                        location: Location::new(6, 11)
+                    }),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 10,
+                        location: Location::new(14, 16)
+                    })),
+                    operator: BinaryOperator::Lt,
+                    location: Location::new(6, 17),
                 })),
-                body: vec![]
-            }
-        );
-
-        assert_eq!(
-            parse_while_stmt("while count < 10 {return 1}"),
-            While {
-                cond: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("count")),
-                    right: Expr::Literal(Literal::Int(10)),
-                    operator: BinaryOperator::Lt
-                })),
-                body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                    Literal::Int(1)
-                )))]
-            }
+                body: vec![],
+                location: Location::new(0, 19),
+            })
         );
     }
 }

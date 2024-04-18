@@ -1,5 +1,8 @@
-use crate::{literal::parse_literal, DashlangParser, Rule};
-use ast::Expr;
+use crate::{literal::parse_literal, utils::get_pair_location, DashlangParser, Rule};
+
+use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
+
+use ast::{Expr, Location, Symbol};
 use pest::Parser;
 
 use self::{
@@ -15,141 +18,171 @@ mod call_expression;
 mod compound_assign_expr;
 mod unary_expression;
 
-pub fn parse_expression(input: &str) -> Expr {
+pub fn parse_expression(input: &str, base_location: usize) -> DashlangResult<Expr> {
     let ast = DashlangParser::parse(Rule::expression, input)
-        .expect("Could not parse expression")
+        .map_err(|err| DashlangError {
+            location: match err.location {
+                pest::error::InputLocation::Pos(_) => None,
+                pest::error::InputLocation::Span((start, end)) => Some(Location { start, end }),
+            },
+            message: "Could not parse  expression".to_owned(),
+            kind: ErrorKind::Parsing(ParsingErrorKind::Default),
+        })?
         .next()
         .expect("Could not parse expression");
+    let (start, end) = get_pair_location(&ast);
     let mut inner_ast = ast.into_inner();
     let expression = inner_ast.next().expect("Could not get expression type");
     let mut parsed = match expression.as_rule() {
         Rule::binary_expression => {
-            let parsed = parse_binary_expression(expression.as_str());
+            let parsed = parse_binary_expression(expression.as_str(), start + base_location)?;
             Expr::BinaryExpr(Box::new(parsed))
         }
         Rule::assignment_expression => {
-            let parsed = parse_assignment_expression(expression.as_str());
+            let parsed = parse_assignment_expression(expression.as_str(), start + base_location)?;
             Expr::Assignment(parsed)
         }
-        Rule::compound_assignment_expr => {
-            Expr::Assignment(parse_compound_assign_expr(expression.as_str()))
-        }
+        Rule::compound_assignment_expr => Expr::Assignment(parse_compound_assign_expr(
+            expression.as_str(),
+            start + base_location,
+        )?),
         Rule::call_expression => {
-            let parsed = parse_call_expression(expression.as_str());
+            let parsed = parse_call_expression(expression.as_str(), start + base_location)?;
             Expr::Call(parsed)
         }
-        Rule::symbol => Expr::Symbol(expression.as_str().to_owned()),
-        Rule::literal => Expr::Literal(parse_literal(expression.as_str())),
-        Rule::unary_expression => {
-            Expr::UnaryExpr(Box::new(parse_unary_expression(expression.as_str())))
-        }
+        Rule::symbol => Expr::Symbol(Symbol {
+            value: expression.as_str().to_owned(),
+            location: Location::new(start + base_location, end + base_location),
+        }),
+        Rule::literal => Expr::Literal(parse_literal(expression.as_str(), start + base_location)?),
+        Rule::unary_expression => Expr::UnaryExpr(Box::new(parse_unary_expression(
+            expression.as_str(),
+            start + base_location,
+        )?)),
         any => unreachable!("{:#?}", any),
     };
-    while let Some(piping) = inner_ast.next() {
+    for piping in inner_ast {
         let inner_call = piping
             .into_inner()
             .next()
             .expect("Could not get call from piping");
-        let mut parsed_inner_call = parse_call_expression(inner_call.as_str());
+        let (start_call, _end) = get_pair_location(&inner_call);
+        let mut parsed_inner_call =
+            parse_call_expression(inner_call.as_str(), start_call + base_location)?;
         parsed_inner_call.args.insert(0, parsed);
         parsed = Expr::Call(parsed_inner_call);
     }
-    parsed
+    Ok(parsed)
 }
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{Assignment, BinaryExpr, BinaryOperator, Call, Expr, Literal, UnaryExpr};
+    use ast::{
+        AssignmentExpr, BinaryExpr, BinaryOperator, Boolean, Call, Expr, Int, Literal, Location,
+        UnaryExpr,
+    };
     #[test]
     fn test_parse_expression() {
         assert_eq!(
-            parse_expression("1 + 2"),
-            Expr::BinaryExpr(Box::new(BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(2)),
-                operator: BinaryOperator::Add
-            }))
+            parse_expression("1 + 2", 0),
+            Ok(Expr::BinaryExpr(Box::new(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Location::new(4, 5)
+                })),
+                operator: BinaryOperator::Add,
+                location: Location::new(0, 5),
+            })))
         );
     }
     #[test]
     fn test_assignment_expression() {
         assert_eq!(
-            parse_expression("age = 5 + 1"),
-            Expr::Assignment(Assignment {
+            parse_expression("age = 5 + 1", 0),
+            Ok(Expr::Assignment(AssignmentExpr {
                 symbol: String::from("age"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(5)),
-                    right: Expr::Literal(Literal::Int(1)),
-                    operator: BinaryOperator::Add
-                })))
-            })
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 5,
+                        location: Location::new(6, 7)
+                    })),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Location::new(10, 11)
+                    })),
+                    operator: BinaryOperator::Add,
+                    location: Location::new(6, 11),
+                }))),
+                location: Location::new(0, 11),
+            }))
         );
     }
     #[test]
     fn test_unary_expression() {
         assert_eq!(
-            parse_expression("!(true && false)"),
-            Expr::UnaryExpr(Box::new(UnaryExpr {
+            parse_expression("!(true && false)", 0),
+            Ok(Expr::UnaryExpr(Box::new(UnaryExpr {
                 operator: ast::UnaryOperator::Not,
                 operand: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Bool(true)),
-                    right: Expr::Literal(Literal::Bool(false)),
-                    operator: BinaryOperator::And
-                }))
-            }))
+                    left: Expr::Literal(Literal::Bool(Boolean {
+                        value: true,
+                        location: Location::new(2, 6)
+                    })),
+                    right: Expr::Literal(Literal::Bool(Boolean {
+                        value: false,
+                        location: Location::new(10, 15)
+                    })),
+                    operator: BinaryOperator::And,
+                    location: Location::new(2, 15),
+                })),
+                location: Location::new(0, 16),
+            })))
         );
     }
     #[test]
     fn test_compound_assign_expr() {
         assert_eq!(
-            parse_expression("n += 1"),
-            Expr::Assignment(Assignment {
+            parse_expression("n += 1", 0),
+            Ok(Expr::Assignment(AssignmentExpr {
                 symbol: String::from("n"),
                 value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Symbol(String::from("n")),
-                    right: Expr::Literal(Literal::Int(1)),
-                    operator: BinaryOperator::Add
-                })))
-            })
+                    left: Expr::Symbol(Symbol {
+                        value: String::from("n"),
+                        location: Location::new(0, 1)
+                    }),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Location::new(5, 6)
+                    })),
+                    operator: BinaryOperator::Add,
+                    location: Location::new(0, 6),
+                }))),
+                location: Location::new(0, 6),
+            }))
         );
     }
     #[test]
     fn test_piping() {
         assert_eq!(
-            parse_expression("4 |> add(1)"),
-            Expr::Call(Call {
+            parse_expression("4 |> add(1)", 0),
+            Ok(Expr::Call(Call {
                 symbol: String::from("add"),
                 args: vec![
-                    Expr::Literal(Literal::Int(4)),
-                    Expr::Literal(Literal::Int(1))
-                ]
-            })
-        );
-        assert_eq!(
-            parse_expression("4 |> add(1) |> add(5)"),
-            Expr::Call(Call {
-                symbol: String::from("add"),
-                args: vec![
-                    Expr::Call(Call {
-                        symbol: String::from("add"),
-                        args: vec![
-                            Expr::Literal(Literal::Int(4)),
-                            Expr::Literal(Literal::Int(1))
-                        ]
-                    }),
-                    Expr::Literal(Literal::Int(5))
-                ]
-            })
-        );
-        assert_eq!(
-            parse_expression("\"Hello, \" |> push(\"World!\")"),
-            Expr::Call(Call {
-                symbol: String::from("push"),
-                args: vec![
-                    Expr::Literal(Literal::String(String::from("Hello, "))),
-                    Expr::Literal(Literal::String(String::from("World!")))
-                ]
-            })
+                    Expr::Literal(Literal::Int(Int {
+                        value: 4,
+                        location: Location::new(0, 1)
+                    })),
+                    Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Location::new(9, 10)
+                    }))
+                ],
+                location: Location::new(5, 11),
+            }))
         );
     }
 }

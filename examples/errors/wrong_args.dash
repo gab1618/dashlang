@@ -1,0 +1,12 @@
+next = (a) {
+  return a + 1
+}
+
+add = (a, b) {
+  return a + b
+}
+
+println(next(1, 2))
+println(add(1))
+
+println(1, 2)

@@ -1,4 +1,4 @@
-use ast::Literal;
+use ast::{Literal, Void};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 pub trait Scope {
@@ -16,7 +16,9 @@ impl Scope for HashScope {
             Some(value) => value.clone(),
             None => match &self.parent {
                 Some(parent) => parent.get(symbol),
-                None => Literal::Void,
+                None => Literal::Void(Void {
+                    location: Default::default(),
+                }),
             },
         }
     }
@@ -39,27 +41,62 @@ impl Clone for HashScope {
 
 #[cfg(test)]
 mod tests {
+    use ast::Str;
+
     use super::*;
 
     #[test]
     fn test_allocate() {
         let scope = HashScope::default();
-        scope.set("name", Literal::String(String::from("John Doe")));
+        scope.set(
+            "name",
+            Literal::String(Str {
+                value: String::from("John Doe"),
+                location: Default::default(),
+            }),
+        );
 
-        assert_eq!(scope.get("name"), Literal::String(String::from("John Doe")));
+        assert_eq!(
+            scope.get("name"),
+            Literal::String(Str {
+                value: String::from("John Doe"),
+                location: Default::default()
+            })
+        );
     }
     #[test]
     fn test_child_scope() {
         let global = HashScope::default();
-        global.set("name", Literal::String(String::from("John Doe")));
+        global.set(
+            "name",
+            Literal::String(Str {
+                value: String::from("John Doe"),
+                location: Default::default(),
+            }),
+        );
 
         let local = global.clone();
 
-        assert_eq!(local.get("name"), Literal::String(String::from("John Doe")));
-        local.set("name", Literal::String(String::from("John Doe jr.")));
         assert_eq!(
             local.get("name"),
-            Literal::String(String::from("John Doe jr."))
+            Literal::String(Str {
+                value: String::from("John Doe"),
+                location: Default::default()
+            })
+        );
+        local.set(
+            "name",
+            Literal::String(Str {
+                value: String::from("John Doe jr."),
+                location: Default::default(),
+            }),
+        );
+        assert_eq!(
+            local.get("name"),
+            Literal::String(Str {
+                value: String::from("John Doe jr."),
+                location: Default::default()
+            })
         );
     }
 }

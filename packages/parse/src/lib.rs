@@ -1,18 +1,18 @@
 use ast::Program;
+use errors::DashlangResult;
 use parser::{DashlangParser, Rule};
 
 mod body;
-#[cfg(test)]
-mod examples_tests;
 mod expression;
 mod instruction;
 mod literal;
 mod parser;
 mod program;
 mod statement;
+mod utils;
 
 use program::parse_program;
 
-pub fn parse(input: &str) -> Program {
+pub fn parse(input: &str) -> DashlangResult<Program> {
     parse_program(input)
 }

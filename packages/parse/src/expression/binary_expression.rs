@@ -1,6 +1,7 @@
 use super::{binary_operator::parse_binary_operator, parse_expression};
-use crate::{literal::parse_literal, DashlangParser, Rule};
-use ast::{BinaryExpr, BinaryOperator, Expr, Literal};
+use crate::{literal::parse_literal, utils::get_pair_location, DashlangParser, Rule};
+use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location, Symbol};
+use errors::DashlangResult;
 use pest::Parser;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -9,38 +10,49 @@ enum BinaryExpressionToken {
     Expr(Expr),
     Operator(BinaryOperator),
 }
-pub fn parse_binary_expression(input: &str) -> BinaryExpr {
+pub fn parse_binary_expression(input: &str, base_location: usize) -> DashlangResult<BinaryExpr> {
     let ast = DashlangParser::parse(Rule::binary_expression, input)
         .expect("Could not parse binary expression")
         .next()
         .expect("Could not parse binary expression");
+    let (start, end) = get_pair_location(&ast);
     let mut flat_expression: Vec<BinaryExpressionToken> = vec![];
     for element in ast.into_inner() {
+        let (element_start, element_end) = get_pair_location(&element);
         match element.as_rule() {
             Rule::binary_operator => flat_expression.push(BinaryExpressionToken::Operator(
-                parse_binary_operator(element.as_str()),
+                parse_binary_operator(element.as_str())?,
             )),
             Rule::literal => {
                 flat_expression.push(BinaryExpressionToken::Literal(parse_literal(
                     element.as_str(),
-                )));
+                    element_start + base_location,
+                )?));
             }
             Rule::expression => {
-                let parsed = parse_expression(element.as_str());
+                let parsed = parse_expression(element.as_str(), element_start)?;
                 flat_expression.push(BinaryExpressionToken::Expr(parsed));
             }
             Rule::symbol => {
                 let parsed = element.as_str().to_owned();
-                flat_expression.push(BinaryExpressionToken::Expr(Expr::Symbol(parsed)));
+                flat_expression.push(BinaryExpressionToken::Expr(Expr::Symbol(Symbol {
+                    value: parsed,
+                    location: Location::new(
+                        element_start + base_location,
+                        element_end + base_location,
+                    ),
+                })));
             }
             Rule::call_expression => {
-                let parsed = parse_expression(element.as_str());
+                let parsed = parse_expression(element.as_str(), element_start + base_location)?;
                 flat_expression.push(BinaryExpressionToken::Expr(parsed));
             }
             _ => unreachable!(),
         }
     }
-    flat_binary_expression_to_ast(&mut flat_expression)
+    let mut base_binary_op = flat_binary_expression_to_ast(&mut flat_expression);
+    base_binary_op.location = Location::new(start + base_location, end + base_location);
+    Ok(base_binary_op)
 }
 fn flat_binary_expression_to_ast(flat_expression: &mut Vec<BinaryExpressionToken>) -> BinaryExpr {
     while flat_expression.len() > 1 {
@@ -77,7 +89,7 @@ fn flat_binary_expression_to_ast(flat_expression: &mut Vec<BinaryExpressionToken
         );
     }
     match flat_expression
-        .into_iter()
+        .iter_mut()
         .next()
         .expect("Expected expression to ended with at least 1 element")
     {
@@ -117,23 +129,26 @@ fn merge_flat_binary_op_tokens(
         let previous = flat_expression.remove(operator_pos - 1);
         (previous, next)
     };
+    let left = match previous_element {
+        BinaryExpressionToken::Literal(val) => Expr::Literal(val.clone()),
+        BinaryExpressionToken::Expr(expr) => expr,
+        BinaryExpressionToken::Operator(_) => {
+            panic!("Expected token after operator to be a value or expression")
+        }
+    };
+    let right = match next_element {
+        BinaryExpressionToken::Literal(val) => Expr::Literal(val.clone()),
+        BinaryExpressionToken::Expr(expr) => expr,
+        BinaryExpressionToken::Operator(_) => {
+            panic!("Expected token after operator to be a value or expression")
+        }
+    };
     let _ = std::mem::replace(
         &mut flat_expression[operator_pos - 1], // Since we removed the previous item, we use position - 1
         BinaryExpressionToken::Expr(Expr::BinaryExpr(Box::new(BinaryExpr {
-            left: match previous_element {
-                BinaryExpressionToken::Literal(val) => Expr::Literal(val.clone()),
-                BinaryExpressionToken::Expr(expr) => expr,
-                BinaryExpressionToken::Operator(_) => {
-                    panic!("Expected token after operator to be a value or expression")
-                }
-            },
-            right: match next_element {
-                BinaryExpressionToken::Literal(val) => Expr::Literal(val.clone()),
-                BinaryExpressionToken::Expr(expr) => expr,
-                BinaryExpressionToken::Operator(_) => {
-                    panic!("Expected token after operator to be a value or expression")
-                }
-            },
+            location: Location::new(left.get_location().start, right.get_location().end),
+            left,
+            right,
             operator: op,
         }))),
     );
@@ -141,151 +156,206 @@ fn merge_flat_binary_op_tokens(
 
 #[cfg(test)]
 mod tests {
+    use ast::{Boolean, Int};
+
     use super::*;
 
     #[test]
     fn test_parse_binary_op() {
         assert_eq!(
-            parse_binary_expression("1 * 2"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(2)),
-                operator: BinaryOperator::Mul
-            }
-        );
-        assert_eq!(
-            parse_binary_expression("1 + 2"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(2)),
-                operator: BinaryOperator::Add
-            }
-        );
-        assert_eq!(
-            parse_binary_expression("1 + 2 * 2"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(2)),
-                    right: Expr::Literal(Literal::Int(2)),
-                    operator: BinaryOperator::Mul
+            parse_binary_expression("1 * 2", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
                 })),
-                operator: BinaryOperator::Add
-            }
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Location::new(4, 5)
+                })),
+                operator: BinaryOperator::Mul,
+                location: Location::new(0, 5),
+            })
         );
         assert_eq!(
-            parse_binary_expression("1 + 2 * 2 / 2"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
+            parse_binary_expression("1 + 2", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Location::new(4, 5)
+                })),
+                operator: BinaryOperator::Add,
+                location: Location::new(0, 5),
+            })
+        );
+        assert_eq!(
+            parse_binary_expression("1 + 2 * 2", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
+                })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::BinaryExpr(Box::new(BinaryExpr {
-                        left: Expr::Literal(Literal::Int(2)),
-                        right: Expr::Literal(Literal::Int(2)),
-                        operator: BinaryOperator::Mul
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Location::new(4, 5)
                     })),
-                    right: Expr::Literal(Literal::Int(2)),
-                    operator: BinaryOperator::Div
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Location::new(8, 9)
+                    })),
+                    operator: BinaryOperator::Mul,
+                    location: Location::new(4, 9),
                 })),
-                operator: BinaryOperator::Add
-            }
+                operator: BinaryOperator::Add,
+                location: Location::new(0, 9),
+            })
         );
     }
     #[test]
     fn test_parse_binary_expr() {
         assert_eq!(
-            parse_binary_expression("1 + 2"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
-                right: Expr::Literal(Literal::Int(2)),
-                operator: BinaryOperator::Add
-            }
+            parse_binary_expression("1 + 2", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Location::new(4, 5)
+                })),
+                operator: BinaryOperator::Add,
+                location: Location::new(0, 5),
+            })
         );
         assert_eq!(
-            parse_binary_expression("2 > 1"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(2)),
-                right: Expr::Literal(Literal::Int(1)),
-                operator: BinaryOperator::Gt
-            }
+            parse_binary_expression("2 > 1", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Location::new(0, 1)
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(4, 5)
+                })),
+                operator: BinaryOperator::Gt,
+                location: Location::new(0, 5),
+            })
         );
         assert_eq!(
-            parse_binary_expression("2 == 2"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(2)),
-                right: Expr::Literal(Literal::Int(2)),
-                operator: BinaryOperator::Eq
-            }
+            parse_binary_expression("2 == 2", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Location::new(0, 1)
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 2,
+                    location: Location::new(5, 6)
+                })),
+                operator: BinaryOperator::Eq,
+                location: Location::new(0, 6),
+            })
         );
         assert_eq!(
-            parse_binary_expression("true || false"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Bool(true)),
-                right: Expr::Literal(Literal::Bool(false)),
-                operator: BinaryOperator::Or
-            }
+            parse_binary_expression("true || false", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Location::new(0, 4)
+                })),
+                right: Expr::Literal(Literal::Bool(Boolean {
+                    value: false,
+                    location: Location::new(8, 13)
+                })),
+                operator: BinaryOperator::Or,
+                location: Location::new(0, 13),
+            })
         );
         assert_eq!(
-            parse_binary_expression("true && false"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Bool(true)),
-                right: Expr::Literal(Literal::Bool(false)),
-                operator: BinaryOperator::And
-            }
+            parse_binary_expression("true && false", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Location::new(0, 4)
+                })),
+                right: Expr::Literal(Literal::Bool(Boolean {
+                    value: false,
+                    location: Location::new(8, 13)
+                })),
+                operator: BinaryOperator::And,
+                location: Location::new(0, 13),
+            })
         );
     }
     #[test]
     fn test_parse_sub_expressions() {
         assert_eq!(
-            parse_binary_expression("1 + (2 + 1)"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
+            parse_binary_expression("1 + (2 + 1)", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
+                })),
                 right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(2)),
-                    right: Expr::Literal(Literal::Int(1)),
-                    operator: BinaryOperator::Add
-                })),
-                operator: BinaryOperator::Add
-            }
-        );
-        assert_eq!(
-            parse_binary_expression("(1 + 2) + 1"),
-            BinaryExpr {
-                left: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(1)),
-                    right: Expr::Literal(Literal::Int(2)),
-                    operator: BinaryOperator::Add
-                })),
-                right: Expr::Literal(Literal::Int(1)),
-                operator: BinaryOperator::Add
-            }
-        );
-        assert_eq!(
-            parse_binary_expression("(1 + 2 - (1 + 1)) + 1"),
-            BinaryExpr {
-                left: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::BinaryExpr(Box::new(BinaryExpr {
-                        left: Expr::Literal(Literal::Int(1)),
-                        right: Expr::Literal(Literal::Int(2)),
-                        operator: BinaryOperator::Add
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Location::new(5, 6)
                     })),
-                    right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                        left: Expr::Literal(Literal::Int(1)),
-                        right: Expr::Literal(Literal::Int(1)),
-                        operator: BinaryOperator::Add
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Location::new(9, 10)
                     })),
-                    operator: BinaryOperator::Sub
+                    operator: BinaryOperator::Add,
+                    location: Location::new(5, 10),
                 })),
-                right: Expr::Literal(Literal::Int(1)),
-                operator: BinaryOperator::Add
-            }
-        );
-        assert_eq!(
-            parse_binary_expression("1 + n"),
-            BinaryExpr {
-                left: Expr::Literal(Literal::Int(1)),
                 operator: BinaryOperator::Add,
-                right: Expr::Symbol(String::from("n"))
-            }
+                location: Location::new(0, 11),
+            }),
+        );
+        assert_eq!(
+            parse_binary_expression("(1 + 2) + 1", 0),
+            Ok(BinaryExpr {
+                left: Expr::BinaryExpr(Box::new(BinaryExpr {
+                    left: Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: Location::new(1, 2)
+                    })),
+                    right: Expr::Literal(Literal::Int(Int {
+                        value: 2,
+                        location: Location::new(5, 6)
+                    })),
+                    operator: BinaryOperator::Add,
+                    location: Location::new(1, 6),
+                })),
+                right: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(10, 11)
+                })),
+                operator: BinaryOperator::Add,
+                location: Location::new(0, 11),
+            })
+        );
+        assert_eq!(
+            parse_binary_expression("1 + n", 0),
+            Ok(BinaryExpr {
+                left: Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Location::new(0, 1)
+                })),
+                operator: BinaryOperator::Add,
+                right: Expr::Symbol(Symbol {
+                    value: String::from("n"),
+                    location: Location::new(4, 5)
+                }),
+                location: Location::new(0, 5),
+            })
         );
     }
 }

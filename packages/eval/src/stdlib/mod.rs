@@ -22,7 +22,7 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                 String::from("println"),
                 Extension {
                     params: vec![String::from("expr")],
-                    implementation: Rc::new(|ctx| {
+                    implementation: Rc::new(|ctx, _call| {
                         let expr = ctx.scope.get("expr");
                         stdlib_println(expr, ctx)
                     }),
@@ -32,10 +32,10 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                 String::from("nth"),
                 Extension {
                     params: vec![String::from("value"), String::from("index")],
-                    implementation: Rc::new(|ctx| {
+                    implementation: Rc::new(|ctx, call| {
                         let value = ctx.scope.get("value");
                         let index = ctx.scope.get("index");
-                        stdlib_nth(value, index, &ctx)
+                        stdlib_nth(value, index, ctx, call)
                     }),
                 },
             ),
@@ -43,9 +43,9 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                 String::from("len"),
                 Extension {
                     params: vec![String::from("item")],
-                    implementation: Rc::new(|ctx| {
+                    implementation: Rc::new(|ctx, call| {
                         let item = ctx.scope.get("item");
-                        stdlib_len(item)
+                        stdlib_len(item, call)
                     }),
                 },
             ),
@@ -53,10 +53,10 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                 String::from("push"),
                 Extension {
                     params: vec![String::from("item"), String::from("base")],
-                    implementation: Rc::new(|ctx| {
+                    implementation: Rc::new(|ctx, call| {
                         let item = ctx.scope.get("item");
                         let base = ctx.scope.get("base");
-                        stdlib_push(item, base)
+                        stdlib_push(item, base, call)
                     }),
                 },
             ),
@@ -64,7 +64,7 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                 String::from("input"),
                 Extension {
                     params: vec![],
-                    implementation: Rc::new(|_| stdlib_input()),
+                    implementation: Rc::new(|_ctx, call| stdlib_input(call)),
                 },
             ),
         ]

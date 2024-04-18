@@ -1,7 +1,7 @@
 use clap::{Arg, ArgAction, Command};
-use run_file::run_file;
+use run_file::{error::RunfileResult, run_file};
 
-fn main() -> Result<(), std::io::Error> {
+fn main() -> RunfileResult {
     let cli = Command::new("cli")
         .arg(Arg::new("file_path").required(true).action(ArgAction::Set))
         .get_matches();

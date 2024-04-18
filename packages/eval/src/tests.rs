@@ -1,4 +1,4 @@
-use ast::{Assignment, Closure, If, While};
+use ast::{AssignmentExpr, Closure, If, Location, Null, Return, Str, Symbol, While};
 use scope::HashScope;
 
 use super::*;
@@ -7,32 +7,90 @@ use super::*;
 fn eval_primitive() {
     let scope = HashScope::default();
     let ctx = Context::new(scope);
-    let result = eval(Expr::Literal(Literal::Int(1)), &ctx);
-    let expected = Literal::Int(1);
-    assert_eq!(result, expected);
-
-    let result = eval(Expr::Literal(Literal::Bool(true)), &ctx);
-    let expected = Literal::Bool(true);
-    assert_eq!(result, expected);
-
-    let result = eval(Expr::Literal(Literal::String(String::from("test"))), &ctx);
-    let expected = Literal::String(String::from("test"));
-    assert_eq!(result, expected);
-
-    let result = eval(Expr::Literal(Literal::Float(1.5)), &ctx);
-    let expected = Literal::Float(1.5);
-    assert_eq!(result, expected);
-
-    eval(
-        Expr::Assignment(Assignment {
-            symbol: String::from("name"),
-            value: Box::new(Expr::Literal(Literal::Int(4))),
-        }),
+    let result = eval(
+        Expr::Literal(Literal::Int(Int {
+            value: 1,
+            location: Default::default(),
+        })),
         &ctx,
     );
-    let symbol = Expr::Symbol(String::from("name"));
+    assert_eq!(
+        result,
+        Ok(Literal::Int(Int {
+            value: 1,
+            location: Default::default()
+        }))
+    );
+
+    let result = eval(
+        Expr::Literal(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default(),
+        })),
+        &ctx,
+    );
+    assert_eq!(
+        result,
+        Ok(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default()
+        }))
+    );
+
+    let result = eval(
+        Expr::Literal(Literal::String(Str {
+            value: String::from("test"),
+            location: Default::default(),
+        })),
+        &ctx,
+    );
+    assert_eq!(
+        result,
+        Ok(Literal::String(Str {
+            value: String::from("test"),
+            location: Default::default()
+        }))
+    );
+
+    let result = eval(
+        Expr::Literal(Literal::Float(Float {
+            value: 1.5,
+            location: Default::default(),
+        })),
+        &ctx,
+    );
+    assert_eq!(
+        result,
+        Ok(Literal::Float(Float {
+            value: 1.5,
+            location: Default::default()
+        }))
+    );
+
+    eval(
+        Expr::Assignment(AssignmentExpr {
+            symbol: String::from("name"),
+            value: Box::new(Expr::Literal(Literal::Int(Int {
+                value: 4,
+                location: Default::default(),
+            }))),
+            location: Location::default(),
+        }),
+        &ctx,
+    )
+    .unwrap();
+    let symbol = Expr::Symbol(Symbol {
+        value: String::from("name"),
+        location: Location::default(),
+    });
     let found_value = eval(symbol, &ctx);
-    assert_eq!(found_value, Literal::Int(4))
+    assert_eq!(
+        found_value,
+        Ok(Literal::Int(Int {
+            value: 4,
+            location: Default::default()
+        }))
+    )
 }
 #[test]
 fn eval_add_operation() {
@@ -40,20 +98,38 @@ fn eval_add_operation() {
     let ctx = Context::new(scope);
     let op = Expr::BinaryExpr(Box::new(BinaryExpr {
         left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Literal(Literal::Int(2)),
-            Expr::Literal(Literal::Int(8)),
+            Expr::Literal(Literal::Int(Int {
+                value: 2,
+                location: Default::default(),
+            })),
+            Expr::Literal(Literal::Int(Int {
+                value: 8,
+                location: Default::default(),
+            })),
             BinaryOperator::Add,
         ))),
         right: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Literal(Literal::Float(4.5)),
-            Expr::Literal(Literal::Int(5)),
+            Expr::Literal(Literal::Float(Float {
+                value: 4.5,
+                location: Default::default(),
+            })),
+            Expr::Literal(Literal::Int(Int {
+                value: 5,
+                location: Default::default(),
+            })),
             BinaryOperator::Add,
         ))),
         operator: BinaryOperator::Add,
+        location: Location::default(),
     }));
     let result = eval(op, &ctx);
-    let expected = Literal::Float(19.5);
-    assert_eq!(result, expected);
+    assert_eq!(
+        result,
+        Ok(Literal::Float(Float {
+            value: 19.5,
+            location: Default::default()
+        }))
+    );
 }
 #[test]
 #[should_panic]
@@ -62,11 +138,17 @@ fn try_operate_string() {
     let ctx = Context::new(scope);
 
     let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
-        Expr::Literal(Literal::String(String::from("Gab"))),
-        Expr::Literal(Literal::String(String::from("riel"))),
+        Expr::Literal(Literal::String(Str {
+            value: String::from("Gab"),
+            location: Default::default(),
+        })),
+        Expr::Literal(Literal::String(Str {
+            value: String::from("riel"),
+            location: Default::default(),
+        })),
         BinaryOperator::Add,
     )));
-    eval(op, &ctx);
+    eval(op, &ctx).unwrap();
 }
 #[test]
 fn eval_sub_operation() {
@@ -74,20 +156,38 @@ fn eval_sub_operation() {
     let ctx = Context::new(scope);
     let op = Expr::BinaryExpr(Box::new(BinaryExpr {
         left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Literal(Literal::Int(8)),
-            Expr::Literal(Literal::Int(6)),
+            Expr::Literal(Literal::Int(Int {
+                value: 8,
+                location: Default::default(),
+            })),
+            Expr::Literal(Literal::Int(Int {
+                value: 6,
+                location: Default::default(),
+            })),
             BinaryOperator::Sub,
         ))),
         right: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Literal(Literal::Float(4.5)),
-            Expr::Literal(Literal::Float(3.5)),
+            Expr::Literal(Literal::Float(Float {
+                value: 4.5,
+                location: Default::default(),
+            })),
+            Expr::Literal(Literal::Float(Float {
+                value: 3.5,
+                location: Default::default(),
+            })),
             BinaryOperator::Sub,
         ))),
         operator: BinaryOperator::Add,
+        location: Location::default(),
     }));
     let result = eval(op, &ctx);
-    let expected = Literal::Float(3.0);
-    assert_eq!(result, expected);
+    assert_eq!(
+        result,
+        Ok(Literal::Float(Float {
+            value: 3.0,
+            location: Default::default()
+        }))
+    );
 }
 #[test]
 fn eval_multiplication() {
@@ -96,44 +196,86 @@ fn eval_multiplication() {
 
     let op = Expr::BinaryExpr(Box::new(BinaryExpr {
         left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Literal(Literal::Int(2)),
-            Expr::Literal(Literal::Int(8)),
+            Expr::Literal(Literal::Int(Int {
+                value: 2,
+                location: Default::default(),
+            })),
+            Expr::Literal(Literal::Int(Int {
+                value: 8,
+                location: Default::default(),
+            })),
             BinaryOperator::Mul,
         ))),
         right: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Literal(Literal::Float(4.5)),
-            Expr::Literal(Literal::Int(5)),
+            Expr::Literal(Literal::Float(Float {
+                value: 4.5,
+                location: Default::default(),
+            })),
+            Expr::Literal(Literal::Int(Int {
+                value: 5,
+                location: Default::default(),
+            })),
             BinaryOperator::Mul,
         ))),
         operator: BinaryOperator::Add,
+        location: Location::default(),
     }));
     let result = eval(op, &ctx);
-    let expected = Literal::Float(38.5);
-    assert_eq!(result, expected);
+    assert_eq!(
+        result,
+        Ok(Literal::Float(Float {
+            value: 38.5,
+            location: Default::default()
+        }))
+    );
 }
 #[test]
 fn eval_division() {
     let scope = HashScope::default();
     let ctx = Context::new(scope);
 
-    ctx.scope.set("age", Literal::Int(10));
+    ctx.scope.set(
+        "age",
+        Literal::Int(Int {
+            value: 10,
+            location: Default::default(),
+        }),
+    );
 
     let op = Expr::BinaryExpr(Box::new(BinaryExpr {
         left: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Symbol(String::from("age")),
-            Expr::Literal(Literal::Int(2)),
+            Expr::Symbol(Symbol {
+                value: String::from("age"),
+                location: Location::default(),
+            }),
+            Expr::Literal(Literal::Int(Int {
+                value: 2,
+                location: Default::default(),
+            })),
             BinaryOperator::Div,
         ))),
         right: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Literal(Literal::Int(5)),
-            Expr::Literal(Literal::Float(0.5)),
+            Expr::Literal(Literal::Int(Int {
+                value: 5,
+                location: Default::default(),
+            })),
+            Expr::Literal(Literal::Float(Float {
+                value: 0.5,
+                location: Default::default(),
+            })),
             BinaryOperator::Div,
         ))),
         operator: BinaryOperator::Add,
+        location: Location::default(),
     }));
     let result = eval(op, &ctx);
-    let expected = Literal::Float(15.0);
-    assert_eq!(result, expected);
+    assert_eq!(
+        result,
+        Ok(Literal::Float(Float {
+            value: 15.0,
+            location: Default::default()
+        }))
+    );
 }
 #[test]
 fn eval_gt() {
@@ -141,55 +283,152 @@ fn eval_gt() {
     let ctx = Context::new(scope);
 
     let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
-        Expr::Literal(Literal::Int(8)),
-        Expr::Literal(Literal::Int(4)),
+        Expr::Literal(Literal::Int(Int {
+            value: 8,
+            location: Default::default(),
+        })),
+        Expr::Literal(Literal::Int(Int {
+            value: 4,
+            location: Default::default(),
+        })),
         BinaryOperator::Gt,
     )));
     let result = eval(op, &ctx);
-    let expected = Literal::Bool(true);
-    assert_eq!(result, expected);
+    assert_eq!(
+        result,
+        Ok(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default()
+        }))
+    );
 }
 #[test]
 fn truthy_or_falsy() {
     let scope = HashScope::default();
     let ctx = Context::new(scope);
 
-    assert_eq!(is_truthy(Expr::Literal(Literal::Null), &ctx), false);
     assert_eq!(
-        is_truthy(Expr::Literal(Literal::String(String::from(""))), &ctx),
-        false
+        is_truthy(
+            Expr::Literal(Literal::Null(Null {
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(false)
     );
     assert_eq!(
-        is_truthy(Expr::Literal(Literal::String(String::from("Test"))), &ctx),
-        true
+        is_truthy(
+            Expr::Literal(Literal::String(Str {
+                value: String::from(""),
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(false)
     );
-    assert_eq!(is_truthy(Expr::Literal(Literal::Bool(true)), &ctx), true);
-    assert_eq!(is_truthy(Expr::Literal(Literal::Bool(false)), &ctx), false);
-    assert_eq!(is_truthy(Expr::Literal(Literal::Int(0)), &ctx), false);
-    assert_eq!(is_truthy(Expr::Literal(Literal::Int(1)), &ctx), true);
-    assert_eq!(is_truthy(Expr::Literal(Literal::Float(1.1)), &ctx), true);
-    assert_eq!(is_truthy(Expr::Literal(Literal::Float(0.0)), &ctx), false);
+    assert_eq!(
+        is_truthy(
+            Expr::Literal(Literal::String(Str {
+                value: String::from("Test"),
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(true)
+    );
+    assert_eq!(
+        is_truthy(
+            Expr::Literal(Literal::Bool(Boolean {
+                value: true,
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(true)
+    );
+    assert_eq!(
+        is_truthy(
+            Expr::Literal(Literal::Bool(Boolean {
+                value: false,
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(false)
+    );
+    assert_eq!(
+        is_truthy(
+            Expr::Literal(Literal::Int(Int {
+                value: 0,
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(false)
+    );
+    assert_eq!(
+        is_truthy(
+            Expr::Literal(Literal::Int(Int {
+                value: 1,
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(true)
+    );
+    assert_eq!(
+        is_truthy(
+            Expr::Literal(Literal::Float(Float {
+                value: 1.1,
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(true)
+    );
+    assert_eq!(
+        is_truthy(
+            Expr::Literal(Literal::Float(Float {
+                value: 0.0,
+                location: Default::default()
+            })),
+            &ctx,
+        ),
+        Ok(false)
+    );
     assert_eq!(
         is_truthy(
             Expr::BinaryExpr(Box::new(BinaryExpr::new(
-                Expr::Literal(Literal::Int(4)),
-                Expr::Literal(Literal::Int(7)),
+                Expr::Literal(Literal::Int(Int {
+                    value: 4,
+                    location: Default::default()
+                })),
+                Expr::Literal(Literal::Int(Int {
+                    value: 7,
+                    location: Default::default()
+                })),
                 BinaryOperator::Add
             ))),
-            &ctx
+            &ctx,
         ),
-        true
+        Ok(true)
     );
     assert_eq!(
         is_truthy(
             Expr::BinaryExpr(Box::new(BinaryExpr::new(
-                Expr::Literal(Literal::Int(4)),
-                Expr::Literal(Literal::Int(4)),
+                Expr::Literal(Literal::Int(Int {
+                    value: 4,
+                    location: Default::default()
+                })),
+                Expr::Literal(Literal::Int(Int {
+                    value: 4,
+                    location: Default::default()
+                })),
                 BinaryOperator::Sub
             ))),
             &ctx
         ),
-        false
+        Ok(false)
     );
 }
 #[test]
@@ -197,32 +436,80 @@ fn logical_operations() {
     let scope = HashScope::default();
     let ctx = Context::new(scope);
     let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
-        Expr::Literal(Literal::Bool(true)),
-        Expr::Literal(Literal::Bool(false)),
+        Expr::Literal(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default(),
+        })),
+        Expr::Literal(Literal::Bool(Boolean {
+            value: false,
+            location: Default::default(),
+        })),
         BinaryOperator::Or,
     )));
-    assert_eq!(eval(op, &ctx), Literal::Bool(true));
+    assert_eq!(
+        eval(op, &ctx),
+        Ok(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default()
+        }))
+    );
 
     let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
-        Expr::Literal(Literal::Bool(true)),
-        Expr::Literal(Literal::Bool(false)),
+        Expr::Literal(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default(),
+        })),
+        Expr::Literal(Literal::Bool(Boolean {
+            value: false,
+            location: Default::default(),
+        })),
         BinaryOperator::And,
     )));
-    assert_eq!(eval(op, &ctx), Literal::Bool(false));
+    assert_eq!(
+        eval(op, &ctx),
+        Ok(Literal::Bool(Boolean {
+            value: false,
+            location: Default::default()
+        }))
+    );
 
     let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
-        Expr::Literal(Literal::Bool(true)),
-        Expr::Literal(Literal::Bool(true)),
+        Expr::Literal(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default(),
+        })),
+        Expr::Literal(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default(),
+        })),
         BinaryOperator::And,
     )));
-    assert_eq!(eval(op, &ctx), Literal::Bool(true));
+    assert_eq!(
+        eval(op, &ctx),
+        Ok(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default()
+        }))
+    );
 
     let op = Expr::BinaryExpr(Box::new(BinaryExpr::new(
-        Expr::Literal(Literal::Bool(false)),
-        Expr::Literal(Literal::Bool(false)),
+        Expr::Literal(Literal::Bool(Boolean {
+            value: false,
+            location: Default::default(),
+        })),
+        Expr::Literal(Literal::Bool(Boolean {
+            value: false,
+            location: Default::default(),
+        })),
         BinaryOperator::Or,
     )));
-    assert_eq!(eval(op, &ctx), Literal::Bool(false));
+    assert_eq!(
+        eval(op, &ctx),
+        Ok(Literal::Bool(Boolean {
+            value: false,
+            location: Default::default()
+        }))
+    );
 }
 #[test]
 fn test_eval_call() {
@@ -232,17 +519,32 @@ fn test_eval_call() {
         "greet",
         Literal::Closure(ast::Closure {
             params: vec![String::from("name")],
-            body: vec![Instruction::Stmt(Stmt::Return(Expr::Symbol(String::from(
-                "name",
-            ))))],
+            body: vec![Instruction::Stmt(Stmt::Return(Return {
+                value: Expr::Symbol(Symbol {
+                    value: String::from("name"),
+                    location: Location::default(),
+                }),
+                location: Location::default(),
+            }))],
+            location: Location::default(),
         }),
     );
     let call = Expr::Call(Call {
         symbol: String::from("greet"),
-        args: vec![Expr::Literal(Literal::String(String::from("John")))],
+        args: vec![Expr::Literal(Literal::String(Str {
+            value: String::from("John"),
+            location: Default::default(),
+        }))],
+        location: Location::default(),
     });
     let result = eval(call, &ctx);
-    assert_eq!(result, Literal::String(String::from("John")));
+    assert_eq!(
+        result,
+        Ok(Literal::String(Str {
+            value: String::from("John"),
+            location: Default::default()
+        }))
+    );
 }
 #[test]
 fn test_if_else() {
@@ -252,17 +554,33 @@ fn test_if_else() {
         params: vec![String::from("age")],
         body: vec![Instruction::Stmt(Stmt::If(If {
             cond: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-                Expr::Symbol(String::from("age")),
-                Expr::Literal(Literal::Int(18)),
+                Expr::Symbol(Symbol {
+                    value: String::from("age"),
+                    location: Location::default(),
+                }),
+                Expr::Literal(Literal::Int(Int {
+                    value: 18,
+                    location: Default::default(),
+                })),
                 BinaryOperator::Ge,
             ))),
-            body: vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                Literal::Bool(true),
-            )))],
-            else_block: Some(vec![Instruction::Stmt(Stmt::Return(Expr::Literal(
-                Literal::Bool(false),
-            )))]),
+            body: vec![Instruction::Stmt(Stmt::Return(Return {
+                value: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default(),
+                })),
+                location: Location::default(),
+            }))],
+            else_block: Some(vec![Instruction::Stmt(Stmt::Return(Return {
+                value: Expr::Literal(Literal::Bool(Boolean {
+                    value: false,
+                    location: Default::default(),
+                })),
+                location: Location::default(),
+            }))]),
+            location: Location::default(),
         }))],
+        location: Location::default(),
     };
     // Rust equivalent to this function:
     // fn is_adult(age: i64) -> bool {
@@ -275,45 +593,91 @@ fn test_if_else() {
     ctx.scope.set("is_adult", Literal::Closure(is_adult_fn));
     let call = Expr::Call(Call {
         symbol: String::from("is_adult"),
-        args: vec![Expr::Literal(Literal::Int(18))],
+        args: vec![Expr::Literal(Literal::Int(Int {
+            value: 18,
+            location: Default::default(),
+        }))],
+        location: Location::default(),
     });
     let result = eval(call, &ctx);
-    assert_eq!(result, Literal::Bool(true));
+    assert_eq!(
+        result,
+        Ok(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default()
+        }))
+    );
 
     let call = Expr::Call(Call {
         symbol: String::from("is_adult"),
-        args: vec![Expr::Literal(Literal::Int(17))],
+        args: vec![Expr::Literal(Literal::Int(Int {
+            value: 17,
+            location: Default::default(),
+        }))],
+        location: Location::default(),
     });
     let result = eval(call, &ctx);
-    assert_eq!(result, Literal::Bool(false));
+    assert_eq!(
+        result,
+        Ok(Literal::Bool(Boolean {
+            value: false,
+            location: Default::default()
+        }))
+    );
 }
 #[test]
 fn test_while_loop() {
     let scope = HashScope::default();
     let ctx = Context::new(scope);
-    ctx.scope.set("count", Literal::Int(0));
+    ctx.scope.set(
+        "count",
+        Literal::Int(Int {
+            value: 0,
+            location: Default::default(),
+        }),
+    );
     let program: Program = vec![Instruction::Stmt(Stmt::While(While {
         cond: Expr::BinaryExpr(Box::new(BinaryExpr::new(
-            Expr::Symbol(String::from("count")),
-            Expr::Literal(Literal::Int(10)),
+            Expr::Symbol(Symbol {
+                value: String::from("count"),
+                location: Location::default(),
+            }),
+            Expr::Literal(Literal::Int(Int {
+                value: 10,
+                location: Default::default(),
+            })),
             BinaryOperator::Lt,
         ))),
-        body: vec![Instruction::Expr(Expr::Assignment(Assignment {
+        body: vec![Instruction::Expr(Expr::Assignment(AssignmentExpr {
             symbol: String::from("count"),
             value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr::new(
-                Expr::Symbol(String::from("count")),
-                Expr::Literal(Literal::Int(1)),
+                Expr::Symbol(Symbol {
+                    value: String::from("count"),
+                    location: Location::default(),
+                }),
+                Expr::Literal(Literal::Int(Int {
+                    value: 1,
+                    location: Default::default(),
+                })),
                 BinaryOperator::Add,
             )))),
+            location: Location::default(),
         }))],
+        location: Location::default(),
     }))];
     // Rust equivalent
     // while count < 10 {
     //  count = count + 1;
     // }
-    eval_program(program, &ctx);
+    eval_program(program, &ctx).unwrap();
     let final_count = ctx.scope.get("count");
-    assert_eq!(final_count, Literal::Int(10));
+    assert_eq!(
+        final_count,
+        Literal::Int(Int {
+            value: 10,
+            location: Default::default()
+        })
+    );
 }
 #[test]
 fn test_unary_op() {
@@ -323,20 +687,34 @@ fn test_unary_op() {
         eval(
             Expr::UnaryExpr(Box::new(UnaryExpr {
                 operator: ast::UnaryOperator::Not,
-                operand: Expr::Literal(Literal::Bool(true))
+                operand: Expr::Literal(Literal::Bool(Boolean {
+                    value: true,
+                    location: Default::default()
+                })),
+                location: Location::default(),
             })),
-            &ctx
+            &ctx,
         ),
-        Literal::Bool(false)
+        Ok(Literal::Bool(Boolean {
+            value: false,
+            location: Default::default()
+        }))
     );
     assert_eq!(
         eval(
             Expr::UnaryExpr(Box::new(UnaryExpr {
                 operator: ast::UnaryOperator::Not,
-                operand: Expr::Literal(Literal::Bool(false))
+                operand: Expr::Literal(Literal::Bool(Boolean {
+                    value: false,
+                    location: Default::default()
+                })),
+                location: Location::default(),
             })),
-            &ctx
+            &ctx,
         ),
-        Literal::Bool(true)
+        Ok(Literal::Bool(Boolean {
+            value: true,
+            location: Default::default()
+        }))
     );
 }

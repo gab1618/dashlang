@@ -1,18 +1,27 @@
-use ast::{Expr, Literal};
+use ast::{Call, Expr, Literal};
+use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 
-pub fn stdlib_push(base: Literal, item: Literal) -> Literal {
+pub fn stdlib_push(base: Literal, item: Literal, call: Call) -> DashlangResult<Literal> {
     match base {
-        Literal::String(mut val) => {
-            if let Literal::String(str_push) = item {
-                val.push_str(&str_push);
-                return Literal::String(val);
+        Literal::String(mut val) => match item {
+            Literal::String(str_push) => {
+                val.value.push_str(&str_push.value);
+                Ok(Literal::String(val))
             }
-            panic!("Unsuported operation");
-        }
+            _ => Err(DashlangError::new(
+                "Unsuported operation",
+                ErrorKind::Runtime(RuntimeErrorKind::Default),
+            )
+            .location(call.location)),
+        },
         Literal::Vector(mut vector) => {
-            vector.push(Expr::Literal(item));
-            return Literal::Vector(vector);
+            vector.value.push(Expr::Literal(item));
+            Ok(Literal::Vector(vector))
         }
-        _ => panic!("Unsuported operation"),
+        _ => Err(DashlangError::new(
+            "Unsuported operation",
+            ErrorKind::Runtime(RuntimeErrorKind::Default),
+        )
+        .location(call.location)),
     }
 }

@@ -1,12 +1,14 @@
 use ast::Program;
+use errors::DashlangResult;
 use pest::Parser;
 
 use crate::{
     instruction::parse_instruction,
     parser::{DashlangParser, Rule},
+    utils::get_pair_location,
 };
 
-pub fn parse_body(input: &str) -> Program {
+pub fn parse_body(input: &str, base_location: usize) -> DashlangResult<Program> {
     let mut body: Program = vec![];
     let ast = DashlangParser::parse(Rule::body, input)
         .expect("Could not parse scope")
@@ -16,8 +18,9 @@ pub fn parse_body(input: &str) -> Program {
         .next()
         .expect("Could not parse program");
     for instruction in ast.into_inner() {
-        let parsed_instruction = parse_instruction(instruction.as_str());
+        let (start, _end) = get_pair_location(&instruction);
+        let parsed_instruction = parse_instruction(instruction.as_str(), start + base_location)?;
         body.push(parsed_instruction);
     }
-    body
+    Ok(body)
 }
