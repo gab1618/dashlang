@@ -2,9 +2,11 @@
 
 # Dashlang
 
-A interpreted language focused on simplicity and consistency
+A minimalist programming language focused on simplicity and consistency
 
-## Types
+## Documentation
+
+### Types
 
 This minimalist language only includes some basic types:
 
@@ -16,17 +18,18 @@ String | "Foo"
 Boolean | true
 Null | null
 Closure | `(n) {return n + 1}`
+Vector | `[1, 2, 3]`
 
-## Syntax
+### Syntax
 
-### Declaring a variable
+#### Declaring a variable
 
 Declaring a variable is as simple as choosing a variable name and assigning a value to it:
 ```
 name = "Gabriel"
 ```
 
-### Functions
+#### Functions
 
 There is no functions in this language, we use instead closures assigned to variables:
 
@@ -57,7 +60,7 @@ n = n
 println(n)
 ```
 
-### Loops and conditionals
+#### Loops and conditionals
 
 Currently, we have `if`, `while` and `for` statements:
 
@@ -75,9 +78,41 @@ for count = 0; count < 10; count += 1 {
 
 As you can see in the `for` example, we also have the compound assignment expression operator (`+=`, `-=`, etc...)
 
-## Usage
 
-As we don't have a compiled interpreter yet, you can do some tests using the `cli` package. The only requirement is to have Rust installed. You can run a program with the command:
+## Features
 
-`cargo run --package cli "<path-to-script>`
+- Basic types, such as integers, floats, booleans and others
+- Standard library with some basic implementations
+- Fancy error diagnostics
 
+
+## Running Tests
+
+To run the tests, use the following command
+
+```bash
+  cargo test --workspace
+```
+
+That will run all the tests from every package
+
+
+## Run Locally
+
+### Requirements
+* Rust >= 1.76.x
+
+After cloning the repository, you can run the cli package with the following command
+
+```bash
+  cargo run --package cli "<path-to-file>"
+```
+
+Where `path-to-file` is the path to the file you want to run. In the examples folder there are already a few examples you can try.
+
+cli is the only package you can actually run, all the other packages are just libraries.
+## Installation
+
+You can download the cli tool on the releases tab
+
+https://github.com/GabrielBrandao1618/dashlang/releases
