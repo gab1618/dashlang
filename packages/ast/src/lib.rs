@@ -3,6 +3,12 @@ pub struct Location {
     pub start: usize,
     pub end: usize,
 }
+impl From<(usize, usize)> for Location {
+    fn from(value: (usize, usize)) -> Self {
+        let (start, end) = value;
+        Location::new(start, end)
+    }
+}
 impl Location {
     pub fn new(start: usize, end: usize) -> Self {
         Self { start, end }
@@ -81,6 +87,11 @@ pub struct Symbol {
     pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct SubExpr {
+    pub value: Box<Expr>,
+    pub location: Location,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
     BinaryExpr(Box<BinaryExpr>),
     UnaryExpr(Box<UnaryExpr>),
@@ -88,6 +99,7 @@ pub enum Expr {
     Call(Call),
     Symbol(Symbol),
     Literal(Literal),
+    SubExpr(SubExpr),
 }
 impl Expr {
     pub fn get_location(&self) -> Location {
@@ -98,6 +110,7 @@ impl Expr {
             Expr::Call(val) => val.location,
             Expr::Symbol(val) => val.location,
             Expr::Literal(val) => val.get_location(),
+            Expr::SubExpr(val) => val.location,
         }
     }
 }

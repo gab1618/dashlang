@@ -67,7 +67,7 @@ mod tests {
                         location: Location::new(14, 16)
                     })),
                     operator: BinaryOperator::Lt,
-                    location: Location::new(6, 17),
+                    location: Location::new(6, 16),
                 })),
                 body: vec![],
                 location: Location::new(0, 19),

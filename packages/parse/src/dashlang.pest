@@ -9,20 +9,21 @@ keyword                  =  { "return" }
 symbol                   = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 assignment_expression    =  { symbol ~ "=" ~ expression }
 compound_assignment_expr =  { symbol ~ binary_operator ~ "=" ~ expression }
-add_op                   =  { "+" }
-minus_op                 =  { "-" }
-mul_op                   =  { "*" }
-div_op                   =  { "/" }
-ge_op                    =  { ">=" }
-gt_op                    =  { ">" }
-le_op                    =  { "<=" }
-lt_op                    =  { "<" }
-eq_op                    =  { "==" }
-or_op                    =  { "||" }
-and_op                   =  { "&&" }
-binary_operator          =  { add_op | minus_op | mul_op | div_op | ge_op | gt_op | eq_op | le_op | lt_op | or_op | and_op }
-sub_expression           = _{ "(" ~ expression ~ ")" }
-binary_expression        =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | literal | call_expression | symbol))+ }
+add                      =  { "+" }
+sub                      =  { "-" }
+mul                      =  { "*" }
+div                      =  { "/" }
+ge                       =  { ">=" }
+gt                       =  { ">" }
+le                       =  { "<=" }
+lt                       =  { "<" }
+eq                       =  { "==" }
+or                       =  { "||" }
+and                      =  { "&&" }
+binary_operator          = _{ add | sub | mul | div | ge | gt | eq | le | lt | or | and }
+sub_expression           =  { "(" ~ expression ~ ")" }
+atom                     = _{ literal | symbol | sub_expression | unary_expression }
+binary_expression        =  { atom ~ (binary_operator ~ atom)+ }
 unary_operator           =  { "!" }
 unary_expression         =  { unary_operator ~ (expression | sub_expression) }
 call_arg                 =  { expression }
