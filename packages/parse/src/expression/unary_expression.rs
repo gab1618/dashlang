@@ -1,4 +1,4 @@
-use ast::{Location, UnaryExpr, UnaryOperator};
+use ast::{Expr, Location, UnaryExpr, UnaryOperator};
 use errors::DashlangResult;
 use pest::Parser;
 
@@ -7,7 +7,7 @@ use crate::{
     utils::get_pair_location,
 };
 
-use super::parse_expression;
+use super::{parse_expression, parse_sub_expression};
 
 pub fn parse_unary_expression(input: &str, base_location: usize) -> DashlangResult<UnaryExpr> {
     let parsed = DashlangParser::parse(Rule::unary_expression, input)
@@ -23,19 +23,27 @@ pub fn parse_unary_expression(input: &str, base_location: usize) -> DashlangResu
         .next()
         .expect("Could not get unary expression operand");
     let (operand_start, _) = get_pair_location(&operand);
+    let parsed_operand = match operand.as_rule() {
+        Rule::expression => parse_expression(operand.as_str(), operand_start + base_location)?,
+        Rule::sub_expression => Expr::SubExpr(parse_sub_expression(
+            operand.as_str(),
+            operand_start + base_location,
+        )?),
+        _ => unreachable!(),
+    };
     Ok(UnaryExpr {
         operator: match operator.as_str() {
             "!" => UnaryOperator::Not,
             any => panic!("Invalid unary operator: {any}"),
         },
-        operand: (parse_expression(operand.as_str(), operand_start + base_location)?),
+        operand: parsed_operand,
         location: Location::new(start, end),
     })
 }
 
 #[cfg(test)]
 mod tests {
-    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Literal};
+    use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Literal, SubExpr};
 
     use super::*;
 
@@ -59,18 +67,21 @@ mod tests {
             parse_unary_expression("!(true && false)", 0),
             Ok(UnaryExpr {
                 operator: UnaryOperator::Not,
-                operand: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Bool(Boolean {
-                        value: true,
-                        location: Location::new(2, 6)
-                    })),
-                    right: Expr::Literal(Literal::Bool(Boolean {
-                        value: false,
-                        location: Location::new(10, 15)
-                    })),
-                    operator: BinaryOperator::And,
-                    location: Location::new(2, 15),
-                })),
+                operand: Expr::SubExpr(SubExpr {
+                    value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
+                        left: Expr::Literal(Literal::Bool(Boolean {
+                            value: true,
+                            location: Location::new(2, 6)
+                        })),
+                        right: Expr::Literal(Literal::Bool(Boolean {
+                            value: false,
+                            location: Location::new(10, 15)
+                        })),
+                        operator: BinaryOperator::And,
+                        location: Location::new(2, 15),
+                    }))),
+                    location: (1, 16).into()
+                }),
                 location: Location::new(0, 16),
             })
         );

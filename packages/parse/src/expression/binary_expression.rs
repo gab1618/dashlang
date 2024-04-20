@@ -1,162 +1,97 @@
-use super::{binary_operator::parse_binary_operator, parse_expression};
-use crate::{literal::parse_literal, utils::get_pair_location, DashlangParser, Rule};
-use ast::{BinaryExpr, BinaryOperator, Expr, Literal, Location, Symbol};
-use errors::DashlangResult;
-use pest::Parser;
+use super::{
+    binary_operator::parse_binary_operator, call_expression::parse_call_expression,
+    parse_expression, unary_expression::parse_unary_expression,
+};
+use crate::{
+    expression::parse_sub_expression, literal::parse_literal, utils::get_pair_location,
+    DashlangParser, Rule,
+};
+use ast::{BinaryExpr, Expr, Location, Symbol};
+use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
+use pest::{
+    pratt_parser::{Assoc, Op, PrattParser},
+    Parser,
+};
 
-#[derive(Debug, Clone, PartialEq)]
-enum BinaryExpressionToken {
-    Literal(Literal),
-    Expr(Expr),
-    Operator(BinaryOperator),
-}
 pub fn parse_binary_expression(input: &str, base_location: usize) -> DashlangResult<BinaryExpr> {
-    let ast = DashlangParser::parse(Rule::binary_expression, input)
-        .expect("Could not parse binary expression")
+    let pratt = PrattParser::new()
+        .op(Op::infix(Rule::and, Assoc::Left)
+            | Op::infix(Rule::eq, Assoc::Left)
+            | Op::infix(Rule::or, Assoc::Left))
+        .op(Op::infix(Rule::lt, Assoc::Left)
+            | Op::infix(Rule::le, Assoc::Left)
+            | Op::infix(Rule::gt, Assoc::Left)
+            | Op::infix(Rule::ge, Assoc::Left))
+        .op(Op::infix(Rule::add, Assoc::Left) | Op::infix(Rule::sub, Assoc::Left))
+        .op(Op::infix(Rule::mul, Assoc::Left) | Op::infix(Rule::div, Assoc::Left));
+
+    let pairs = DashlangParser::parse(Rule::binary_expression, input)
+        .unwrap()
         .next()
-        .expect("Could not parse binary expression");
-    let (start, end) = get_pair_location(&ast);
-    let mut flat_expression: Vec<BinaryExpressionToken> = vec![];
-    for element in ast.into_inner() {
-        let (element_start, element_end) = get_pair_location(&element);
-        match element.as_rule() {
-            Rule::binary_operator => flat_expression.push(BinaryExpressionToken::Operator(
-                parse_binary_operator(element.as_str())?,
-            )),
-            Rule::literal => {
-                flat_expression.push(BinaryExpressionToken::Literal(parse_literal(
-                    element.as_str(),
-                    element_start + base_location,
-                )?));
+        .unwrap()
+        .into_inner();
+    let parsed = pratt
+        .map_primary(|primary| {
+            let primary_start = primary.as_span().start();
+            match primary.as_rule() {
+                Rule::literal => Ok(Expr::Literal(parse_literal(
+                    primary.as_str(),
+                    base_location + primary_start,
+                )?)),
+                Rule::symbol => Ok({
+                    Expr::Symbol(Symbol {
+                        value: primary.as_str().to_owned(),
+                        location: {
+                            let (start, end) = get_pair_location(&primary);
+                            (start + base_location, end + base_location).into()
+                        },
+                    })
+                }),
+                Rule::sub_expression => Ok(Expr::SubExpr(parse_sub_expression(
+                    primary.as_str(),
+                    primary_start + base_location,
+                )?)),
+                Rule::expression => Ok(parse_expression(
+                    primary.as_str(),
+                    primary_start + base_location,
+                )?),
+                Rule::unary_expression => Ok(Expr::UnaryExpr(Box::new(parse_unary_expression(
+                    primary.as_str(),
+                    primary_start + base_location,
+                )?))),
+                Rule::call_expression => Ok(Expr::Call(parse_call_expression(
+                    primary.as_str(),
+                    primary_start + base_location,
+                )?)),
+                _ => unreachable!("{:#?}", primary.as_rule()),
             }
-            Rule::expression => {
-                let parsed = parse_expression(element.as_str(), element_start)?;
-                flat_expression.push(BinaryExpressionToken::Expr(parsed));
-            }
-            Rule::symbol => {
-                let parsed = element.as_str().to_owned();
-                flat_expression.push(BinaryExpressionToken::Expr(Expr::Symbol(Symbol {
-                    value: parsed,
-                    location: Location::new(
-                        element_start + base_location,
-                        element_end + base_location,
-                    ),
-                })));
-            }
-            Rule::call_expression => {
-                let parsed = parse_expression(element.as_str(), element_start + base_location)?;
-                flat_expression.push(BinaryExpressionToken::Expr(parsed));
-            }
-            _ => unreachable!(),
-        }
+        })
+        .map_infix(|lhs, op, rhs| {
+            let lhs = lhs?;
+            let rhs = rhs?;
+            let location = Location::new(lhs.get_location().start, rhs.get_location().end);
+            Ok(Expr::BinaryExpr(Box::new(BinaryExpr {
+                location,
+                left: lhs,
+                right: rhs,
+                operator: parse_binary_operator(op.as_str())?,
+            })))
+        })
+        .parse(pairs)?;
+    if let Expr::BinaryExpr(bin_expr) = parsed {
+        Ok(*bin_expr)
+    } else {
+        Err(DashlangError {
+            location: Some(Location::default()),
+            message: "Expected binary expression".to_owned(),
+            kind: ErrorKind::Parsing(ParsingErrorKind::Default),
+        })
     }
-    let mut base_binary_op = flat_binary_expression_to_ast(&mut flat_expression);
-    base_binary_op.location = Location::new(start + base_location, end + base_location);
-    Ok(base_binary_op)
-}
-fn flat_binary_expression_to_ast(flat_expression: &mut Vec<BinaryExpressionToken>) -> BinaryExpr {
-    while flat_expression.len() > 1 {
-        merge_flat_binary_op_tokens_by_operations(
-            flat_expression,
-            &vec![
-                BinaryExpressionToken::Operator(BinaryOperator::Mul),
-                BinaryExpressionToken::Operator(BinaryOperator::Div),
-            ],
-        );
-        merge_flat_binary_op_tokens_by_operations(
-            flat_expression,
-            &vec![
-                BinaryExpressionToken::Operator(BinaryOperator::Add),
-                BinaryExpressionToken::Operator(BinaryOperator::Sub),
-            ],
-        );
-        merge_flat_binary_op_tokens_by_operations(
-            flat_expression,
-            &vec![
-                BinaryExpressionToken::Operator(BinaryOperator::Gt),
-                BinaryExpressionToken::Operator(BinaryOperator::Ge),
-                BinaryExpressionToken::Operator(BinaryOperator::Lt),
-                BinaryExpressionToken::Operator(BinaryOperator::Le),
-                BinaryExpressionToken::Operator(BinaryOperator::Eq),
-            ],
-        );
-        merge_flat_binary_op_tokens_by_operations(
-            flat_expression,
-            &vec![
-                BinaryExpressionToken::Operator(BinaryOperator::Or),
-                BinaryExpressionToken::Operator(BinaryOperator::And),
-            ],
-        );
-    }
-    match flat_expression
-        .iter_mut()
-        .next()
-        .expect("Expected expression to ended with at least 1 element")
-    {
-        BinaryExpressionToken::Expr(expr) => match expr {
-            Expr::BinaryExpr(op) => *op.to_owned(),
-            _ => panic!("Expected expression to be binary operation"),
-        },
-        BinaryExpressionToken::Literal(_) => {
-            panic!("Expected binary operation to not have just a value")
-        }
-        BinaryExpressionToken::Operator(_) => {
-            panic!("Expected binary operation to not have just a operator")
-        }
-    }
-}
-fn merge_flat_binary_op_tokens_by_operations(
-    flat_expression: &mut Vec<BinaryExpressionToken>,
-    allowed: &Vec<BinaryExpressionToken>,
-) {
-    for (pos, token) in flat_expression.clone().into_iter().enumerate() {
-        if allowed.contains(&token) {
-            if let BinaryExpressionToken::Operator(op) = token {
-                merge_flat_binary_op_tokens(flat_expression, pos, op);
-                merge_flat_binary_op_tokens_by_operations(flat_expression, allowed);
-                break;
-            }
-        }
-    }
-}
-fn merge_flat_binary_op_tokens(
-    flat_expression: &mut Vec<BinaryExpressionToken>,
-    operator_pos: usize,
-    op: BinaryOperator,
-) {
-    let (previous_element, next_element): (BinaryExpressionToken, BinaryExpressionToken) = {
-        let next = flat_expression.remove(operator_pos + 1);
-        let previous = flat_expression.remove(operator_pos - 1);
-        (previous, next)
-    };
-    let left = match previous_element {
-        BinaryExpressionToken::Literal(val) => Expr::Literal(val.clone()),
-        BinaryExpressionToken::Expr(expr) => expr,
-        BinaryExpressionToken::Operator(_) => {
-            panic!("Expected token after operator to be a value or expression")
-        }
-    };
-    let right = match next_element {
-        BinaryExpressionToken::Literal(val) => Expr::Literal(val.clone()),
-        BinaryExpressionToken::Expr(expr) => expr,
-        BinaryExpressionToken::Operator(_) => {
-            panic!("Expected token after operator to be a value or expression")
-        }
-    };
-    let _ = std::mem::replace(
-        &mut flat_expression[operator_pos - 1], // Since we removed the previous item, we use position - 1
-        BinaryExpressionToken::Expr(Expr::BinaryExpr(Box::new(BinaryExpr {
-            location: Location::new(left.get_location().start, right.get_location().end),
-            left,
-            right,
-            operator: op,
-        }))),
-    );
 }
 
 #[cfg(test)]
 mod tests {
-    use ast::{Boolean, Int};
+    use ast::{BinaryOperator, Boolean, Int, Literal, SubExpr};
 
     use super::*;
 
@@ -303,18 +238,21 @@ mod tests {
                     value: 1,
                     location: Location::new(0, 1)
                 })),
-                right: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(Int {
-                        value: 2,
-                        location: Location::new(5, 6)
-                    })),
-                    right: Expr::Literal(Literal::Int(Int {
-                        value: 1,
-                        location: Location::new(9, 10)
-                    })),
-                    operator: BinaryOperator::Add,
-                    location: Location::new(5, 10),
-                })),
+                right: Expr::SubExpr(SubExpr {
+                    value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
+                        left: Expr::Literal(Literal::Int(Int {
+                            value: 2,
+                            location: Location::new(5, 6)
+                        })),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 1,
+                            location: Location::new(9, 10)
+                        })),
+                        operator: BinaryOperator::Add,
+                        location: Location::new(5, 10),
+                    }))),
+                    location: Location::new(4, 11)
+                }),
                 operator: BinaryOperator::Add,
                 location: Location::new(0, 11),
             }),
@@ -322,18 +260,21 @@ mod tests {
         assert_eq!(
             parse_binary_expression("(1 + 2) + 1", 0),
             Ok(BinaryExpr {
-                left: Expr::BinaryExpr(Box::new(BinaryExpr {
-                    left: Expr::Literal(Literal::Int(Int {
-                        value: 1,
-                        location: Location::new(1, 2)
-                    })),
-                    right: Expr::Literal(Literal::Int(Int {
-                        value: 2,
-                        location: Location::new(5, 6)
-                    })),
-                    operator: BinaryOperator::Add,
-                    location: Location::new(1, 6),
-                })),
+                left: Expr::SubExpr(SubExpr {
+                    value: Box::new(Expr::BinaryExpr(Box::new(BinaryExpr {
+                        left: Expr::Literal(Literal::Int(Int {
+                            value: 1,
+                            location: Location::new(1, 2)
+                        })),
+                        right: Expr::Literal(Literal::Int(Int {
+                            value: 2,
+                            location: Location::new(5, 6)
+                        })),
+                        operator: BinaryOperator::Add,
+                        location: Location::new(1, 6),
+                    }))),
+                    location: Location::new(0, 7)
+                }),
                 right: Expr::Literal(Literal::Int(Int {
                     value: 1,
                     location: Location::new(10, 11)

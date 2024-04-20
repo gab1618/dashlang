@@ -82,7 +82,7 @@ mod tests {
                         location: Location::new(11, 12)
                     })),
                     operator: BinaryOperator::Lt,
-                    location: Location::new(3, 13),
+                    location: Location::new(3, 12),
                 })),
                 else_block: None,
                 body: vec![],
@@ -105,7 +105,7 @@ mod tests {
                         location: Location::new(14, 15)
                     })),
                     operator: BinaryOperator::Lt,
-                    location: Location::new(6, 16),
+                    location: Location::new(6, 15),
                 })),
                 body: vec![],
                 location: Location::new(0, 18),

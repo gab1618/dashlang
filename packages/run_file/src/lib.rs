@@ -1,5 +1,8 @@
 pub mod error;
 
+#[cfg(test)]
+mod examples_tests;
+
 use parse::parse;
 use std::fs::read_to_string;
 
