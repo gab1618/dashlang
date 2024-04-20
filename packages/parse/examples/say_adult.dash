@@ -1,7 +1,0 @@
-say_adult = (age) {
-  if age >= 18 {
-    println("Adult")
-  } else {
-    println("Minor")
-  }
-}
