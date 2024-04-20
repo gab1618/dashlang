@@ -1,6 +1,6 @@
 use super::{
-    binary_operator::parse_binary_operator, parse_expression,
-    unary_expression::parse_unary_expression,
+    binary_operator::parse_binary_operator, call_expression::parse_call_expression,
+    parse_expression, unary_expression::parse_unary_expression,
 };
 use crate::{
     expression::parse_sub_expression, literal::parse_literal, utils::get_pair_location,
@@ -59,6 +59,10 @@ pub fn parse_binary_expression(input: &str, base_location: usize) -> DashlangRes
                     primary.as_str(),
                     primary_start + base_location,
                 )?))),
+                Rule::call_expression => Ok(Expr::Call(parse_call_expression(
+                    primary.as_str(),
+                    primary_start + base_location,
+                )?)),
                 _ => unreachable!("{:#?}", primary.as_rule()),
             }
         })
