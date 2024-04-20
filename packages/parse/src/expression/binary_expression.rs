@@ -10,6 +10,7 @@ enum BinaryExpressionToken {
     Expr(Expr),
     Operator(BinaryOperator),
 }
+
 pub fn parse_binary_expression(input: &str, base_location: usize) -> DashlangResult<BinaryExpr> {
     let ast = DashlangParser::parse(Rule::binary_expression, input)
         .expect("Could not parse binary expression")

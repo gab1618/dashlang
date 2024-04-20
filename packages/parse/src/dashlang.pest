@@ -9,7 +9,18 @@ keyword                  =  { "return" }
 symbol                   = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 assignment_expression    =  { symbol ~ "=" ~ expression }
 compound_assignment_expr =  { symbol ~ binary_operator ~ "=" ~ expression }
-binary_operator          =  { "+" | "-" | "*" | "/" | ">=" | "<=" | "==" | ">" | "<" | "||" | "&&" }
+add_op                   =  { "+" }
+minus_op                 =  { "-" }
+mul_op                   =  { "*" }
+div_op                   =  { "/" }
+ge_op                    =  { ">=" }
+gt_op                    =  { ">" }
+le_op                    =  { "<=" }
+lt_op                    =  { "<" }
+eq_op                    =  { "==" }
+or_op                    =  { "||" }
+and_op                   =  { "&&" }
+binary_operator          =  { add_op | minus_op | mul_op | div_op | ge_op | gt_op | eq_op | le_op | lt_op | or_op | and_op }
 sub_expression           = _{ "(" ~ expression ~ ")" }
 binary_expression        =  { (literal | symbol | sub_expression) ~ (binary_operator ~ (sub_expression | literal | call_expression | symbol))+ }
 unary_operator           =  { "!" }
