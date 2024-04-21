@@ -1,4 +1,4 @@
-use ast::{Boolean, Closure, Expr, Float, Int, Literal, Location, Str, Vector};
+use ast::{Boolean, Closure, Expr, Float, Int, Literal, Location, Str, Tuple, Vector};
 use errors::DashlangResult;
 use pest::Parser;
 
@@ -84,13 +84,27 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
                 location: Location::new(start + base_location, end + base_location),
             }))
         }
+        Rule::tuple => {
+            let parsed_elements: DashlangResult<Vec<Expr>> = inner_value
+                .into_inner()
+                .map(|element| {
+                    let (element_start, _) = get_pair_location(&element);
+                    parse_expression(element.as_str(), element_start + base_location)
+                })
+                .collect();
+
+            Ok(Literal::Tuple(Tuple {
+                value: parsed_elements?,
+                location: (start + base_location, end + base_location).into(),
+            }))
+        }
         _ => unreachable!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use ast::{Closure, Expr, Return, Stmt};
+    use ast::{Closure, Expr, Return, Stmt, Tuple};
 
     use super::*;
     #[test]
@@ -186,6 +200,25 @@ mod tests {
                     })),
                 ],
                 location: Location::new(0, 9)
+            }))
+        );
+    }
+    #[test]
+    fn test_parse_tuple() {
+        assert_eq!(
+            parse_literal("(1, 4)", 0),
+            Ok(Literal::Tuple(Tuple {
+                value: vec![
+                    Expr::Literal(Literal::Int(Int {
+                        value: 1,
+                        location: (1, 2).into()
+                    })),
+                    Expr::Literal(Literal::Int(Int {
+                        value: 4,
+                        location: (4, 5).into()
+                    }))
+                ],
+                location: (0, 6).into()
             }))
         );
     }
