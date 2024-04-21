@@ -249,6 +249,7 @@ pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> DashlangResult<Li
         Expr::Symbol(symbol) => Ok(ctx.scope.get(&symbol.value)),
         Expr::UnaryExpr(op) => eval_unary_op(*op, ctx),
         Expr::SubExpr(sub) => eval(*sub.value, ctx),
+        Expr::DestructuringAsignment(_) => todo!(),
     }
 }
 type ExtensionImplementation<S> = dyn Fn(&Context<S>, Call) -> DashlangResult<Literal>;

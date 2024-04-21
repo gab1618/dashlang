@@ -8,6 +8,7 @@ use pest::Parser;
 use self::{
     assignment_expression::parse_assignment_expression, binary_expression::parse_binary_expression,
     call_expression::parse_call_expression, compound_assign_expr::parse_compound_assign_expr,
+    destructuring_assignment::parse_destructuring_assignment,
     unary_expression::parse_unary_expression,
 };
 
@@ -16,6 +17,7 @@ mod binary_expression;
 mod binary_operator;
 mod call_expression;
 mod compound_assign_expr;
+mod destructuring_assignment;
 mod unary_expression;
 
 pub fn parse_expression(input: &str, base_location: usize) -> DashlangResult<Expr> {
@@ -59,6 +61,11 @@ pub fn parse_expression(input: &str, base_location: usize) -> DashlangResult<Exp
             expression.as_str(),
             start + base_location,
         )?)),
+        Rule::destructuring_assignment => {
+            let parsed =
+                parse_destructuring_assignment(expression.as_str(), start + base_location)?;
+            Expr::DestructuringAsignment(parsed)
+        }
         any => unreachable!("{:#?}", any),
     };
     for piping in inner_ast {
