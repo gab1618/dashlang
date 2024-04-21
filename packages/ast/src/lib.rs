@@ -148,6 +148,12 @@ pub struct Void {
     pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Tuple {
+    pub value: Vec<Expr>,
+    pub location: Location,
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Literal {
     Closure(Closure),
     Int(Int),
@@ -157,6 +163,7 @@ pub enum Literal {
     Vector(Vector),
     Null(Null),
     Void(Void),
+    Tuple(Tuple),
 }
 impl Literal {
     pub fn get_location(&self) -> Location {
@@ -169,6 +176,7 @@ impl Literal {
             Literal::Vector(val) => val.location,
             Literal::Null(val) => val.location,
             Literal::Void(val) => val.location,
+            Literal::Tuple(val) => val.location,
         }
     }
 }

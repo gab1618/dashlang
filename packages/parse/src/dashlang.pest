@@ -29,7 +29,7 @@ unary_expression         =  { unary_operator ~ (expression | sub_expression) }
 call_arg                 =  { expression }
 call_expression          =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
 piping_operation         =  { "|>" ~ call_expression }
-expression               =  { (binary_expression | unary_expression | compound_assignment_expr | assignment_expression | call_expression | symbol | literal) ~ (piping_operation)* }
+expression               =  { (binary_expression | unary_expression | compound_assignment_expr | assignment_expression | call_expression | symbol | literal | tuple_destructuring) ~ (piping_operation)* }
 return_stmt              =  { "return" ~ expression }
 body                     =  { "{" ~ program ~ "}" }
 else_stmt                =  { "else" ~ body }
@@ -41,7 +41,9 @@ statement                =  { return_stmt | if_stmt | while_stmt | for_stmt | ex
 closure_param            =  { symbol }
 closure_params           =  { (closure_param ~ ("," ~ closure_param)*)? }
 closure                  =  { "(" ~ closure_params ~ ")" ~ body }
-literal                  =  { string | float | int | boolean | vector | closure }
+tuple                    =  { "(" ~ expression ~ ("," ~ expression)+ ~ ")" }
+tuple_destructuring      =  { "(" ~ symbol ~ ("," ~ symbol)+ ~ ")" ~ "=" ~ expression }
+literal                  =  { string | float | int | boolean | vector | closure | tuple }
 
 program = { statement* }
 file    = { SOI ~ program ~ EOI }

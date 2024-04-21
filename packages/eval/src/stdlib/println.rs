@@ -1,5 +1,5 @@
 use ast::{Call, Literal, Void};
-use errors::DashlangError;
+use errors::{DashlangError, DashlangResult};
 
 use crate::{eval, scope::Scope, Context};
 
@@ -30,6 +30,17 @@ fn stdlib_literal_display<T: Scope + Clone>(
         }
         Literal::Null(_) => Ok("Null".to_string()),
         Literal::Void(_) => Ok("Void".to_string()),
+        Literal::Tuple(tup) => {
+            let display_values: DashlangResult<Vec<String>> = tup
+                .value
+                .into_iter()
+                .map(|item| stdlib_literal_display(eval(item.clone(), ctx)?, ctx))
+                .collect();
+            match display_values {
+                Ok(args) => Ok(format!("({})", args.join(", "))),
+                Err(err) => Err(err),
+            }
+        }
     }
 }
 
