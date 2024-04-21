@@ -6,8 +6,8 @@ mod tests;
 use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use ast::{
-    BinaryExpr, BinaryOperator, Boolean, Call, Expr, Float, Int, Literal, Program, Stmt, UnaryExpr,
-    Void,
+    BinaryExpr, BinaryOperator, Boolean, Call, DestructuringAsignment, Expr, Float, Int, Literal,
+    Program, Stmt, Tuple, UnaryExpr, Void,
 };
 
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
@@ -236,6 +236,37 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<L
     .location(call.location))
 }
 
+fn eval_destructuring_assign_expr<T: Scope + Clone>(
+    expr: DestructuringAsignment,
+    ctx: &Context<T>,
+) -> DashlangResult<Literal> {
+    let value = eval(*expr.value, ctx)?;
+    if let Literal::Tuple(tup) = value {
+        let mut eval_expressions: Vec<Expr> = vec![];
+        if expr.symbols.len() != tup.value.len() {
+            return Err(DashlangError::new(
+                "Number os elements in tuples don't match",
+                ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+            )
+            .location(expr.location));
+        }
+        for (symbol, expr) in expr.symbols.into_iter().zip(tup.value) {
+            let evaluated_expr = eval(expr, ctx)?;
+            eval_expressions.push(Expr::Literal(evaluated_expr.clone()));
+            ctx.scope.set(&symbol.value, evaluated_expr);
+        }
+        Ok(Literal::Tuple(Tuple {
+            value: eval_expressions,
+            location: expr.location,
+        }))
+    } else {
+        Err(DashlangError::new(
+            "Expected value to be a tuple",
+            ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+        ))
+    }
+}
+
 pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> DashlangResult<Literal> {
     match expr {
         Expr::Literal(val) => Ok(val),
@@ -249,7 +280,7 @@ pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> DashlangResult<Li
         Expr::Symbol(symbol) => Ok(ctx.scope.get(&symbol.value)),
         Expr::UnaryExpr(op) => eval_unary_op(*op, ctx),
         Expr::SubExpr(sub) => eval(*sub.value, ctx),
-        Expr::DestructuringAsignment(_) => todo!(),
+        Expr::DestructuringAsignment(dest) => eval_destructuring_assign_expr(dest, ctx),
     }
 }
 type ExtensionImplementation<S> = dyn Fn(&Context<S>, Call) -> DashlangResult<Literal>;
