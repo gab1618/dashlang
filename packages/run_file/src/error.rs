@@ -32,7 +32,7 @@ impl Diagnostic for RunfileError {
                             )
                         )
                     }
-                    RuntimeErrorKind::WrongArgs => Some(Box::new("Try fixing the number os arguments passed to this call".to_owned())),
+                    RuntimeErrorKind::WrongArgs => Some(Box::new("Try fixing the number of arguments passed to this call".to_owned())),
                 }
             }
             ErrorKind::Parsing(_) => None 

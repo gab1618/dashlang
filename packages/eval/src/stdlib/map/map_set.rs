@@ -5,9 +5,27 @@ use crate::{eval, scope::Scope, Context};
 
 pub fn stdlib_map_set<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> DashlangResult<Literal> {
     let mut iter_args = call.args.into_iter();
-    let arg_map = iter_args.next().expect("Could not get call map arg");
-    let arg_key = iter_args.next().expect("Could not get call map key");
-    let arg_value = iter_args.next().expect("Could not get call map value");
+    let arg_map = iter_args.next().ok_or_else(|| {
+        DashlangError::new(
+            "Expected 'map' arg, but none was provided",
+            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+        )
+        .location(call.location)
+    })?;
+    let arg_key = iter_args.next().ok_or_else(|| {
+        DashlangError::new(
+            "Expected 'key' arg, but none was provided",
+            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+        )
+        .location(call.location)
+    })?;
+    let arg_value = iter_args.next().ok_or_else(|| {
+        DashlangError::new(
+            "Expected 'value' arg, but none was provided",
+            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+        )
+        .location(call.location)
+    })?;
     let map = eval(arg_map, ctx)?;
     if let Literal::Map(mut lit_map) = map {
         if let Expr::Literal(Literal::String(key)) = arg_key {
