@@ -25,7 +25,7 @@ pub fn stdlib_map_get<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> Dashlan
     if let Literal::Map(map) = eval(map_arg, ctx)? {
         if let Literal::String(key) = eval(key_arg, ctx)? {
             match map.value.get(&key.value) {
-                Some(found) => return Ok(eval(found.clone(), ctx)?),
+                Some(found) => return eval(found.clone(), ctx),
                 None => {
                     return Ok(Literal::Null(Null {
                         location: call.location,
