@@ -19,6 +19,8 @@ Boolean | true
 Null | null
 Closure | `(n) {return n + 1}`
 Vector | `[1, 2, 3]`
+Tuple | `("ok", 3)`
+Map | `{name: "John", age: 25}`
 
 ### Syntax
 
