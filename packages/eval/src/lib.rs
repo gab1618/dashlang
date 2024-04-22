@@ -1,16 +1,20 @@
+pub mod ctx;
+pub mod extension;
 pub mod scope;
 pub mod stdlib;
 #[cfg(test)]
 mod tests;
 
-use std::{cmp::Ordering, collections::HashMap, rc::Rc};
+use std::cmp::Ordering;
 
 use ast::{
     BinaryExpr, BinaryOperator, Boolean, Call, DestructuringAsignment, Expr, Float, Int, Literal,
     Program, Stmt, Tuple, UnaryExpr, Void,
 };
 
+use ctx::Context;
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use extension::{Extension, Plugin};
 use scope::Scope;
 
 macro_rules! define_aritmetic_operation {
@@ -282,46 +286,5 @@ pub fn eval<T: Scope + Clone>(expr: Expr, ctx: &Context<T>) -> DashlangResult<Li
         Expr::UnaryExpr(op) => eval_unary_op(*op, ctx),
         Expr::SubExpr(sub) => eval(*sub.value, ctx),
         Expr::DestructuringAsignment(dest) => eval_destructuring_assign_expr(dest, ctx),
-    }
-}
-type ExtensionImplementation<S> = dyn Fn(&Context<S>, Call) -> DashlangResult<Literal>;
-#[derive(Clone)]
-pub struct Extension<S: Scope> {
-    pub params: Vec<String>,
-    pub implementation: Rc<ExtensionImplementation<S>>,
-}
-pub trait Plugin<T: Scope> {
-    fn get_extensions(&self) -> Vec<(String, Extension<T>)>;
-}
-pub struct Context<T: Scope> {
-    scope: T,
-    extensions: HashMap<String, Extension<T>>,
-}
-impl<T: Scope + Clone> Context<T> {
-    pub fn new(s: T) -> Self {
-        Self {
-            scope: s,
-            extensions: HashMap::new(),
-        }
-    }
-    pub fn use_extension(&mut self, extension: Extension<T>, name: String) {
-        self.extensions.insert(name, extension);
-    }
-    pub fn run_program(&self, program: Program) -> DashlangResult<Literal> {
-        eval_program(program, self)
-    }
-    pub fn use_plugin(&mut self, plug: &dyn Plugin<T>) {
-        for (name, extension) in plug.get_extensions() {
-            self.use_extension(extension, name);
-        }
-    }
-}
-
-impl<T: Scope + Clone> Clone for Context<T> {
-    fn clone(&self) -> Self {
-        Self {
-            scope: self.scope.clone(),
-            extensions: self.extensions.clone(),
-        }
     }
 }

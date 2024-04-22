@@ -7,7 +7,7 @@ use parse::parse;
 use std::fs::read_to_string;
 
 use error::{RunfileError, RunfileResult};
-use eval::{scope::HashScope, stdlib::Stdlib, Context};
+use eval::{ctx::Context, scope::HashScope, stdlib::Stdlib};
 use miette::NamedSource;
 
 pub fn run_file(file_path: &str) -> RunfileResult {
