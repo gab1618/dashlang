@@ -1,3 +1,5 @@
+mod map;
+
 use ast::{Boolean, Closure, Expr, Float, Int, Literal, Location, Str, Tuple, Vector};
 use errors::DashlangResult;
 use pest::Parser;
@@ -6,6 +8,8 @@ use crate::body::parse_body;
 use crate::expression::parse_expression;
 use crate::parser::{DashlangParser, Rule};
 use crate::utils::get_pair_location;
+
+use self::map::parse_map;
 
 pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Literal> {
     let parsed = DashlangParser::parse(Rule::literal, input)
@@ -98,6 +102,10 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
                 location: (start + base_location, end + base_location).into(),
             }))
         }
+        Rule::map => Ok(Literal::Map(parse_map(
+            inner_value.as_str(),
+            start + base_location,
+        )?)),
         _ => unreachable!(),
     }
 }

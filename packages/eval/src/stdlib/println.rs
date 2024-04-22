@@ -41,6 +41,7 @@ fn stdlib_literal_display<T: Scope + Clone>(
                 Err(err) => Err(err),
             }
         }
+        Literal::Map(_map) => Ok("{map}".to_string()),
     }
 }
 
