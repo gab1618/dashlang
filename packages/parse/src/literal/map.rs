@@ -23,7 +23,7 @@ pub fn parse_map(input: &str, base_location: usize) -> DashlangResult<Map> {
 
         let attr_ast_value = inner_attribute
             .next()
-            .expect("Could not get attribute valie");
+            .expect("Could not get attribute value");
         let (value_start, _) = get_pair_location(&attr_ast_value);
         let parsed_attr_value =
             parse_expression(attr_ast_value.as_str(), base_location + value_start)?;
