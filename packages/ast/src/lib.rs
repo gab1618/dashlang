@@ -1,4 +1,6 @@
-#[derive(Debug, PartialEq, PartialOrd, Clone, Copy, Eq)]
+use std::collections::HashMap;
+
+#[derive(Debug, PartialEq, Clone, Copy, Eq)]
 pub struct Location {
     pub start: usize,
     pub end: usize,
@@ -19,13 +21,13 @@ impl Default for Location {
         Location::new(0, 0)
     }
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct AssignmentExpr {
     pub symbol: String,
     pub value: Box<Expr>,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum BinaryOperator {
     Add,
     Sub,
@@ -39,7 +41,7 @@ pub enum BinaryOperator {
     And,
     Or,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct BinaryExpr {
     pub left: Expr,
     pub right: Expr,
@@ -59,45 +61,45 @@ impl BinaryExpr {
         self.location
     }
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum UnaryOperator {
     Not,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct UnaryExpr {
     pub operator: UnaryOperator,
     pub operand: Expr,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Call {
     pub symbol: String,
     pub args: Vec<Expr>,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Closure {
     pub params: Vec<String>,
     pub body: Program,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Symbol {
     pub value: String,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct SubExpr {
     pub value: Box<Expr>,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct DestructuringAsignment {
     pub location: Location,
     pub symbols: Vec<Symbol>,
     pub value: Box<Expr>,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expr {
     BinaryExpr(Box<BinaryExpr>),
     UnaryExpr(Box<UnaryExpr>),
@@ -122,46 +124,51 @@ impl Expr {
         }
     }
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Int {
     pub value: i64,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Float {
     pub value: f64,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Str {
     pub value: String,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Boolean {
     pub value: bool,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Vector {
     pub value: Vec<Expr>,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Null {
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Void {
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Tuple {
     pub value: Vec<Expr>,
     pub location: Location,
 }
+#[derive(Debug, PartialEq, Clone)]
+pub struct Map {
+    pub value: HashMap<String, Expr>,
+    pub location: Location,
+}
 
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     Closure(Closure),
     Int(Int),
@@ -172,6 +179,7 @@ pub enum Literal {
     Null(Null),
     Void(Void),
     Tuple(Tuple),
+    Map(Map),
 }
 impl Literal {
     pub fn get_location(&self) -> Location {
@@ -185,23 +193,24 @@ impl Literal {
             Literal::Null(val) => val.location,
             Literal::Void(val) => val.location,
             Literal::Tuple(val) => val.location,
+            Literal::Map(val) => val.location,
         }
     }
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct If {
     pub cond: Expr,
     pub body: Program,
     pub else_block: Option<Program>,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct While {
     pub cond: Expr,
     pub body: Program,
     pub location: Location,
 }
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct For {
     pub cond: Expr,
     pub body: Program,
@@ -210,13 +219,13 @@ pub struct For {
     pub location: Location,
 }
 
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Return {
     pub value: Expr,
     pub location: Location,
 }
 
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     Return(Return),
     If(If),

@@ -69,6 +69,7 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> DashlangResult
             Literal::Null(_) => Ok(false),
             Literal::Void(_) => Ok(false),
             Literal::Tuple(_) => Ok(false),
+            Literal::Map(map) => Ok(!map.value.is_empty()),
         },
         expr => is_truthy(Expr::Literal(eval(expr, scope)?), scope),
     }

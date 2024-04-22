@@ -44,7 +44,9 @@ closure                          =  { "(" ~ closure_params ~ ")" ~ body }
 tuple                            =  { "(" ~ expression ~ ("," ~ expression)+ ~ ")" }
 destructuring_assignment_symbols =  { symbol ~ ("," ~ symbol)+ }
 destructuring_assignment         =  { "(" ~ destructuring_assignment_symbols ~ ")" ~ "=" ~ expression }
-literal                          =  { string | float | int | boolean | vector | closure | tuple }
+map_attribute                    =  { symbol ~ ":" ~ expression }
+map                              =  { "{" ~ map_attribute? ~ ("," ~ map_attribute)* ~ "}" }
+literal                          =  { string | float | int | boolean | vector | closure | tuple | map }
 
 program = { statement* }
 file    = { SOI ~ program ~ EOI }

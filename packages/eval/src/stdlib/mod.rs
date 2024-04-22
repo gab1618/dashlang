@@ -1,5 +1,6 @@
 mod input;
 mod len;
+mod map;
 mod nth;
 mod println;
 mod push;
@@ -12,7 +13,11 @@ use nth::stdlib_nth;
 use println::stdlib_println;
 use push::stdlib_push;
 
-use crate::{scope::Scope, Extension, Plugin};
+use crate::{
+    scope::Scope,
+    stdlib::map::{map_get::stdlib_map_get, map_set::stdlib_map_set},
+    Extension, Plugin,
+};
 
 pub struct Stdlib {}
 impl<T: Scope + Clone> Plugin<T> for Stdlib {
@@ -51,6 +56,20 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
                 Extension {
                     params: vec![],
                     implementation: Rc::new(|ctx, call| stdlib_input(ctx, call)),
+                },
+            ),
+            (
+                String::from("map_set"),
+                Extension {
+                    params: vec!["map".to_owned(), "key".to_owned(), "value".to_owned()],
+                    implementation: Rc::new(|ctx, call| stdlib_map_set(ctx, call)),
+                },
+            ),
+            (
+                String::from("map_get"),
+                Extension {
+                    params: vec!["map".to_owned(), "key".to_owned()],
+                    implementation: Rc::new(|ctx, call| stdlib_map_get(ctx, call)),
                 },
             ),
         ]
