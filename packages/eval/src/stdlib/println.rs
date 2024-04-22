@@ -41,7 +41,16 @@ fn stdlib_literal_display<T: Scope + Clone>(
                 Err(err) => Err(err),
             }
         }
-        Literal::Map(_map) => Ok("{map}".to_string()),
+        Literal::Map(map) => {
+            let mut formated_attributes: Vec<String> = vec![];
+            for (symbol, value) in map.value.into_iter() {
+                formated_attributes.push(format!(
+                    "{symbol}: {}",
+                    stdlib_literal_display(eval(value, ctx)?, ctx)?
+                ));
+            }
+            Ok(format!("{{ {} }}", formated_attributes.join(", ")))
+        }
     }
 }
 

@@ -8,3 +8,4 @@ person = person
 |> map_set("name", "John Doe")
 
 println(person |> map_get("name"))
+println(person)
