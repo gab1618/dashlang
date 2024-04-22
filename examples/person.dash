@@ -2,3 +2,9 @@ person = {
   name: "John",
   age: 25
 }
+println(person |> map_get("name"))
+
+person = person
+|> map_set("name", "John Doe")
+
+println(person |> map_get("name"))
