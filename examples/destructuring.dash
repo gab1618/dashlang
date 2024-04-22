@@ -1,0 +1,13 @@
+(name, age) = ("Gabriel", 19)
+
+println(name)
+println(age)
+
+get_infos = () {
+  return ("ok", 15)
+}
+
+(status, code) = get_infos()
+
+println(status)
+println(code)

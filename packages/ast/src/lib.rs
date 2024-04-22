@@ -92,6 +92,12 @@ pub struct SubExpr {
     pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct DestructuringAsignment {
+    pub location: Location,
+    pub symbols: Vec<Symbol>,
+    pub value: Box<Expr>,
+}
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Expr {
     BinaryExpr(Box<BinaryExpr>),
     UnaryExpr(Box<UnaryExpr>),
@@ -100,6 +106,7 @@ pub enum Expr {
     Symbol(Symbol),
     Literal(Literal),
     SubExpr(SubExpr),
+    DestructuringAsignment(DestructuringAsignment),
 }
 impl Expr {
     pub fn get_location(&self) -> Location {
@@ -111,6 +118,7 @@ impl Expr {
             Expr::Symbol(val) => val.location,
             Expr::Literal(val) => val.get_location(),
             Expr::SubExpr(val) => val.location,
+            Expr::DestructuringAsignment(val) => val.location,
         }
     }
 }
@@ -148,6 +156,12 @@ pub struct Void {
     pub location: Location,
 }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub struct Tuple {
+    pub value: Vec<Expr>,
+    pub location: Location,
+}
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Literal {
     Closure(Closure),
     Int(Int),
@@ -157,6 +171,7 @@ pub enum Literal {
     Vector(Vector),
     Null(Null),
     Void(Void),
+    Tuple(Tuple),
 }
 impl Literal {
     pub fn get_location(&self) -> Location {
@@ -169,6 +184,7 @@ impl Literal {
             Literal::Vector(val) => val.location,
             Literal::Null(val) => val.location,
             Literal::Void(val) => val.location,
+            Literal::Tuple(val) => val.location,
         }
     }
 }
