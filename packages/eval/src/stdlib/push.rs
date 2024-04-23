@@ -5,8 +5,23 @@ use crate::{eval, scope::Scope, Context};
 
 pub fn stdlib_push<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> DashlangResult<Literal> {
     let mut iter_args = call.args.into_iter();
-    let base = eval(iter_args.next().unwrap(), ctx)?;
-    let item = eval(iter_args.next().unwrap(), ctx)?;
+    let base = eval(
+        iter_args.next().ok_or(
+            DashlangError::new(
+                "Expected 'base' argument",
+                ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+            )
+            .location(call.location),
+        )?,
+        ctx,
+    )?;
+    let item = eval(
+        iter_args.next().ok_or(DashlangError::new(
+            "Expected 'item' argument",
+            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+        ))?,
+        ctx,
+    )?;
     match base {
         Literal::String(mut val) => match item {
             Literal::String(str_push) => {

@@ -47,7 +47,7 @@ impl<T: Scope + Clone> Plugin<T> for Stdlib {
             (
                 String::from("push"),
                 Extension {
-                    params: vec![String::from("item"), String::from("base")],
+                    params: vec![String::from("base"), String::from("item")],
                     implementation: Rc::new(|ctx, call| stdlib_push(ctx, call)),
                 },
             ),
