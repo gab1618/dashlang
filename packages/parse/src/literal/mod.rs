@@ -1,7 +1,7 @@
 mod map;
 
 use ast::{Boolean, Closure, Expr, Float, Int, Literal, Location, Str, Tuple, Vector};
-use errors::DashlangResult;
+use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 use pest::Parser;
 
 use crate::body::parse_body;
@@ -18,25 +18,35 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
         .expect("Could not parse value");
     let (start, end) = get_pair_location(&parsed);
     if parsed.as_rule() != Rule::literal {
-        panic!("Expected rule to be value");
+        return Err(DashlangError::new(
+            "Expected rule to be a literal",
+            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+        )
+        .location((start, end).into()));
     }
-    let inner_value = parsed.into_inner().next().expect("Could not parse value");
+    let inner_value = parsed.into_inner().next().expect("Could not parse literal");
     match inner_value.as_rule() {
         Rule::int => {
-            let parsed: i64 = inner_value
-                .as_str()
-                .parse()
-                .expect("Could not parse integer value");
+            let parsed: i64 = inner_value.as_str().parse().map_err(|_| {
+                DashlangError::new(
+                    "Could not parse integer literal",
+                    ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                )
+                .location((start, end).into())
+            })?;
             Ok(Literal::Int(Int {
                 value: parsed,
                 location: Location::new(start + base_location, end + base_location),
             }))
         }
         Rule::float => {
-            let parsed: f64 = inner_value
-                .as_str()
-                .parse()
-                .expect("Could not parse float value");
+            let parsed: f64 = inner_value.as_str().parse().map_err(|_| {
+                DashlangError::new(
+                    "Could not parse float literal",
+                    ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                )
+                .location((start, end).into())
+            })?;
             Ok(Literal::Float(Float {
                 value: parsed,
                 location: Location::new(start + base_location, end + base_location),
@@ -53,7 +63,10 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
             value: inner_value
                 .into_inner()
                 .next()
-                .expect("Could not parse string")
+                .ok_or(DashlangError::new(
+                    "Could not parse string",
+                    ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                ))?
                 .as_str()
                 .to_owned(),
             location: Location::new(start + base_location, end + base_location),
