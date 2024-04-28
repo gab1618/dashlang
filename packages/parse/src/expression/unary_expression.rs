@@ -1,5 +1,5 @@
 use ast::{Expr, Location, UnaryExpr, UnaryOperator};
-use errors::DashlangResult;
+use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
 use pest::Parser;
 
 use crate::{
@@ -8,6 +8,17 @@ use crate::{
 };
 
 use super::{parse_expression, parse_sub_expression};
+
+fn parse_unary_operator(input: &str) -> DashlangResult<UnaryOperator> {
+    match input {
+        "!" => Ok(UnaryOperator::Not),
+        "~" => Ok(UnaryOperator::BitwiseNot),
+        _ => Err(DashlangError::new(
+            "Invalid unary operator",
+            ErrorKind::Parsing(ParsingErrorKind::Default),
+        )),
+    }
+}
 
 pub fn parse_unary_expression(input: &str, base_location: usize) -> DashlangResult<UnaryExpr> {
     let parsed = DashlangParser::parse(Rule::unary_expression, input)
@@ -32,10 +43,7 @@ pub fn parse_unary_expression(input: &str, base_location: usize) -> DashlangResu
         _ => unreachable!(),
     };
     Ok(UnaryExpr {
-        operator: match operator.as_str() {
-            "!" => UnaryOperator::Not,
-            any => panic!("Invalid unary operator: {any}"),
-        },
+        operator: parse_unary_operator(operator.as_str())?,
         operand: parsed_operand,
         location: Location::new(start, end),
     })

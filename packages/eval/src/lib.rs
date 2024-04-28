@@ -146,6 +146,16 @@ fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> DashlangR
             value: !is_truthy(op.operand, ctx)?,
             location: op.location,
         })),
+        ast::UnaryOperator::BitwiseNot => Ok(Literal::Int(Int {
+            value: match eval(op.operand, ctx)? {
+                Literal::Int(integer) => !integer.value,
+                _ => Err(DashlangError::new(
+                    "Expected integer",
+                    ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                ))?,
+            },
+            location: op.location,
+        })),
     }
 }
 

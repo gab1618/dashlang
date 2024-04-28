@@ -69,6 +69,7 @@ impl BinaryExpr {
 #[derive(Debug, PartialEq, Clone)]
 pub enum UnaryOperator {
     Not,
+    BitwiseNot,
 }
 #[derive(Debug, PartialEq, Clone)]
 pub struct UnaryExpr {
