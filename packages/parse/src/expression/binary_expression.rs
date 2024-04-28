@@ -23,7 +23,12 @@ pub fn parse_binary_expression(input: &str, base_location: usize) -> DashlangRes
             | Op::infix(Rule::gt, Assoc::Left)
             | Op::infix(Rule::ge, Assoc::Left))
         .op(Op::infix(Rule::add, Assoc::Left) | Op::infix(Rule::sub, Assoc::Left))
-        .op(Op::infix(Rule::mul, Assoc::Left) | Op::infix(Rule::div, Assoc::Left));
+        .op(Op::infix(Rule::mul, Assoc::Left) | Op::infix(Rule::div, Assoc::Left))
+        .op(Op::infix(Rule::bitwise_right_shift, Assoc::Left)
+            | Op::infix(Rule::bitwise_left_shift, Assoc::Left)
+            | Op::infix(Rule::bitwise_and, Assoc::Left)
+            | Op::infix(Rule::bitwise_or, Assoc::Left)
+            | Op::infix(Rule::bitwise_xor, Assoc::Left));
 
     let pairs = DashlangParser::parse(Rule::binary_expression, input)
         .unwrap()
