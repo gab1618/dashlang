@@ -20,7 +20,29 @@ lt                               =  { "<" }
 eq                               =  { "==" }
 or                               =  { "||" }
 and                              =  { "&&" }
-binary_operator                  = _{ add | sub | mul | div | ge | gt | eq | le | lt | or | and }
+bitwise_and                      =  { "&" }
+bitwise_or                       =  { "|" }
+bitwise_xor                      =  { "^" }
+bitwise_left_shift               =  { "<<" }
+bitwise_right_shift              =  { ">>" }
+binary_operator                  = _{
+    add
+  | sub
+  | mul
+  | div
+  | ge
+  | gt
+  | eq
+  | le
+  | lt
+  | or
+  | and
+  | bitwise_and
+  | bitwise_or
+  | bitwise_xor
+  | bitwise_left_shift
+  | bitwise_right_shift
+}
 sub_expression                   =  { "(" ~ expression ~ ")" }
 atom                             = _{ literal | sub_expression | unary_expression | call_expression | symbol }
 binary_expression                =  { atom ~ (binary_operator ~ atom)+ }

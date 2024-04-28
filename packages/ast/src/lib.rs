@@ -40,6 +40,11 @@ pub enum BinaryOperator {
     Le, // Less of equal than
     And,
     Or,
+    BitwiseOr,
+    BitwiseAnd,
+    BitwiseXor,
+    BitwiseShiftLeft,
+    BitwiseShiftRight,
 }
 #[derive(Debug, PartialEq, Clone)]
 pub struct BinaryExpr {
