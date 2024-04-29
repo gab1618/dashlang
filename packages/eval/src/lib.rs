@@ -215,24 +215,8 @@ pub fn eval_program<T: Scope + Clone>(
 
 fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<Literal> {
     if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
-        match found_extension.params.len().cmp(&call.args.len()) {
-            Ordering::Less | Ordering::Greater => {
-                return Err(DashlangError::new(
-                    &format!(
-                        "Could not evaluate '{}'. Expected {} arguments, but {} were given instead",
-                        call.symbol,
-                        found_extension.params.len(),
-                        call.args.len()
-                    ),
-                    ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
-                )
-                .location(call.location))
-            }
-            Ordering::Equal => {
-                let local_context = ctx.clone();
-                return (found_extension.implementation)(&local_context, call);
-            }
-        }
+        let local_context = ctx.clone();
+        return (found_extension.implementation)(&local_context, call);
     }
     if let Literal::Closure(closure) = ctx.scope.get(&call.symbol) {
         match closure.params.len().cmp(&call.args.len()) {
