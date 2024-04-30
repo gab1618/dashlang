@@ -1,9 +1,9 @@
-use ast::{Call, Literal};
-use errors::{DashlangError, DashlangResult, ErrorKind};
+use ast::Literal;
+use errors::{DashlangError, DashlangResult};
 
-use crate::{eval, scope::Scope, Context};
+use crate::{ctx::Context, eval, scope::Scope};
 
-fn stdlib_literal_display<T: Scope + Clone>(
+pub fn stdlib_literal_display<T: Scope + Clone>(
     value: &Literal,
     ctx: &Context<T>,
 ) -> Result<String, DashlangError> {
@@ -54,23 +54,4 @@ fn stdlib_literal_display<T: Scope + Clone>(
             Ok(format!("{{ {} }}", formated_attributes.join(", ")))
         }
     }
-}
-
-pub fn stdlib_println<T: Scope + Clone>(
-    call: Call,
-    ctx: &Context<T>,
-) -> Result<Literal, DashlangError> {
-    let mut iter_args = call.args.into_iter();
-    let value = eval(
-        iter_args.next().ok_or(
-            DashlangError::new(
-                "Expected 'expr' argument",
-                ErrorKind::Runtime(errors::RuntimeErrorKind::WrongArgs),
-            )
-            .location(call.location),
-        )?,
-        ctx,
-    )?;
-    println!("{}", stdlib_literal_display(&value, ctx)?);
-    Ok(value)
 }

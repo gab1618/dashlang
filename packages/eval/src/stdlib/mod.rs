@@ -2,20 +2,23 @@ mod input;
 mod len;
 mod map;
 mod nth;
-mod println;
 mod push;
+mod stdout;
 
 use std::rc::Rc;
 
 use input::stdlib_input;
 use len::stdlib_len;
 use nth::stdlib_nth;
-use println::stdlib_println;
 use push::stdlib_push;
+use stdout::println::stdlib_println;
 
 use crate::{
     scope::Scope,
-    stdlib::map::{map_get::stdlib_map_get, map_set::stdlib_map_set},
+    stdlib::{
+        map::{map_get::stdlib_map_get, map_set::stdlib_map_set},
+        stdout::print::stdlib_print,
+    },
     Extension, Plugin,
 };
 
@@ -23,6 +26,12 @@ pub struct Stdlib {}
 impl<T: Scope + Clone> Plugin<T> for Stdlib {
     fn get_extensions(&self) -> Vec<(String, crate::Extension<T>)> {
         vec![
+            (
+                String::from("print"),
+                Extension {
+                    implementation: Rc::new(|ctx, call| stdlib_print(call, ctx)),
+                },
+            ),
             (
                 String::from("println"),
                 Extension {
