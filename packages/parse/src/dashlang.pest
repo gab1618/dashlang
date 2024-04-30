@@ -53,7 +53,8 @@ unary_expression                 =  { unary_operator ~ (expression | sub_express
 call_arg                         =  { expression }
 call_expression                  =  { symbol ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")" }
 piping_operation                 =  { "|>" ~ call_expression }
-expression                       =  { (destructuring_assignment | binary_expression | unary_expression | compound_assignment_expr | assignment_expression | call_expression | symbol | literal) ~ (piping_operation)* }
+dash_expr                        =  { symbol ~ "|>=" ~ call_expression }
+expression                       =  { (destructuring_assignment | binary_expression | unary_expression | compound_assignment_expr | assignment_expression | call_expression | dash_expr | symbol | literal) ~ (piping_operation)* }
 return_stmt                      =  { "return" ~ expression }
 body                             =  { "{" ~ program ~ "}" }
 else_stmt                        =  { "else" ~ body }
