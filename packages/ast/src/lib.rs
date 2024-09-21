@@ -175,6 +175,12 @@ pub struct Map {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+pub struct Atom {
+    pub value: String,
+    pub location: Location,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     Closure(Closure),
     Int(Int),
@@ -186,6 +192,7 @@ pub enum Literal {
     Void(Void),
     Tuple(Tuple),
     Map(Map),
+    Atom(Atom),
 }
 impl Literal {
     pub fn get_location(&self) -> Location {
@@ -200,6 +207,7 @@ impl Literal {
             Literal::Void(val) => val.location,
             Literal::Tuple(val) => val.location,
             Literal::Map(val) => val.location,
+            Literal::Atom(val) => val.location,
         }
     }
 }

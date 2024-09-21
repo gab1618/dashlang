@@ -53,5 +53,6 @@ pub fn stdlib_literal_display<T: Scope + Clone>(
             }
             Ok(format!("{{ {} }}", formated_attributes.join(", ")))
         }
+        Literal::Atom(atom) => Ok(format!(":{}", atom.value)),
     }
 }

@@ -1,6 +1,6 @@
 mod map;
 
-use ast::{Boolean, Closure, Expr, Float, Int, Literal, Location, Str, Tuple, Vector};
+use ast::{Atom, Boolean, Closure, Expr, Float, Int, Literal, Location, Str, Tuple, Vector};
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 use pest::Parser;
 
@@ -119,13 +119,25 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
             inner_value.as_str(),
             start + base_location,
         )?)),
+        Rule::atom => {
+            let (start, end) = get_pair_location(&inner_value);
+            let atom_value = inner_value.into_inner().next().ok_or(DashlangError::new(
+                "Could not parse atom",
+                ErrorKind::Parsing(errors::ParsingErrorKind::Default),
+            ))?;
+            let parsed_atom_value = atom_value.as_str().to_owned();
+            Ok(Literal::Atom(Atom {
+                value: parsed_atom_value,
+                location: (start + base_location, end + base_location).into(),
+            }))
+        }
         _ => unreachable!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use ast::{Closure, Expr, Return, Stmt, Tuple};
+    use ast::{Atom, Closure, Expr, Return, Stmt, Tuple};
 
     use super::*;
     #[test]
@@ -240,6 +252,16 @@ mod tests {
                     }))
                 ],
                 location: (0, 6).into()
+            }))
+        );
+    }
+    #[test]
+    fn test_parse_atom() {
+        assert_eq!(
+            parse_literal(":ok", 0),
+            Ok(Literal::Atom(Atom {
+                value: "ok".to_string(),
+                location: (0, 3).into()
             }))
         );
     }
