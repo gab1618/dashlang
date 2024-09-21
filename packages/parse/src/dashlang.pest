@@ -4,6 +4,8 @@ string                           = ${ quote ~ text ~ quote }
 float                            = ${ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
 int                              = ${ "-"? ~ ASCII_DIGIT+ }
 boolean                          =  { "true" | "false" }
+atom_value                       = ${ ASCII_ALPHA+ }
+atom                             = @{ ":" ~ atom_value }
 vector                           =  { "[" ~ expression? ~ ("," ~ expression)* ~ "]" }
 keyword                          =  { "return" }
 symbol                           = @{ !(keyword | boolean) ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
@@ -71,7 +73,7 @@ destructuring_assignment_symbols =  { symbol ~ ("," ~ symbol)+ }
 destructuring_assignment         =  { "(" ~ destructuring_assignment_symbols ~ ")" ~ "=" ~ expression }
 map_attribute                    =  { symbol ~ ":" ~ expression }
 map                              =  { "{" ~ map_attribute? ~ ("," ~ map_attribute)* ~ "}" }
-literal                          =  { string | float | int | boolean | vector | closure | tuple | map }
+literal                          =  { atom | string | float | int | boolean | vector | closure | tuple | map }
 
 program = { statement* }
 file    = { SOI ~ program ~ EOI }
