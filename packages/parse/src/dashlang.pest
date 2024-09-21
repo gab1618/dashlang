@@ -44,8 +44,8 @@ binary_operator                  = _{
   | bitwise_right_shift
 }
 sub_expression                   =  { "(" ~ expression ~ ")" }
-atom                             = _{ literal | sub_expression | unary_expression | call_expression | symbol }
-binary_expression                =  { atom ~ (binary_operator ~ atom)+ }
+binary_expr_atom                 = _{ literal | sub_expression | unary_expression | call_expression | symbol }
+binary_expression                =  { binary_expr_atom ~ (binary_operator ~ binary_expr_atom)+ }
 unary_not                        =  { "!" }
 unary_bitwise_not                =  { "~" }
 unary_operator                   =  { unary_not | unary_bitwise_not }
