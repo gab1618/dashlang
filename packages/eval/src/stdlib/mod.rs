@@ -24,52 +24,52 @@ use crate::{
 
 pub struct Stdlib {}
 impl<T: Scope + Clone> Plugin<T> for Stdlib {
-    fn get_extensions(&self) -> Vec<(String, crate::Extension<T>)> {
+    fn get_extensions(&self) -> Vec<(&'static str, crate::Extension<T>)> {
         vec![
             (
-                String::from("print"),
+                "print",
                 Extension {
                     implementation: Rc::new(|ctx, call| stdlib_print(call, ctx)),
                 },
             ),
             (
-                String::from("println"),
+                "println",
                 Extension {
                     implementation: Rc::new(|ctx, call| stdlib_println(call, ctx)),
                 },
             ),
             (
-                String::from("nth"),
+                "nth",
                 Extension {
                     implementation: Rc::new(|ctx, call| stdlib_nth(ctx, call)),
                 },
             ),
             (
-                String::from("len"),
+                "len",
                 Extension {
                     implementation: Rc::new(|ctx, call| stdlib_len(ctx, call)),
                 },
             ),
             (
-                String::from("push"),
+                "push",
                 Extension {
                     implementation: Rc::new(|ctx, call| stdlib_push(ctx, call)),
                 },
             ),
             (
-                String::from("input"),
+                "input",
                 Extension {
                     implementation: Rc::new(|ctx, call| stdlib_input(ctx, call)),
                 },
             ),
             (
-                String::from("map_set"),
+                "map_set",
                 Extension {
                     implementation: Rc::new(|ctx, call| stdlib_map_set(ctx, call)),
                 },
             ),
             (
-                String::from("map_get"),
+                "map_get",
                 Extension {
                     implementation: Rc::new(|ctx, call| stdlib_map_get(ctx, call)),
                 },

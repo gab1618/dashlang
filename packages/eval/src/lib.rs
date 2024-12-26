@@ -112,7 +112,7 @@ pub fn eval_program<T: Scope + Clone>(
 }
 
 fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<Literal> {
-    if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
+    if let Some(found_extension) = ctx.get_extension(&call.symbol) {
         let local_context = ctx.clone();
         return (found_extension.implementation)(&local_context, call);
     }
