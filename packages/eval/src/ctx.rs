@@ -26,7 +26,7 @@ impl<T: Scope + Clone> Context<T> {
     pub fn run_program(&self, program: Program) -> DashlangResult<Literal> {
         eval_program(program, self)
     }
-    pub fn use_plugin(&mut self, plug: &dyn Plugin<T>) {
+    pub fn use_plugin<P: Plugin<T>>(&mut self, plug: P) {
         for (name, extension) in plug.get_extensions() {
             self.use_extension(extension, name);
         }
