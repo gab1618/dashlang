@@ -1,7 +1,7 @@
 use ast::{Call, Literal};
 use errors::{DashlangError, ErrorKind};
 
-use crate::{eval, scope::Scope, stdlib::stdout::literal_display::stdlib_literal_display, Context};
+use crate::{eval, scope::Scope, stdlib::stdio::literal_display::stdlib_literal_display, Context};
 
 pub fn stdlib_println<T: Scope + Clone>(
     call: Call,

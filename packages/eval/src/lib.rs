@@ -1,3 +1,4 @@
+pub mod binary_expr;
 pub mod ctx;
 pub mod extension;
 pub mod scope;
@@ -8,79 +9,15 @@ mod tests;
 use std::cmp::Ordering;
 
 use ast::{
-    BinaryExpr, BinaryOperator, Boolean, Call, DestructuringAsignment, Expr, Float, Int, Literal,
-    Program, Stmt, Tuple, UnaryExpr, Void,
+    Boolean, Call, DestructuringAsignment, Expr, Int, Literal, Program, Stmt, Tuple, UnaryExpr,
+    Void,
 };
 
+use binary_expr::eval_binary_expr;
 use ctx::Context;
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
 use extension::{Extension, Plugin};
 use scope::Scope;
-
-macro_rules! define_aritmetic_operation {
-    ($operator:tt, $op:expr, $scope:expr) => {
-        match ($op.left, $op.right) {
-            (Expr::Literal(left), Expr::Literal(right)) => match (left, right) {
-                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int{value: left.value $operator right.value, location: Default::default()})),
-                (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float{value: left.value $operator (right.value as f64), location: Default::default()})),
-                (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: (left.value as f64) $operator right.value, location: Default::default()})),
-                (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
-            },
-            (left, right) => eval_binary_expr(
-                BinaryExpr::new(
-                    Expr::Literal(eval(left, $scope)?),
-                    Expr::Literal(eval(right, $scope)?),
-                    $op.operator,
-                ),
-                $scope
-            ),
-        }
-    };
-}
-
-macro_rules! define_bitwise_operation {
-    ($operator:tt, $op:expr, $scope:expr) => {
-        match ($op.left, $op.right) {
-            (Expr::Literal(left), Expr::Literal(right)) => match (left, right) {
-                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
-
-            }
-            (left, right) => eval_binary_expr(
-                BinaryExpr::new(
-                    Expr::Literal(eval(left, $scope)?),
-                    Expr::Literal(eval(right, $scope)?),
-                    $op.operator,
-                ),
-                $scope
-            ),
-        }
-
-    };
-}
-
-macro_rules! define_boolean_operation {
-    ($operator:tt, $op:expr, $scope:expr) => {
-        match ($op.left, $op.right) {
-            (Expr::Literal(left), Expr::Literal(right)) => match (left, right) {
-                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
-                (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator (right.value as f64), location: Default::default()})),
-                (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: (left.value as f64) $operator right.value, location: Default::default()})),
-                (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
-            },
-            (left, right) => eval_binary_expr(
-                BinaryExpr::new(
-                    Expr::Literal(eval(left, $scope)?),
-                    Expr::Literal(eval(right, $scope)?),
-                    $op.operator,
-                ),
-                $scope
-            ),
-        }
-    };
-}
 
 fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> DashlangResult<bool> {
     match expr {
@@ -101,46 +38,6 @@ fn is_truthy<T: Scope + Clone>(expr: Expr, scope: &Context<T>) -> DashlangResult
     }
 }
 
-fn eval_binary_expr<T: Scope + Clone>(op: BinaryExpr, ctx: &Context<T>) -> DashlangResult<Literal> {
-    match op.operator {
-        BinaryOperator::Add => define_aritmetic_operation!(+, op, ctx),
-        BinaryOperator::Sub => define_aritmetic_operation!(-, op, ctx),
-        BinaryOperator::Mul => define_aritmetic_operation!(*, op, ctx),
-        BinaryOperator::Div => define_aritmetic_operation!(/, op, ctx),
-        BinaryOperator::Gt => define_boolean_operation!(>, op, ctx),
-        BinaryOperator::Eq => define_boolean_operation!(==, op, ctx),
-        BinaryOperator::Ge => define_boolean_operation!(>=, op, ctx),
-        BinaryOperator::Lt => define_boolean_operation!(<, op, ctx),
-        BinaryOperator::Le => define_boolean_operation!(<=, op, ctx),
-        BinaryOperator::And => {
-            let left_evaluated = is_truthy(op.left, ctx)?;
-            Ok(Literal::Bool(Boolean {
-                value: if !left_evaluated {
-                    false
-                } else {
-                    is_truthy(op.right, ctx)?
-                },
-                location: op.location,
-            }))
-        }
-        BinaryOperator::Or => {
-            let left_evaluated = is_truthy(op.left, ctx)?;
-            Ok(Literal::Bool(Boolean {
-                value: if left_evaluated {
-                    true
-                } else {
-                    is_truthy(op.right, ctx)?
-                },
-                location: op.location,
-            }))
-        }
-        BinaryOperator::BitwiseOr => define_bitwise_operation!(|, op, ctx),
-        BinaryOperator::BitwiseAnd => define_bitwise_operation!(&, op, ctx),
-        BinaryOperator::BitwiseShiftLeft => define_bitwise_operation!(<<, op, ctx),
-        BinaryOperator::BitwiseShiftRight => define_bitwise_operation!(>>, op, ctx),
-        BinaryOperator::BitwiseXor => define_bitwise_operation!(^, op, ctx),
-    }
-}
 fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> DashlangResult<Literal> {
     match op.operator {
         ast::UnaryOperator::Not => Ok(Literal::Bool(Boolean {
@@ -215,7 +112,7 @@ pub fn eval_program<T: Scope + Clone>(
 }
 
 fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<Literal> {
-    if let Some(found_extension) = ctx.extensions.get(&call.symbol) {
+    if let Some(found_extension) = ctx.get_extension(&call.symbol) {
         let local_context = ctx.clone();
         return (found_extension.implementation)(&local_context, call);
     }

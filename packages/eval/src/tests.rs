@@ -1,4 +1,7 @@
-use ast::{AssignmentExpr, Closure, If, Location, Null, Return, Str, Symbol, While};
+use ast::{
+    AssignmentExpr, BinaryExpr, BinaryOperator, Closure, Float, If, Location, Null, Return, Str,
+    Symbol, While,
+};
 use scope::HashScope;
 
 use super::*;

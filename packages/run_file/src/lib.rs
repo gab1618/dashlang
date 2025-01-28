@@ -7,14 +7,11 @@ use parse::parse;
 use std::fs::read_to_string;
 
 use error::{RunfileError, RunfileResult};
-use eval::{ctx::Context, scope::HashScope, stdlib::Stdlib};
+use eval::{ctx::Context, scope::Scope};
 use miette::NamedSource;
 
-pub fn run_file(file_path: &str) -> RunfileResult {
-    let scope = HashScope::default();
+pub fn run_file<T: Scope + Clone>(file_path: &str, ctx: &mut Context<T>) -> RunfileResult {
     let file_content = read_to_string(file_path).unwrap();
-    let mut ctx = Context::new(scope);
-    ctx.use_plugin(&Stdlib {});
     match parse(&file_content) {
         Err(err) => Err(RunfileError {
             src: NamedSource::new(file_path, file_content),

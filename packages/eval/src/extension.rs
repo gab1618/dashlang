@@ -11,5 +11,5 @@ pub struct Extension<S: Scope> {
     pub implementation: Rc<ExtensionImplementation<S>>,
 }
 pub trait Plugin<T: Scope> {
-    fn get_extensions(&self) -> Vec<(String, Extension<T>)>;
+    fn get_extensions(&self) -> Vec<(&'static str, Extension<T>)>;
 }

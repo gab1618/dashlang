@@ -11,7 +11,7 @@ use crate::{
 
 pub struct Context<T: Scope> {
     pub scope: T,
-    pub extensions: HashMap<String, Extension<T>>,
+    pub extensions: HashMap<&'static str, Extension<T>>,
 }
 impl<T: Scope + Clone> Context<T> {
     pub fn new(s: T) -> Self {
@@ -20,16 +20,21 @@ impl<T: Scope + Clone> Context<T> {
             extensions: HashMap::new(),
         }
     }
-    pub fn use_extension(&mut self, extension: Extension<T>, name: String) {
+    pub fn use_extension(&mut self, extension: Extension<T>, name: &'static str) {
         self.extensions.insert(name, extension);
     }
     pub fn run_program(&self, program: Program) -> DashlangResult<Literal> {
         eval_program(program, self)
     }
-    pub fn use_plugin(&mut self, plug: &dyn Plugin<T>) {
+    pub fn use_plugin<P: Plugin<T>>(&mut self, plug: P) {
         for (name, extension) in plug.get_extensions() {
             self.use_extension(extension, name);
         }
+    }
+    pub fn get_extension(&self, name: &str) -> Option<Extension<T>> {
+        let found_extension = self.extensions.get(name);
+
+        found_extension.cloned()
     }
 }
 
