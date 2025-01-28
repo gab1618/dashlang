@@ -1,5 +1,11 @@
 use std::{env, fs::read_dir, path::PathBuf};
 
+use eval::{
+    ctx::Context,
+    scope::HashScope,
+    stdlib::{stdio::Stdio, Stdlib},
+};
+
 use crate::{error::RunfileResult, run_file};
 
 fn get_examples_folder_path() -> PathBuf {
@@ -15,11 +21,17 @@ fn get_examples_folder_path() -> PathBuf {
 
 fn get_example_program_path(program_name: &str) -> PathBuf {
     let base_examples_folder_path = get_examples_folder_path();
-    let file_path = base_examples_folder_path.join(program_name);
-    file_path
+    base_examples_folder_path.join(program_name)
 }
 fn run_example(program_name: &str) -> RunfileResult {
-    run_file(get_example_program_path(program_name).to_str().unwrap())
+    let scope = HashScope::default();
+    let mut ctx = Context::new(scope);
+    ctx.use_plugin(Stdlib::new());
+    ctx.use_plugin(Stdio::new());
+    run_file(
+        get_example_program_path(program_name).to_str().unwrap(),
+        &mut ctx,
+    )
 }
 
 fn run_all_examples(exclude: Vec<String>) -> RunfileResult {
