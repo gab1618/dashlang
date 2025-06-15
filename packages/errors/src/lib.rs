@@ -3,21 +3,11 @@ use std::error::Error;
 use ast::Location;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
-pub enum RuntimeErrorKind {
-    Default,
+pub enum ErrorKind {
+    Unknown,
     NonCallable,
     InvalidOperation,
     WrongArgs,
-}
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
-pub enum ParsingErrorKind {
-    Default,
-}
-
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
-pub enum ErrorKind {
-    Runtime(RuntimeErrorKind),
-    Parsing(ParsingErrorKind),
 }
 
 #[derive(Debug, PartialEq, Eq)]

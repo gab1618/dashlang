@@ -1,7 +1,7 @@
 mod map;
 
 use ast::{Atom, Boolean, Closure, Expr, Float, Int, Literal, Location, Str, Tuple, Vector};
-use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 use pest::Parser;
 
 use crate::body::parse_body;
@@ -18,11 +18,10 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
         .expect("Could not parse value");
     let (start, end) = get_pair_location(&parsed);
     if parsed.as_rule() != Rule::literal {
-        return Err(DashlangError::new(
-            "Expected rule to be a literal",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
-        )
-        .location((start, end).into()));
+        return Err(
+            DashlangError::new("Expected rule to be a literal", ErrorKind::WrongArgs)
+                .location((start, end).into()),
+        );
     }
     let inner_value = parsed.into_inner().next().expect("Could not parse literal");
     match inner_value.as_rule() {
@@ -30,7 +29,7 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
             let parsed: i64 = inner_value.as_str().parse().map_err(|_| {
                 DashlangError::new(
                     "Could not parse integer literal",
-                    ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                    ErrorKind::InvalidOperation,
                 )
                 .location((start, end).into())
             })?;
@@ -41,11 +40,8 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
         }
         Rule::float => {
             let parsed: f64 = inner_value.as_str().parse().map_err(|_| {
-                DashlangError::new(
-                    "Could not parse float literal",
-                    ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
-                )
-                .location((start, end).into())
+                DashlangError::new("Could not parse float literal", ErrorKind::InvalidOperation)
+                    .location((start, end).into())
             })?;
             Ok(Literal::Float(Float {
                 value: parsed,
@@ -65,7 +61,7 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
                 .next()
                 .ok_or(DashlangError::new(
                     "Could not parse string",
-                    ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                    ErrorKind::InvalidOperation,
                 ))?
                 .as_str()
                 .to_owned(),
@@ -123,7 +119,7 @@ pub fn parse_literal(input: &str, base_location: usize) -> DashlangResult<Litera
             let (start, end) = get_pair_location(&inner_value);
             let atom_value = inner_value.into_inner().next().ok_or(DashlangError::new(
                 "Could not parse atom",
-                ErrorKind::Parsing(errors::ParsingErrorKind::Default),
+                ErrorKind::Unknown,
             ))?;
             let parsed_atom_value = atom_value.as_str().to_owned();
             Ok(Literal::Atom(Atom {

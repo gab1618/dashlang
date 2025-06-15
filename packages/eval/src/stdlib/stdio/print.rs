@@ -10,11 +10,8 @@ pub fn stdlib_print<T: Scope + Clone>(
     let mut iter_args = call.args.into_iter();
     let value = eval(
         iter_args.next().ok_or(
-            DashlangError::new(
-                "Expected 'expr' argument",
-                ErrorKind::Runtime(errors::RuntimeErrorKind::WrongArgs),
-            )
-            .location(call.location),
+            DashlangError::new("Expected 'expr' argument", ErrorKind::WrongArgs)
+                .location(call.location),
         )?,
         ctx,
     )?;

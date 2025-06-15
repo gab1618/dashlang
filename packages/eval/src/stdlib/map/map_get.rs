@@ -1,5 +1,5 @@
 use ast::{Call, Literal, Null};
-use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 
 use crate::{eval, scope::Scope, Context};
 
@@ -8,7 +8,7 @@ pub fn stdlib_map_get<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> Dashlan
     let map_arg = iter_args.next().ok_or(
         DashlangError::new(
             "Expected 'map' arg, but none was provided",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+            ErrorKind::WrongArgs,
         )
         .location(call.location),
     )?;
@@ -16,7 +16,7 @@ pub fn stdlib_map_get<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> Dashlan
     let key_arg = iter_args.next().ok_or(
         DashlangError::new(
             "Expected 'key' arg, but none was provided",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+            ErrorKind::WrongArgs,
         )
         .location(call.location),
     )?;
@@ -33,15 +33,13 @@ pub fn stdlib_map_get<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> Dashlan
                 }
             }
         }
-        return Err(DashlangError::new(
-            "Expected argument to be a string",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
-        )
-        .location(key_arg_location));
+        return Err(
+            DashlangError::new("Expected argument to be a string", ErrorKind::WrongArgs)
+                .location(key_arg_location),
+        );
     }
-    Err(DashlangError::new(
-        "Expected argument to be a map",
-        ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+    Err(
+        DashlangError::new("Expected argument to be a map", ErrorKind::WrongArgs)
+            .location(map_arg_location),
     )
-    .location(map_arg_location))
 }

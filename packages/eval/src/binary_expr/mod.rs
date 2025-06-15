@@ -1,5 +1,5 @@
 use ast::{BinaryExpr, BinaryOperator, Boolean, Float, Int, Literal, Location};
-use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 use std::{cmp::Ordering, ops};
 
 use crate::{ctx::Context, eval, is_truthy, scope::Scope};
@@ -33,11 +33,10 @@ impl ops::Add for AritmeticLiteral {
                 value: left.value as f64 + right.value,
                 location: result_location,
             })),
-            (_, _) => Err(DashlangError::new(
-                "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
-            )
-            .location(result_location)),
+            (_, _) => Err(
+                DashlangError::new("Invalid operation", ErrorKind::InvalidOperation)
+                    .location(result_location),
+            ),
         }
     }
 }
@@ -64,11 +63,10 @@ impl ops::Sub for AritmeticLiteral {
                 value: left.value as f64 - right.value,
                 location: result_location,
             })),
-            (_, _) => Err(DashlangError::new(
-                "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
-            )
-            .location(result_location)),
+            (_, _) => Err(
+                DashlangError::new("Invalid operation", ErrorKind::InvalidOperation)
+                    .location(result_location),
+            ),
         }
     }
 }
@@ -95,11 +93,10 @@ impl ops::Mul for AritmeticLiteral {
                 value: left.value as f64 * right.value,
                 location: result_location,
             })),
-            (_, _) => Err(DashlangError::new(
-                "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
-            )
-            .location(result_location)),
+            (_, _) => Err(
+                DashlangError::new("Invalid operation", ErrorKind::InvalidOperation)
+                    .location(result_location),
+            ),
         }
     }
 }
@@ -125,11 +122,10 @@ impl ops::Div for AritmeticLiteral {
                 value: left.value as f64 / right.value,
                 location: result_location,
             })),
-            (_, _) => Err(DashlangError::new(
-                "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
-            )
-            .location(result_location)),
+            (_, _) => Err(
+                DashlangError::new("Invalid operation", ErrorKind::InvalidOperation)
+                    .location(result_location),
+            ),
         }
     }
 }
@@ -145,7 +141,7 @@ impl ops::BitOr for AritmeticLiteral {
             })),
             (_, _) => Err(DashlangError::new(
                 "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                ErrorKind::InvalidOperation,
             )),
         }
     }
@@ -162,7 +158,7 @@ impl ops::BitAnd for AritmeticLiteral {
             })),
             (_, _) => Err(DashlangError::new(
                 "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                ErrorKind::InvalidOperation,
             )),
         }
     }
@@ -179,7 +175,7 @@ impl ops::Shl for AritmeticLiteral {
             })),
             (_, _) => Err(DashlangError::new(
                 "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                ErrorKind::InvalidOperation,
             )),
         }
     }
@@ -197,7 +193,7 @@ impl ops::Shr for AritmeticLiteral {
             })),
             (_, _) => Err(DashlangError::new(
                 "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                ErrorKind::InvalidOperation,
             )),
         }
     }
@@ -214,7 +210,7 @@ impl ops::BitXor for AritmeticLiteral {
             })),
             (_, _) => Err(DashlangError::new(
                 "Invalid operation",
-                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                ErrorKind::InvalidOperation,
             )),
         }
     }

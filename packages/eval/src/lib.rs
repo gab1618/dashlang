@@ -15,7 +15,7 @@ use ast::{
 
 use binary_expr::eval_binary_expr;
 use ctx::Context;
-use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 use extension::{Extension, Plugin};
 use scope::Scope;
 
@@ -49,7 +49,7 @@ fn eval_unary_op<T: Scope + Clone>(op: UnaryExpr, ctx: &Context<T>) -> DashlangR
                 Literal::Int(integer) => !integer.value,
                 _ => Err(DashlangError::new(
                     "Expected integer",
-                    ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+                    ErrorKind::InvalidOperation,
                 ))?,
             },
             location: op.location,
@@ -128,7 +128,7 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<L
                     s = if closure.params.len() > 1_usize {"s"} else {""},
                     s1 = if call.args.len() > 1 {"were"} else {"was"}
                 ),
-                    ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+                    ErrorKind::WrongArgs,
                 )
                 .location(call.location))
             }
@@ -154,7 +154,7 @@ fn eval_call<T: Scope + Clone>(call: Call, ctx: &Context<T>) -> DashlangResult<L
     }
     Err(DashlangError::new(
         &format!("Cannot call '{}': not callable", call.symbol),
-        ErrorKind::Runtime(RuntimeErrorKind::NonCallable),
+        ErrorKind::NonCallable,
     )
     .location(call.location))
 }
@@ -169,7 +169,7 @@ fn eval_destructuring_assign_expr<T: Scope + Clone>(
         if expr.symbols.len() != tup.value.len() {
             return Err(DashlangError::new(
                 "Number os elements in tuples don't match",
-                ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+                ErrorKind::WrongArgs,
             )
             .location(expr.location));
         }
@@ -185,7 +185,7 @@ fn eval_destructuring_assign_expr<T: Scope + Clone>(
     } else {
         Err(DashlangError::new(
             "Expected value to be a tuple",
-            ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            ErrorKind::InvalidOperation,
         ))
     }
 }

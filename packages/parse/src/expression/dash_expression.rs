@@ -1,5 +1,5 @@
 use ast::{AssignmentExpr, Expr};
-use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 use pest::Parser;
 
 use crate::{
@@ -11,19 +11,17 @@ use crate::{
 pub fn parse_dash_expression(input: &str, base_location: usize) -> DashlangResult<AssignmentExpr> {
     let ast = DashlangParser::parse(Rule::dash_expr, input)
         .map_err(|err| {
-            DashlangError::new(
-                "Could not parse dash expression",
-                ErrorKind::Parsing(ParsingErrorKind::Default),
+            DashlangError::new("Could not parse dash expression", ErrorKind::Unknown).location(
+                match err.location {
+                    pest::error::InputLocation::Pos(pos) => (pos, pos + 1).into(),
+                    pest::error::InputLocation::Span((start, end)) => (start, end).into(),
+                },
             )
-            .location(match err.location {
-                pest::error::InputLocation::Pos(pos) => (pos, pos + 1).into(),
-                pest::error::InputLocation::Span((start, end)) => (start, end).into(),
-            })
         })?
         .next()
         .ok_or(DashlangError::new(
             "Could not parse dash expression",
-            ErrorKind::Parsing(ParsingErrorKind::Default),
+            ErrorKind::Unknown,
         ))?;
     let (ast_start, ast_end) = get_pair_location(&ast);
     let mut ast_inner = ast.into_inner();
