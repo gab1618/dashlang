@@ -4,7 +4,6 @@ use std::{cmp::Ordering, ops};
 
 use crate::{ctx::Context, eval, is_truthy, scope::Scope};
 
-#[derive(PartialEq)]
 struct AritmeticLiteral(Literal);
 impl AritmeticLiteral {
     fn get_result_location(&self, rhs: &Self) -> Location {
@@ -215,7 +214,18 @@ impl ops::BitXor for AritmeticLiteral {
         }
     }
 }
-
+impl PartialEq for AritmeticLiteral {
+    fn eq(&self, other: &Self) -> bool {
+        match (&self.0, &other.0) {
+            (Literal::Int(lhs), Literal::Int(rhs)) => lhs.value == rhs.value,
+            (Literal::Float(lhs), Literal::Float(rhs)) => lhs.value == rhs.value,
+            (Literal::Atom(lhs), Literal::Atom(rhs)) => lhs.value == rhs.value,
+            (Literal::Bool(lhs), Literal::Bool(rhs)) => lhs.value == rhs.value,
+            (Literal::Null(_), Literal::Null(_)) => true,
+            (_, _) => false,
+        }
+    }
+}
 impl PartialOrd for AritmeticLiteral {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         match (&self.0, &other.0) {
