@@ -1,5 +1,5 @@
 use ast::BinaryOperator;
-use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 
 pub fn parse_binary_operator(input: &str) -> DashlangResult<BinaryOperator> {
     match input {
@@ -22,7 +22,7 @@ pub fn parse_binary_operator(input: &str) -> DashlangResult<BinaryOperator> {
         _ => Err(DashlangError {
             location: None,
             message: "Invalid operator".to_owned(),
-            kind: ErrorKind::Parsing(ParsingErrorKind::Default),
+            kind: ErrorKind::Unknown,
         }),
     }
 }

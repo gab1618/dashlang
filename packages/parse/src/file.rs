@@ -1,5 +1,5 @@
 use ast::{Location, Program};
-use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 use pest::Parser;
 
 use crate::{
@@ -15,7 +15,7 @@ pub fn parse_file(input: &str) -> DashlangResult<Program> {
                 pest::error::InputLocation::Span((start, end)) => Some(Location::new(start, end)),
             },
             message: err.to_string(),
-            kind: ErrorKind::Parsing(ParsingErrorKind::Default),
+            kind: ErrorKind::Unknown,
         })?
         .next()
         .expect("Could not parse program");

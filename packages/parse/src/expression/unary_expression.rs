@@ -1,5 +1,5 @@
 use ast::{Expr, Location, UnaryExpr, UnaryOperator};
-use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 use pest::Parser;
 
 use crate::{
@@ -15,7 +15,7 @@ fn parse_unary_operator(input: &str) -> DashlangResult<UnaryOperator> {
         "~" => Ok(UnaryOperator::BitwiseNot),
         _ => Err(DashlangError::new(
             "Invalid unary operator",
-            ErrorKind::Parsing(ParsingErrorKind::Default),
+            ErrorKind::Unknown,
         )),
     }
 }

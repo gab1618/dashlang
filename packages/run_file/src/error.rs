@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display};
 
-use errors::{DashlangError, ErrorKind, RuntimeErrorKind};
+use errors::{DashlangError, ErrorKind};
 use miette::{Diagnostic, LabeledSpan, NamedSource, Result};
 
 use thiserror::Error;
@@ -19,23 +19,18 @@ impl Display for RunfileError {
 impl Diagnostic for RunfileError {
     fn help<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
         match self.err.kind {
-            ErrorKind::Runtime(runtime_err) => {
-                match runtime_err {
-                    RuntimeErrorKind::Default => None,
-                    RuntimeErrorKind::NonCallable => {
-                        Some(Box::new("Check if this value really exists".to_owned()))
-                    }
-                    RuntimeErrorKind::InvalidOperation => {
-                        Some (
-                            Box::new(
-                                "Try changing the values in the operation. Remember sometimes the order of the operands change the result".to_owned()
-                            )
-                        )
-                    }
-                    RuntimeErrorKind::WrongArgs => Some(Box::new("Try fixing the number of arguments passed to this call".to_owned())),
-                }
+            ErrorKind::NonCallable => {
+                Some(Box::new("Check if this value really exists".to_owned()))
             }
-            ErrorKind::Parsing(_) => None 
+            ErrorKind::InvalidOperation => {
+                Some (
+                    Box::new(
+                        "Try changing the values in the operation. Remember sometimes the order of the operands change the result".to_owned()
+                    )
+                )
+            }
+            ErrorKind::WrongArgs => Some(Box::new("Try fixing the number of arguments passed to this call".to_owned())),
+            ErrorKind::Unknown => None
 
         }
     }
@@ -51,15 +46,10 @@ impl Diagnostic for RunfileError {
                 [LabeledSpan::at(
                     loc.start..loc.end,
                     match self.err.kind {
-                        ErrorKind::Runtime(runtime_err) => match runtime_err {
-                            RuntimeErrorKind::Default => "The error is here",
-                            RuntimeErrorKind::NonCallable => "Non-callable value here",
-                            RuntimeErrorKind::InvalidOperation => "Invalid operation here",
-                            RuntimeErrorKind::WrongArgs => "Wrong args passed here",
-                        },
-                        ErrorKind::Parsing(parsing_err) => match parsing_err {
-                            errors::ParsingErrorKind::Default => "Invalid syntax here",
-                        },
+                        ErrorKind::Unknown => "The error is here",
+                        ErrorKind::NonCallable => "Non-callable value here",
+                        ErrorKind::InvalidOperation => "Invalid operation here",
+                        ErrorKind::WrongArgs => "Wrong args passed here",
                     },
                 )]
                 .into_iter(),

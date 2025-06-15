@@ -1,5 +1,5 @@
 use ast::{Call, Literal};
-use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 
 use crate::{eval, scope::Scope, Context};
 
@@ -12,21 +12,12 @@ pub fn stdlib_nth<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> DashlangRes
             if (int_index.value as usize) < vec.value.len() {
                 return eval(vec.value[int_index.value as usize].clone(), ctx);
             }
-            return Err(DashlangError::new(
-                "Index out of bound",
-                ErrorKind::Runtime(RuntimeErrorKind::Default),
-            )
-            .location(call.location));
+            return Err(DashlangError::new("Index out of bound", ErrorKind::Unknown)
+                .location(call.location));
         }
-        return Err(DashlangError::new(
-            "Index out of bound",
-            ErrorKind::Runtime(RuntimeErrorKind::Default),
-        )
-        .location(call.location));
+        return Err(
+            DashlangError::new("Index out of bound", ErrorKind::Unknown).location(call.location)
+        );
     }
-    Err(DashlangError::new(
-        "Index out of bound",
-        ErrorKind::Runtime(RuntimeErrorKind::Default),
-    )
-    .location(call.location))
+    Err(DashlangError::new("Index out of bound", ErrorKind::Unknown).location(call.location))
 }

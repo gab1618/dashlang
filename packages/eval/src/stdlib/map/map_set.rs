@@ -1,5 +1,5 @@
 use ast::{Call, Expr, Literal};
-use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 
 use crate::{eval, scope::Scope, Context};
 
@@ -8,21 +8,21 @@ pub fn stdlib_map_set<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> Dashlan
     let arg_map = iter_args.next().ok_or_else(|| {
         DashlangError::new(
             "Expected 'map' arg, but none was provided",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+            ErrorKind::WrongArgs,
         )
         .location(call.location)
     })?;
     let arg_key = iter_args.next().ok_or_else(|| {
         DashlangError::new(
             "Expected 'key' arg, but none was provided",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+            ErrorKind::WrongArgs,
         )
         .location(call.location)
     })?;
     let arg_value = iter_args.next().ok_or_else(|| {
         DashlangError::new(
             "Expected 'value' arg, but none was provided",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+            ErrorKind::WrongArgs,
         )
         .location(call.location)
     })?;
@@ -32,15 +32,13 @@ pub fn stdlib_map_set<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> Dashlan
             lit_map.value.insert(key.value, arg_value);
             return Ok(Literal::Map(lit_map));
         }
-        return Err(DashlangError::new(
-            "Expected key to be string",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
-        )
-        .location(call.location));
+        return Err(
+            DashlangError::new("Expected key to be string", ErrorKind::WrongArgs)
+                .location(call.location),
+        );
     }
-    Err(DashlangError::new(
-        "Expected arg to be a map",
-        ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+    Err(
+        DashlangError::new("Expected arg to be a map", ErrorKind::WrongArgs)
+            .location(call.location),
     )
-    .location(call.location))
 }

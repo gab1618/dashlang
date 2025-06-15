@@ -7,7 +7,7 @@ use crate::{
     DashlangParser, Rule,
 };
 use ast::{BinaryExpr, Expr, Location, Symbol};
-use errors::{DashlangError, DashlangResult, ErrorKind, ParsingErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 use pest::{
     pratt_parser::{Assoc, Op, PrattParser},
     Parser,
@@ -89,7 +89,7 @@ pub fn parse_binary_expression(input: &str, base_location: usize) -> DashlangRes
         Err(DashlangError {
             location: Some(Location::default()),
             message: "Expected binary expression".to_owned(),
-            kind: ErrorKind::Parsing(ParsingErrorKind::Default),
+            kind: ErrorKind::Unknown,
         })
     }
 }

@@ -1,5 +1,5 @@
 use ast::{Call, Int, Literal};
-use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use errors::{DashlangError, DashlangResult, ErrorKind};
 
 use crate::{eval, scope::Scope, Context};
 
@@ -8,7 +8,7 @@ pub fn stdlib_len<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> DashlangRes
     let item = eval(
         iter_args.next().ok_or(DashlangError::new(
             "Expected 'item' arg",
-            ErrorKind::Runtime(RuntimeErrorKind::WrongArgs),
+            ErrorKind::WrongArgs,
         ))?,
         ctx,
     )?;
@@ -23,7 +23,7 @@ pub fn stdlib_len<T: Scope + Clone>(ctx: &Context<T>, call: Call) -> DashlangRes
         })),
         _ => Err(DashlangError::new(
             "Could not get length: unsuported operation",
-            ErrorKind::Runtime(RuntimeErrorKind::Default),
+            ErrorKind::Unknown,
         )
         .location(call.location)),
     }
