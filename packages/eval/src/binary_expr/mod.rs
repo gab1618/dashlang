@@ -1,9 +1,10 @@
-use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Float, Int, Literal, Location};
+use ast::{BinaryExpr, BinaryOperator, Boolean, Float, Int, Literal, Location};
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
-use std::ops;
+use std::{cmp::Ordering, ops};
 
-use crate::{ctx::Context, eval, scope::Scope};
+use crate::{ctx::Context, eval, is_truthy, scope::Scope};
 
+#[derive(PartialEq)]
 struct AritmeticLiteral(Literal);
 impl AritmeticLiteral {
     fn get_result_location(&self, rhs: &Self) -> Location {
@@ -132,6 +133,136 @@ impl ops::Div for AritmeticLiteral {
         }
     }
 }
+impl ops::BitOr for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value | right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+impl ops::BitAnd for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value & right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+impl ops::Shl for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn shl(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value << right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+
+impl ops::Shr for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn shr(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value >> right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+impl ops::BitXor for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value ^ right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+
+impl PartialOrd for AritmeticLiteral {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (&self.0, &other.0) {
+            (Literal::Int(lhs), Literal::Int(rhs)) => {
+                if lhs.value > rhs.value {
+                    Some(Ordering::Greater)
+                } else if lhs.value < rhs.value {
+                    return Some(Ordering::Less);
+                } else {
+                    Some(Ordering::Equal)
+                }
+            }
+            (Literal::Float(lhs), Literal::Float(rhs)) => {
+                if lhs.value > rhs.value {
+                    Some(Ordering::Greater)
+                } else if lhs.value < rhs.value {
+                    return Some(Ordering::Less);
+                } else {
+                    Some(Ordering::Equal)
+                }
+            }
+            (Literal::Float(lhs), Literal::Int(rhs)) => {
+                if lhs.value > rhs.value as f64 {
+                    Some(Ordering::Greater)
+                } else if lhs.value < rhs.value as f64 {
+                    return Some(Ordering::Less);
+                } else {
+                    Some(Ordering::Equal)
+                }
+            }
+            (Literal::Int(lhs), Literal::Float(rhs)) => {
+                if lhs.value as f64 > rhs.value {
+                    Some(Ordering::Greater)
+                } else if (lhs.value as f64) < rhs.value {
+                    return Some(Ordering::Less);
+                } else {
+                    Some(Ordering::Equal)
+                }
+            }
+            (_, _) => None,
+        }
+    }
+}
 
 pub fn eval_binary_expr<T: Scope + Clone>(
     op: BinaryExpr,
@@ -144,18 +275,55 @@ pub fn eval_binary_expr<T: Scope + Clone>(
         BinaryOperator::Sub => arit_lhs - arit_rhs,
         BinaryOperator::Mul => arit_lhs * arit_rhs,
         BinaryOperator::Div => arit_lhs / arit_rhs,
-        BinaryOperator::Gt => todo!(),
-        BinaryOperator::Eq => todo!(),
-        BinaryOperator::Ge => todo!(),
-        BinaryOperator::Lt => todo!(),
-        BinaryOperator::Le => todo!(),
-        BinaryOperator::And => todo!(),
-        BinaryOperator::Or => todo!(),
+        BinaryOperator::Gt => Ok(Literal::Bool(Boolean {
+            value: arit_lhs > arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::Eq => Ok(Literal::Bool(Boolean {
+            value: arit_lhs == arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::Ge => Ok(Literal::Bool(Boolean {
+            value: arit_lhs >= arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::Lt => Ok(Literal::Bool(Boolean {
+            value: arit_lhs < arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::Le => Ok(Literal::Bool(Boolean {
+            value: arit_lhs <= arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::And => {
+            if !is_truthy(ast::Expr::Literal(arit_lhs.0), ctx)? {
+                return Ok(Literal::Bool(Boolean {
+                    value: false,
+                    location: op.location,
+                }));
+            }
+            Ok(Literal::Bool(Boolean {
+                value: is_truthy(ast::Expr::Literal(arit_rhs.0), ctx)?,
+                location: op.location,
+            }))
+        }
+        BinaryOperator::Or => {
+            if is_truthy(ast::Expr::Literal(arit_lhs.0), ctx)? {
+                return Ok(Literal::Bool(Boolean {
+                    value: true,
+                    location: op.location,
+                }));
+            }
+            Ok(Literal::Bool(Boolean {
+                value: is_truthy(ast::Expr::Literal(arit_rhs.0), ctx)?,
+                location: op.location,
+            }))
+        }
 
-        BinaryOperator::BitwiseOr => todo!(),
-        BinaryOperator::BitwiseAnd => todo!(),
-        BinaryOperator::BitwiseShiftLeft => todo!(),
-        BinaryOperator::BitwiseShiftRight => todo!(),
-        BinaryOperator::BitwiseXor => todo!(),
+        BinaryOperator::BitwiseOr => arit_lhs | arit_rhs,
+        BinaryOperator::BitwiseAnd => arit_lhs & arit_rhs,
+        BinaryOperator::BitwiseShiftLeft => arit_lhs << arit_rhs,
+        BinaryOperator::BitwiseShiftRight => arit_lhs >> arit_rhs,
+        BinaryOperator::BitwiseXor => arit_lhs ^ arit_rhs,
     }
 }
