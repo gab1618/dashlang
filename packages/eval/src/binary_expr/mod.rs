@@ -1,113 +1,329 @@
-use ast::{BinaryExpr, BinaryOperator, Boolean, Expr, Float, Int, Literal};
+use ast::{BinaryExpr, BinaryOperator, Boolean, Float, Int, Literal, Location};
 use errors::{DashlangError, DashlangResult, ErrorKind, RuntimeErrorKind};
+use std::{cmp::Ordering, ops};
 
 use crate::{ctx::Context, eval, is_truthy, scope::Scope};
 
-macro_rules! define_aritmetic_operation {
-    ($operator:tt, $op:expr, $scope:expr) => {
-        match ($op.left, $op.right) {
-            (Expr::Literal(left), Expr::Literal(right)) => match (left, right) {
-                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int{value: left.value $operator right.value, location: Default::default()})),
-                (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float{value: left.value $operator (right.value as f64), location: Default::default()})),
-                (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: (left.value as f64) $operator right.value, location: Default::default()})),
-                (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
-            },
-            (left, right) => eval_binary_expr(
-                BinaryExpr::new(
-                    Expr::Literal(eval(left, $scope)?),
-                    Expr::Literal(eval(right, $scope)?),
-                    $op.operator,
-                ),
-                $scope
-            ),
+#[derive(PartialEq)]
+struct AritmeticLiteral(Literal);
+impl AritmeticLiteral {
+    fn get_result_location(&self, rhs: &Self) -> Location {
+        Location::new(self.0.get_location().start, rhs.0.get_location().end)
+    }
+}
+impl ops::Add for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value + right.value,
+                location: result_location,
+            })),
+            (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float {
+                value: left.value + right.value,
+                location: result_location,
+            })),
+            (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float {
+                value: left.value + right.value as f64,
+                location: result_location,
+            })),
+            (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float {
+                value: left.value as f64 + right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )
+            .location(result_location)),
         }
-    };
+    }
+}
+impl ops::Sub for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value - right.value,
+                location: result_location,
+            })),
+            (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float {
+                value: left.value - right.value,
+                location: result_location,
+            })),
+            (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float {
+                value: left.value - right.value as f64,
+                location: result_location,
+            })),
+
+            (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float {
+                value: left.value as f64 - right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )
+            .location(result_location)),
+        }
+    }
 }
 
-macro_rules! define_bitwise_operation {
-    ($operator:tt, $op:expr, $scope:expr) => {
-        match ($op.left, $op.right) {
-            (Expr::Literal(left), Expr::Literal(right)) => match (left, right) {
-                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
+impl ops::Mul for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
 
+    fn mul(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value * right.value,
+                location: result_location,
+            })),
+            (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float {
+                value: left.value * right.value,
+                location: result_location,
+            })),
+            (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float {
+                value: left.value * right.value as f64,
+                location: result_location,
+            })),
+            (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float {
+                value: left.value as f64 * right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )
+            .location(result_location)),
+        }
+    }
+}
+impl ops::Div for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value / right.value,
+                location: result_location,
+            })),
+            (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Float(Float {
+                value: left.value / right.value,
+                location: result_location,
+            })),
+            (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Float(Float {
+                value: left.value / right.value as f64,
+                location: result_location,
+            })),
+            (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Float(Float {
+                value: left.value as f64 / right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )
+            .location(result_location)),
+        }
+    }
+}
+impl ops::BitOr for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value | right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+impl ops::BitAnd for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value & right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+impl ops::Shl for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn shl(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value << right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+
+impl ops::Shr for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn shr(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value >> right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+impl ops::BitXor for AritmeticLiteral {
+    type Output = Result<Literal, DashlangError>;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        let result_location = self.get_result_location(&rhs);
+        match (self.0, rhs.0) {
+            (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Int(Int {
+                value: left.value ^ right.value,
+                location: result_location,
+            })),
+            (_, _) => Err(DashlangError::new(
+                "Invalid operation",
+                ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation),
+            )),
+        }
+    }
+}
+
+impl PartialOrd for AritmeticLiteral {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (&self.0, &other.0) {
+            (Literal::Int(lhs), Literal::Int(rhs)) => {
+                if lhs.value > rhs.value {
+                    Some(Ordering::Greater)
+                } else if lhs.value < rhs.value {
+                    return Some(Ordering::Less);
+                } else {
+                    Some(Ordering::Equal)
+                }
             }
-            (left, right) => eval_binary_expr(
-                BinaryExpr::new(
-                    Expr::Literal(eval(left, $scope)?),
-                    Expr::Literal(eval(right, $scope)?),
-                    $op.operator,
-                ),
-                $scope
-            ),
+            (Literal::Float(lhs), Literal::Float(rhs)) => {
+                if lhs.value > rhs.value {
+                    Some(Ordering::Greater)
+                } else if lhs.value < rhs.value {
+                    return Some(Ordering::Less);
+                } else {
+                    Some(Ordering::Equal)
+                }
+            }
+            (Literal::Float(lhs), Literal::Int(rhs)) => {
+                if lhs.value > rhs.value as f64 {
+                    Some(Ordering::Greater)
+                } else if lhs.value < rhs.value as f64 {
+                    return Some(Ordering::Less);
+                } else {
+                    Some(Ordering::Equal)
+                }
+            }
+            (Literal::Int(lhs), Literal::Float(rhs)) => {
+                if lhs.value as f64 > rhs.value {
+                    Some(Ordering::Greater)
+                } else if (lhs.value as f64) < rhs.value {
+                    return Some(Ordering::Less);
+                } else {
+                    Some(Ordering::Equal)
+                }
+            }
+            (_, _) => None,
         }
-
-    };
-}
-
-macro_rules! define_boolean_operation {
-    ($operator:tt, $op:expr, $scope:expr) => {
-        match ($op.left, $op.right) {
-            (Expr::Literal(left), Expr::Literal(right)) => match (left, right) {
-                (Literal::Int(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
-                (Literal::Float(left), Literal::Int(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator (right.value as f64), location: Default::default()})),
-                (Literal::Int(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: (left.value as f64) $operator right.value, location: Default::default()})),
-                (Literal::Float(left), Literal::Float(right)) => Ok(Literal::Bool(Boolean{value: left.value $operator right.value, location: Default::default()})),
-                (_, _) => Err(DashlangError::new("Invalid operation", ErrorKind::Runtime(RuntimeErrorKind::InvalidOperation)).location($op.location)),
-            },
-            (left, right) => eval_binary_expr(
-                BinaryExpr::new(
-                    Expr::Literal(eval(left, $scope)?),
-                    Expr::Literal(eval(right, $scope)?),
-                    $op.operator,
-                ),
-                $scope
-            ),
-        }
-    };
+    }
 }
 
 pub fn eval_binary_expr<T: Scope + Clone>(
     op: BinaryExpr,
     ctx: &Context<T>,
 ) -> DashlangResult<Literal> {
+    let arit_lhs = AritmeticLiteral(eval(op.left, ctx)?);
+    let arit_rhs = AritmeticLiteral(eval(op.right, ctx)?);
     match op.operator {
-        BinaryOperator::Add => define_aritmetic_operation!(+, op, ctx),
-        BinaryOperator::Sub => define_aritmetic_operation!(-, op, ctx),
-        BinaryOperator::Mul => define_aritmetic_operation!(*, op, ctx),
-        BinaryOperator::Div => define_aritmetic_operation!(/, op, ctx),
-        BinaryOperator::Gt => define_boolean_operation!(>, op, ctx),
-        BinaryOperator::Eq => define_boolean_operation!(==, op, ctx),
-        BinaryOperator::Ge => define_boolean_operation!(>=, op, ctx),
-        BinaryOperator::Lt => define_boolean_operation!(<, op, ctx),
-        BinaryOperator::Le => define_boolean_operation!(<=, op, ctx),
+        BinaryOperator::Add => arit_lhs + arit_rhs,
+        BinaryOperator::Sub => arit_lhs - arit_rhs,
+        BinaryOperator::Mul => arit_lhs * arit_rhs,
+        BinaryOperator::Div => arit_lhs / arit_rhs,
+        BinaryOperator::Gt => Ok(Literal::Bool(Boolean {
+            value: arit_lhs > arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::Eq => Ok(Literal::Bool(Boolean {
+            value: arit_lhs == arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::Ge => Ok(Literal::Bool(Boolean {
+            value: arit_lhs >= arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::Lt => Ok(Literal::Bool(Boolean {
+            value: arit_lhs < arit_rhs,
+            location: op.location,
+        })),
+        BinaryOperator::Le => Ok(Literal::Bool(Boolean {
+            value: arit_lhs <= arit_rhs,
+            location: op.location,
+        })),
         BinaryOperator::And => {
-            let left_evaluated = is_truthy(op.left, ctx)?;
+            if !is_truthy(ast::Expr::Literal(arit_lhs.0), ctx)? {
+                return Ok(Literal::Bool(Boolean {
+                    value: false,
+                    location: op.location,
+                }));
+            }
             Ok(Literal::Bool(Boolean {
-                value: if !left_evaluated {
-                    false
-                } else {
-                    is_truthy(op.right, ctx)?
-                },
+                value: is_truthy(ast::Expr::Literal(arit_rhs.0), ctx)?,
                 location: op.location,
             }))
         }
         BinaryOperator::Or => {
-            let left_evaluated = is_truthy(op.left, ctx)?;
+            if is_truthy(ast::Expr::Literal(arit_lhs.0), ctx)? {
+                return Ok(Literal::Bool(Boolean {
+                    value: true,
+                    location: op.location,
+                }));
+            }
             Ok(Literal::Bool(Boolean {
-                value: if left_evaluated {
-                    true
-                } else {
-                    is_truthy(op.right, ctx)?
-                },
+                value: is_truthy(ast::Expr::Literal(arit_rhs.0), ctx)?,
                 location: op.location,
             }))
         }
-        BinaryOperator::BitwiseOr => define_bitwise_operation!(|, op, ctx),
-        BinaryOperator::BitwiseAnd => define_bitwise_operation!(&, op, ctx),
-        BinaryOperator::BitwiseShiftLeft => define_bitwise_operation!(<<, op, ctx),
-        BinaryOperator::BitwiseShiftRight => define_bitwise_operation!(>>, op, ctx),
-        BinaryOperator::BitwiseXor => define_bitwise_operation!(^, op, ctx),
+
+        BinaryOperator::BitwiseOr => arit_lhs | arit_rhs,
+        BinaryOperator::BitwiseAnd => arit_lhs & arit_rhs,
+        BinaryOperator::BitwiseShiftLeft => arit_lhs << arit_rhs,
+        BinaryOperator::BitwiseShiftRight => arit_lhs >> arit_rhs,
+        BinaryOperator::BitwiseXor => arit_lhs ^ arit_rhs,
     }
 }
