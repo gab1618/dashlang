@@ -14,12 +14,13 @@ Name | example
 -- | --
 Integer | 1
 Float | 1.0
+Atom | :ok
 String | "Foo"
 Boolean | true
 Null | null
 Closure | `(n) {return n + 1}`
 Vector | `[1, 2, 3]`
-Tuple | `("ok", 3)`
+Tuple | `(:ok, 3)`
 Map | `{name: "John", age: 25}`
 
 ### Syntax
@@ -117,4 +118,4 @@ cli is the only package you can actually run, all the other packages are just li
 
 You can download the cli tool on the releases tab
 
-https://github.com/GabrielBrandao1618/dashlang/releases
+https://github.com/gab1618/dashlang/releases
